@@ -1,0 +1,122 @@
+{
+  "version": 1,
+  "owner": "ptah",
+  "target": "antigravity",
+  "entries": {
+    ".agents/skills/agent-lanes": {
+      "hash": "3f84b377c4d03e3e7c9ac66b3a92a8b90c8469781fa9fb29fe3ef802c2e45242",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\skills\\agent-lanes",
+      "kind": "skill"
+    },
+    ".agents/skills/angular-3d-scene-crafter": {
+      "hash": "5379254036c8eda74da13c68938a34d608c90525503106f22956acdfbae81f85",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\skills\\angular-3d-scene-crafter",
+      "kind": "skill"
+    },
+    ".agents/skills/angular-frontend-patterns": {
+      "hash": "5bc86087dbbaeb354259ba24bec208d12ea918ef0c08d446977e4a0c3f439f49",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\skills\\angular-frontend-patterns",
+      "kind": "skill"
+    },
+    ".agents/skills/angular-gsap-animation-crafter": {
+      "hash": "ec946a6efa8da237de92619cf781a5a97df73914d0592c6756109dfe0b205cd4",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\skills\\angular-gsap-animation-crafter",
+      "kind": "skill"
+    },
+    ".agents/skills/ddd-architecture": {
+      "hash": "bdc52c14a78c3027c93a2b40d5fa67c8a09387b18b8658c40fa80e5ae26d7ba7",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\skills\\ddd-architecture",
+      "kind": "skill"
+    },
+    ".agents/skills/execute-phase-gated-task": {
+      "hash": "4a8f9d509ca7dcc080b3b07740d8ce29ea0de8780472c0327af060fba0355c59",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\skills\\execute-phase-gated-task",
+      "kind": "skill"
+    },
+    ".agents/skills/extract-and-relocate-angular-component-feature": {
+      "hash": "e5123400a7a065e67938afc86d2c91e5150110c0b00668d8e4e81c4382e7fb54",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\skills\\extract-and-relocate-angular-component-feature",
+      "kind": "skill"
+    },
+    ".agents/skills/humanize-library": {
+      "hash": "1a5bbe8ad75754e9b51e38d9f87d13a8ffc1fe0245d385d55e6fc8927e2d421f",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\skills\\humanize-library",
+      "kind": "skill"
+    },
+    ".agents/skills/impeccable": {
+      "hash": "3c4fbbc892adaec20fbe5b578127f507de73584a64c1052f15ed65ff11e32c7e",
+      "source": "C:\\Users\\abdal\\.ptah\\plugins\\ptah-skillssh-pbakaus-impeccable\\skills\\impeccable",
+      "kind": "skill"
+    },
+    ".agents/skills/nestjs-backend-patterns": {
+      "hash": "91c49289ca691f694ded50b8b2644c23b72923ff2b5ca19631f8761ee987595d",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\skills\\nestjs-backend-patterns",
+      "kind": "skill"
+    },
+    ".agents/skills/nestjs-deployment": {
+      "hash": "0842c0793eb6786c5027b63e083e365ff9d0e1e5cae205b1a722e4ec0632e5fb",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\skills\\nestjs-deployment",
+      "kind": "skill"
+    },
+    ".agents/skills/nx-workspace-architect": {
+      "hash": "fd93c1f7c7392595ea97896ae1c2c72accfdc453612ccfe95d5fc018e8c80899",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\skills\\nx-workspace-architect",
+      "kind": "skill"
+    },
+    ".agents/skills/orchestration": {
+      "hash": "050569dab0a28ad88934fe50c202eb6fc64edb46e9278b9411ca216e66fdf083",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\skills\\orchestration",
+      "kind": "skill"
+    },
+    ".agents/skills/ptah-cli-usage": {
+      "hash": "6c58f4ea2894f497614b555f89e189e353a3513c55e5d77cc52803818eed0816",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\skills\\ptah-cli-usage",
+      "kind": "skill"
+    },
+    ".agents/skills/resilient-nestjs-patterns": {
+      "hash": "5716dfe4be544eca80a3ddfadca9e9db9d8fdceeb101a1b7382dab65ffe08162",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\skills\\resilient-nestjs-patterns",
+      "kind": "skill"
+    },
+    ".agents/skills/saas-platform-patterns": {
+      "hash": "a344b410a6edb1f8ffa8398d77924ad622f204002d3b7b8eabf04c3311a53e83",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\skills\\saas-platform-patterns",
+      "kind": "skill"
+    },
+    ".agents/skills/saas-workspace-initializer": {
+      "hash": "8cc55430e5843fd0ef0a62945a5e65e1db930712bb0d42dc14a8130ada04d026",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\skills\\saas-workspace-initializer",
+      "kind": "skill"
+    },
+    ".agents/skills/skill-creator": {
+      "hash": "4563c27018941f97883826906a81d96755bbb9ca34370fbc857a370da5739707",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\skills\\skill-creator",
+      "kind": "skill"
+    },
+    ".agents/skills/technical-content-writer": {
+      "hash": "914a990b5c145c4de91ff63b1fd422e014482e73497475419f4915ee1fe2883a",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\skills\\technical-content-writer",
+      "kind": "skill"
+    },
+    ".agents/skills/tribunal": {
+      "hash": "57114c416c5dc3f8854a922a99a0ce50c1be85029175a79346f274723e0ef473",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\skills\\tribunal",
+      "kind": "skill"
+    },
+    ".agents/skills/typesafe-ai": {
+      "hash": "b477603e1fe25248773b5bb03790deaa93303b6f3d6a01e909584aa5f7944591",
+      "source": "C:\\Users\\abdal\\.ptah\\plugins\\ptah-skillssh-typesafe-ai-skills\\skills\\typesafe-ai",
+      "kind": "skill"
+    },
+    ".agents/skills/ui-ux-designer": {
+      "hash": "4768ba0297865b172c90eb424152b1075ce1f388531be9abf4967294456a2445",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\skills\\ui-ux-designer",
+      "kind": "skill"
+    },
+    ".agents/skills/webhook-architecture": {
+      "hash": "9ceff9a329650dd9d7d1324e986d09d8084a722b26e9c8535543980277782258",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\skills\\webhook-architecture",
+      "kind": "skill"
+    }
+  }
+}

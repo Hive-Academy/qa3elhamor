@@ -1,0 +1,48 @@
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  background: #0a1e3f;
+  color: #e6f2ff;
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+.shell {
+  position: relative;
+  height: 100%;
+}
+
+.shell canvas {
+  display: block;
+  height: 100%;
+  width: 100%;
+}
+
+.scaffold-note {
+  position: absolute;
+  bottom: 1.5rem;
+  left: 1.5rem;
+  max-width: 32rem;
+  padding: 1rem 1.25rem;
+  border: 1px solid rgba(230, 242, 255, 0.2);
+  border-radius: 0.5rem;
+  background: rgba(4, 16, 34, 0.72);
+  backdrop-filter: blur(6px);
+}
+
+.scaffold-note h1 {
+  margin: 0 0 0.35rem;
+  font-size: 1.5rem;
+}
+
+.scaffold-note p {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  opacity: 0.85;
+}

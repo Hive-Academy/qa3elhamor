@@ -1,0 +1,212 @@
+{
+  "version": 1,
+  "owner": "ptah",
+  "target": "codex",
+  "entries": {
+    ".agents/skills/agent-lanes": {
+      "hash": "3f84b377c4d03e3e7c9ac66b3a92a8b90c8469781fa9fb29fe3ef802c2e45242",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\skills\\agent-lanes",
+      "kind": "skill"
+    },
+    ".agents/skills/angular-3d-scene-crafter": {
+      "hash": "5379254036c8eda74da13c68938a34d608c90525503106f22956acdfbae81f85",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\skills\\angular-3d-scene-crafter",
+      "kind": "skill"
+    },
+    ".agents/skills/angular-frontend-patterns": {
+      "hash": "5bc86087dbbaeb354259ba24bec208d12ea918ef0c08d446977e4a0c3f439f49",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\skills\\angular-frontend-patterns",
+      "kind": "skill"
+    },
+    ".agents/skills/angular-gsap-animation-crafter": {
+      "hash": "ec946a6efa8da237de92619cf781a5a97df73914d0592c6756109dfe0b205cd4",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\skills\\angular-gsap-animation-crafter",
+      "kind": "skill"
+    },
+    ".agents/skills/ddd-architecture": {
+      "hash": "bdc52c14a78c3027c93a2b40d5fa67c8a09387b18b8658c40fa80e5ae26d7ba7",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\skills\\ddd-architecture",
+      "kind": "skill"
+    },
+    ".agents/skills/execute-phase-gated-task": {
+      "hash": "4a8f9d509ca7dcc080b3b07740d8ce29ea0de8780472c0327af060fba0355c59",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\skills\\execute-phase-gated-task",
+      "kind": "skill"
+    },
+    ".agents/skills/extract-and-relocate-angular-component-feature": {
+      "hash": "e5123400a7a065e67938afc86d2c91e5150110c0b00668d8e4e81c4382e7fb54",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\skills\\extract-and-relocate-angular-component-feature",
+      "kind": "skill"
+    },
+    ".agents/skills/humanize-library": {
+      "hash": "1a5bbe8ad75754e9b51e38d9f87d13a8ffc1fe0245d385d55e6fc8927e2d421f",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\skills\\humanize-library",
+      "kind": "skill"
+    },
+    ".agents/skills/impeccable": {
+      "hash": "3c4fbbc892adaec20fbe5b578127f507de73584a64c1052f15ed65ff11e32c7e",
+      "source": "C:\\Users\\abdal\\.ptah\\plugins\\ptah-skillssh-pbakaus-impeccable\\skills\\impeccable",
+      "kind": "skill"
+    },
+    ".agents/skills/nestjs-backend-patterns": {
+      "hash": "91c49289ca691f694ded50b8b2644c23b72923ff2b5ca19631f8761ee987595d",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\skills\\nestjs-backend-patterns",
+      "kind": "skill"
+    },
+    ".agents/skills/nestjs-deployment": {
+      "hash": "0842c0793eb6786c5027b63e083e365ff9d0e1e5cae205b1a722e4ec0632e5fb",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\skills\\nestjs-deployment",
+      "kind": "skill"
+    },
+    ".agents/skills/nx-workspace-architect": {
+      "hash": "fd93c1f7c7392595ea97896ae1c2c72accfdc453612ccfe95d5fc018e8c80899",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\skills\\nx-workspace-architect",
+      "kind": "skill"
+    },
+    ".agents/skills/orchestration": {
+      "hash": "050569dab0a28ad88934fe50c202eb6fc64edb46e9278b9411ca216e66fdf083",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\skills\\orchestration",
+      "kind": "skill"
+    },
+    ".agents/skills/ptah-cli-usage": {
+      "hash": "6c58f4ea2894f497614b555f89e189e353a3513c55e5d77cc52803818eed0816",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\skills\\ptah-cli-usage",
+      "kind": "skill"
+    },
+    ".agents/skills/resilient-nestjs-patterns": {
+      "hash": "5716dfe4be544eca80a3ddfadca9e9db9d8fdceeb101a1b7382dab65ffe08162",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\skills\\resilient-nestjs-patterns",
+      "kind": "skill"
+    },
+    ".agents/skills/saas-platform-patterns": {
+      "hash": "a344b410a6edb1f8ffa8398d77924ad622f204002d3b7b8eabf04c3311a53e83",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\skills\\saas-platform-patterns",
+      "kind": "skill"
+    },
+    ".agents/skills/saas-workspace-initializer": {
+      "hash": "8cc55430e5843fd0ef0a62945a5e65e1db930712bb0d42dc14a8130ada04d026",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\skills\\saas-workspace-initializer",
+      "kind": "skill"
+    },
+    ".agents/skills/skill-creator": {
+      "hash": "4563c27018941f97883826906a81d96755bbb9ca34370fbc857a370da5739707",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\skills\\skill-creator",
+      "kind": "skill"
+    },
+    ".agents/skills/technical-content-writer": {
+      "hash": "914a990b5c145c4de91ff63b1fd422e014482e73497475419f4915ee1fe2883a",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\skills\\technical-content-writer",
+      "kind": "skill"
+    },
+    ".agents/skills/tribunal": {
+      "hash": "57114c416c5dc3f8854a922a99a0ce50c1be85029175a79346f274723e0ef473",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\skills\\tribunal",
+      "kind": "skill"
+    },
+    ".agents/skills/typesafe-ai": {
+      "hash": "b477603e1fe25248773b5bb03790deaa93303b6f3d6a01e909584aa5f7944591",
+      "source": "C:\\Users\\abdal\\.ptah\\plugins\\ptah-skillssh-typesafe-ai-skills\\skills\\typesafe-ai",
+      "kind": "skill"
+    },
+    ".agents/skills/ui-ux-designer": {
+      "hash": "4768ba0297865b172c90eb424152b1075ce1f388531be9abf4967294456a2445",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\skills\\ui-ux-designer",
+      "kind": "skill"
+    },
+    ".agents/skills/webhook-architecture": {
+      "hash": "9ceff9a329650dd9d7d1324e986d09d8084a722b26e9c8535543980277782258",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\skills\\webhook-architecture",
+      "kind": "skill"
+    },
+    ".codex/agents/backend-developer.toml": {
+      "hash": "0524bc53ea2abc964e08b1063d89256f8c31daaa5af89ec3be7233a83a9aef63",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\agents\\qa3elhamor-def93a4ea641ba82\\backend-developer.md",
+      "kind": "agent",
+      "sourceHash": "409b3ee6c8df42489051b0a0bced8e057afb56588cca36185f7549e3a6184219"
+    },
+    ".codex/agents/code-logic-reviewer.toml": {
+      "hash": "7cedd2f459d8627df1207bce8a90057bc0ecf9ea94e06126a63b54ccca7b1f6e",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\agents\\qa3elhamor-def93a4ea641ba82\\code-logic-reviewer.md",
+      "kind": "agent",
+      "sourceHash": "2821a01da3808660c876119102881c3af7588d44839cc955a356357039cf67de"
+    },
+    ".codex/agents/code-style-reviewer.toml": {
+      "hash": "00b5fd47f247db323529209d4c39414d1cb99d6b58c13a9334bc958572693f7a",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\agents\\qa3elhamor-def93a4ea641ba82\\code-style-reviewer.md",
+      "kind": "agent",
+      "sourceHash": "f1b0a8c0cbc88dec00c8b8a732114ed5be3a21037923978a2996bccc82e52ed8"
+    },
+    ".codex/agents/devops-engineer.toml": {
+      "hash": "36c065a001fce7a289e6812aa84dfbd8315e1ec43f55968aba58a9a5309281ad",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\agents\\qa3elhamor-def93a4ea641ba82\\devops-engineer.md",
+      "kind": "agent",
+      "sourceHash": "76a69fb2e608faa991793ef773d7a7de44b4b01461e3c80dcbe3252d5d755c0c"
+    },
+    ".codex/agents/frontend-developer.toml": {
+      "hash": "2504f23cedfb7fd1b94fc70085faa742ae320909471d3684a1066bd77316af51",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\agents\\qa3elhamor-def93a4ea641ba82\\frontend-developer.md",
+      "kind": "agent",
+      "sourceHash": "a45e413dbe9dff6da85f3a01a138e6a685cdb0f25ee2278c135579dd4e3d7627"
+    },
+    ".codex/agents/modernization-detector.toml": {
+      "hash": "54d2f41142905736524c552a1d3c3c9aa11486ab4d359da0c656f50ff680406b",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\agents\\qa3elhamor-def93a4ea641ba82\\modernization-detector.md",
+      "kind": "agent",
+      "sourceHash": "6b1f4a8a9b99ac746911ef98b598191c7d0a04dc72ca252bd5bd4ffc3e873dd9"
+    },
+    ".codex/agents/project-manager.toml": {
+      "hash": "5dfee64b7d21d8eb96b51d9283416b00ce643108e0a2a8925bec1ffa5ea94ddf",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\agents\\qa3elhamor-def93a4ea641ba82\\project-manager.md",
+      "kind": "agent",
+      "sourceHash": "bc7cac17d600c7377025b955e26d5714eaa0a88a6edf28184d267c07103d7fac"
+    },
+    ".codex/agents/researcher-expert.toml": {
+      "hash": "b59231041546b50fc5ad1d425d0a2827cc381923e1a13c5d2e28826dc4aa8b51",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\agents\\qa3elhamor-def93a4ea641ba82\\researcher-expert.md",
+      "kind": "agent",
+      "sourceHash": "915feb4f21378f14ee44d028156d5e98bf8dec7f7446451f524cd097bba232b6"
+    },
+    ".codex/agents/senior-tester.toml": {
+      "hash": "c14ab8ce64bb388bcff1123dd6968abc60cf9070177a3671f9c175831103dfe9",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\agents\\qa3elhamor-def93a4ea641ba82\\senior-tester.md",
+      "kind": "agent",
+      "sourceHash": "91e54516588c4692eff77cff634427214014ff88a3d73d1cb5cc1c111c66fb7e"
+    },
+    ".codex/agents/software-architect.toml": {
+      "hash": "39456dd81a66287106a2ee74e4d07a34705e55914d80928cc7e299fbe961979c",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\agents\\qa3elhamor-def93a4ea641ba82\\software-architect.md",
+      "kind": "agent",
+      "sourceHash": "c7cf261c364dfab126ba870febb9ba50ddb232f107b64bba3e615cb099d9e9f3"
+    },
+    ".codex/agents/team-leader.toml": {
+      "hash": "ab55355129093877dfad0db0a84b273ff7c3a7b7fc588c1dd9aadc69623d4e6a",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\agents\\qa3elhamor-def93a4ea641ba82\\team-leader.md",
+      "kind": "agent",
+      "sourceHash": "1ce63a3e67d88e8c1a6ffa4f993dc7544d81d47c2014e807c89efa13c5733585"
+    },
+    ".codex/agents/technical-content-writer.toml": {
+      "hash": "3d604ea628e0d79ed51697a5e88d0ddcd7da4abac8c2f52da9d91cc43829f745",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\agents\\qa3elhamor-def93a4ea641ba82\\technical-content-writer.md",
+      "kind": "agent",
+      "sourceHash": "e08391c8c53e222215a71f69963d7fe224837724b6dcb1ed46cc0560579b31d5"
+    },
+    ".codex/agents/ui-ux-designer.toml": {
+      "hash": "ab144c0e5d774b5bceb38928a18f4da16926ecf1cee620f2eb6751fee3365a41",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\agents\\qa3elhamor-def93a4ea641ba82\\ui-ux-designer.md",
+      "kind": "agent",
+      "sourceHash": "a9e1c9c75400f096fedc90b44213822d35c52bd8d63a2eebd38daa02661c5854"
+    },
+    ".codex/agents/video-director.toml": {
+      "hash": "9e6b639bc368c3ba0a72cd8b78a19ec1d546ecc763a24c92fc582ff51be2fbc2",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\agents\\qa3elhamor-def93a4ea641ba82\\video-director.md",
+      "kind": "agent",
+      "sourceHash": "e696adb53c637c79a43b93518229494c9ce09cc8f4e8340a842cb0e5f133e609"
+    },
+    ".codex/agents/visual-reviewer.toml": {
+      "hash": "e4312e54e29e60fdebdd7eaa95d83236e6d72ef07c62c5488d3b555116cf4f9c",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\agents\\qa3elhamor-def93a4ea641ba82\\visual-reviewer.md",
+      "kind": "agent",
+      "sourceHash": "c1cb18bd075ecbb9ff151b69993c02135fb6095ccc32edea75b355e0bc954e54"
+    }
+  }
+}

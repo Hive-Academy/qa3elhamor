@@ -1,0 +1,47 @@
+# ptah:harness:begin
+# Managed by Ptah. Derived copies of ~/.ptah/user — edit the source, not these.
+# Delete this whole block to opt out, or set harness.manageGitignore to false.
+.agents/skills/
+.claude/commands/
+.claude/skills/
+.codex/agents/
+.github/agents/
+.github/skills/
+.opencode/agent/
+# ptah:harness:end
+
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+out-tsc/
+build/
+*.tsbuildinfo
+
+# Nx
+.nx/cache
+.nx/workspace-data
+
+# Test output
+test-output/
+coverage/
+
+# Compressed 3D assets emitted by tools/ — the sources under assets/ are committed,
+# their web-ready derivatives are not. See the `asset-compression` roadmap item.
+apps/web/public/models/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Editor / OS
+.DS_Store
+Thumbs.db
+
+vite.config.*.timestamp*
+vitest.config.*.timestamp*
+# Machine-local MCP config
+.mcp.json
+.mcp.json.bak

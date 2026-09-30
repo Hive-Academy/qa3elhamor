@@ -1,0 +1,11 @@
+Model Information:
+* title:	Sponge On The Run: SpongeBob Base Model
+* source:	https://sketchfab.com/3d-models/sponge-on-the-run-spongebob-base-model-539d085105f74f70a93310e2f4246b88
+* author:	NickBob (https://sketchfab.com/nickbob)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Sponge On The Run: SpongeBob Base Model" (https://sketchfab.com/3d-models/sponge-on-the-run-spongebob-base-model-539d085105f74f70a93310e2f4246b88) by NickBob (https://sketchfab.com/nickbob) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

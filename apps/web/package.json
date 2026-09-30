@@ -1,0 +1,16 @@
+{
+  "name": "@qa3elhamor/web",
+  "version": "0.0.1",
+  "private": true,
+  "dependencies": {
+    "@qa3elhamor/world-domain": "workspace:*",
+    "@qa3elhamor/shared-util": "workspace:*"
+  },
+  "nx": {
+    "name": "web",
+    "tags": [
+      "type:app",
+      "platform:web"
+    ]
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "generatedAt": "2026-09-04T13:52:26.451Z",
+  "configHash": "",
+  "detectedStack": {
+    "languages": [
+      "JavaScript",
+      "TypeScript"
+    ],
+    "frameworks": [
+      "react"
+    ],
+    "buildTools": [],
+    "testingFrameworks": [],
+    "additionalTools": [
+      "@react-three/drei",
+      "@react-three/fiber",
+      "react",
+      "react-dom",
+      "three",
+      "@eslint/js",
+      "@nx/eslint",
+      "@nx/eslint-plugin",
+      "@nx/js",
+      "@nx/react",
+      "@nx/vite",
+      "@nx/vitest",
+      "@nx/web",
+      "@swc-node/register",
+      "@swc/cli"
+    ],
+    "projectType": "react",
+    "configFiles": []
+  },
+  "analysisDirectory": ".ptah/analysis/qa3elhamor",
+  "analysisPhaseIds": [
+    "project-profile",
+    "architecture-assessment",
+    "quality-audit",
+    "elevation-plan"
+  ],
+  "promptLength": 657
+}

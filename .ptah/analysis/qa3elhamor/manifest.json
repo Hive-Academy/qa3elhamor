@@ -1,0 +1,32 @@
+{
+  "version": 3,
+  "runId": "01M1P8XN9CWWX7K1Q5X3H8ERC3",
+  "slug": "qa3elhamor",
+  "analyzedAt": "2026-09-04T13:14:55.148Z",
+  "updatedAt": "2026-09-04T13:47:23.638Z",
+  "lifecycle": "completed",
+  "model": "default",
+  "totalDurationMs": 1948490,
+  "phases": {
+    "project-profile": {
+      "status": "completed",
+      "file": "01-project-profile.md",
+      "durationMs": 265302
+    },
+    "architecture-assessment": {
+      "status": "completed",
+      "file": "02-architecture-assessment.md",
+      "durationMs": 494672
+    },
+    "quality-audit": {
+      "status": "completed",
+      "file": "03-quality-audit.md",
+      "durationMs": 705322
+    },
+    "elevation-plan": {
+      "status": "completed",
+      "file": "04-elevation-plan.md",
+      "durationMs": 483137
+    }
+  }
+}

@@ -1,0 +1,97 @@
+{
+  "version": 1,
+  "owner": "ptah",
+  "target": "opencode",
+  "entries": {
+    ".opencode/agent/backend-developer.md": {
+      "hash": "f24c42a1e662ac9d7f5c173e56f125687974d712e7ecd8a99bc1669fa4c4069d",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\agents\\qa3elhamor-def93a4ea641ba82\\backend-developer.md",
+      "kind": "agent",
+      "sourceHash": "409b3ee6c8df42489051b0a0bced8e057afb56588cca36185f7549e3a6184219"
+    },
+    ".opencode/agent/code-logic-reviewer.md": {
+      "hash": "04aa48273d58a31b483a115765d808bca63a7a6e4fc7d5192bd6939a2410de89",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\agents\\qa3elhamor-def93a4ea641ba82\\code-logic-reviewer.md",
+      "kind": "agent",
+      "sourceHash": "2821a01da3808660c876119102881c3af7588d44839cc955a356357039cf67de"
+    },
+    ".opencode/agent/code-style-reviewer.md": {
+      "hash": "62a53962c6e16d960fe0fe01cb907906e86bd3c0c85416b65df8c0d6bf30ee47",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\agents\\qa3elhamor-def93a4ea641ba82\\code-style-reviewer.md",
+      "kind": "agent",
+      "sourceHash": "f1b0a8c0cbc88dec00c8b8a732114ed5be3a21037923978a2996bccc82e52ed8"
+    },
+    ".opencode/agent/devops-engineer.md": {
+      "hash": "f71e220bebe78e947ff41c180161b085936f4b4a951b1324551b558b8d66ab0b",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\agents\\qa3elhamor-def93a4ea641ba82\\devops-engineer.md",
+      "kind": "agent",
+      "sourceHash": "76a69fb2e608faa991793ef773d7a7de44b4b01461e3c80dcbe3252d5d755c0c"
+    },
+    ".opencode/agent/frontend-developer.md": {
+      "hash": "bff434e2ce08c15f5cb06cee14041d4f0deb27bf5eff46dbf0353f1ba232f51f",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\agents\\qa3elhamor-def93a4ea641ba82\\frontend-developer.md",
+      "kind": "agent",
+      "sourceHash": "a45e413dbe9dff6da85f3a01a138e6a685cdb0f25ee2278c135579dd4e3d7627"
+    },
+    ".opencode/agent/modernization-detector.md": {
+      "hash": "94fead0eab6f30b039198bdebb0cadcbcdac8f04755e255d2fb44ea9e4e13a47",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\agents\\qa3elhamor-def93a4ea641ba82\\modernization-detector.md",
+      "kind": "agent",
+      "sourceHash": "6b1f4a8a9b99ac746911ef98b598191c7d0a04dc72ca252bd5bd4ffc3e873dd9"
+    },
+    ".opencode/agent/project-manager.md": {
+      "hash": "a76b4a3c19bf9717e3503770856e54ea83dff8dd184a7d9d9df29aebe20e98da",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\agents\\qa3elhamor-def93a4ea641ba82\\project-manager.md",
+      "kind": "agent",
+      "sourceHash": "bc7cac17d600c7377025b955e26d5714eaa0a88a6edf28184d267c07103d7fac"
+    },
+    ".opencode/agent/researcher-expert.md": {
+      "hash": "a138448968627765f006f87cb06e064275c0edf835b7dbd35e7f82ee31380be5",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\agents\\qa3elhamor-def93a4ea641ba82\\researcher-expert.md",
+      "kind": "agent",
+      "sourceHash": "915feb4f21378f14ee44d028156d5e98bf8dec7f7446451f524cd097bba232b6"
+    },
+    ".opencode/agent/senior-tester.md": {
+      "hash": "4f80337c314143fc3cb88303f115736ccde2982f647f51f63f624bc9ece08a63",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\agents\\qa3elhamor-def93a4ea641ba82\\senior-tester.md",
+      "kind": "agent",
+      "sourceHash": "91e54516588c4692eff77cff634427214014ff88a3d73d1cb5cc1c111c66fb7e"
+    },
+    ".opencode/agent/software-architect.md": {
+      "hash": "b29675950ae6b1b54a27131bc5334cfd02f39b2bab0e4b15c06d12d5f4cdd5ea",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\agents\\qa3elhamor-def93a4ea641ba82\\software-architect.md",
+      "kind": "agent",
+      "sourceHash": "c7cf261c364dfab126ba870febb9ba50ddb232f107b64bba3e615cb099d9e9f3"
+    },
+    ".opencode/agent/team-leader.md": {
+      "hash": "0eb9c6cb788ff11dbdf01c0ebf41a9653da29d066d9300c7a4e0eb4d6a4698f2",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\agents\\qa3elhamor-def93a4ea641ba82\\team-leader.md",
+      "kind": "agent",
+      "sourceHash": "1ce63a3e67d88e8c1a6ffa4f993dc7544d81d47c2014e807c89efa13c5733585"
+    },
+    ".opencode/agent/technical-content-writer.md": {
+      "hash": "28e4719003a660d588562524ad01b7971dbc4f832397131eebc52c4ae54ed8d1",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\agents\\qa3elhamor-def93a4ea641ba82\\technical-content-writer.md",
+      "kind": "agent",
+      "sourceHash": "e08391c8c53e222215a71f69963d7fe224837724b6dcb1ed46cc0560579b31d5"
+    },
+    ".opencode/agent/ui-ux-designer.md": {
+      "hash": "192b4f8be26f1951537fb3df54469464f33312dafabd8ac37781264a3ff61264",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\agents\\qa3elhamor-def93a4ea641ba82\\ui-ux-designer.md",
+      "kind": "agent",
+      "sourceHash": "a9e1c9c75400f096fedc90b44213822d35c52bd8d63a2eebd38daa02661c5854"
+    },
+    ".opencode/agent/video-director.md": {
+      "hash": "4be2d35ec5dee43be992e3b36fc93d39202c1334b467e1b2b3e5dbec786ede15",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\agents\\qa3elhamor-def93a4ea641ba82\\video-director.md",
+      "kind": "agent",
+      "sourceHash": "e696adb53c637c79a43b93518229494c9ce09cc8f4e8340a842cb0e5f133e609"
+    },
+    ".opencode/agent/visual-reviewer.md": {
+      "hash": "ed961818bdec1037ecf1be36e6facbcc10518a6fe966c8e491feca6582968713",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\agents\\qa3elhamor-def93a4ea641ba82\\visual-reviewer.md",
+      "kind": "agent",
+      "sourceHash": "c1cb18bd075ecbb9ff151b69993c02135fb6095ccc32edea75b355e0bc954e54"
+    }
+  }
+}

@@ -1,0 +1,11 @@
+Model Information:
+* title:	Sponge On The Run: Patrick Base Model (Textured)
+* source:	https://sketchfab.com/3d-models/sponge-on-the-run-patrick-base-model-textured-9254a020fb76477ab4be69ee353e3fcb
+* author:	NickBob (https://sketchfab.com/nickbob)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Sponge On The Run: Patrick Base Model (Textured)" (https://sketchfab.com/3d-models/sponge-on-the-run-patrick-base-model-textured-9254a020fb76477ab4be69ee353e3fcb) by NickBob (https://sketchfab.com/nickbob) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

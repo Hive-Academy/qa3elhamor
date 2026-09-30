@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# A newer push to the same branch supersedes an in-flight run.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Nx needs history to work out which projects a pull request affected.
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      # Sets NX_BASE/NX_HEAD so `nx affected` compares against the right commits.
+      - uses: nrwl/nx-set-shas@v4
+
+      # Fails if a generator or a hand-edit left TypeScript project references stale.
+      - run: npx nx sync:check
+
+      - run: npx nx affected -t lint typecheck test --parallel=3
+
+      - run: npx nx affected -t build --parallel=3

@@ -1,0 +1,212 @@
+{
+  "version": 1,
+  "owner": "ptah",
+  "target": "copilot",
+  "entries": {
+    ".github/agents/backend-developer.agent.md": {
+      "hash": "f31929422c5ae387f15eb883e80da66473c682be160f48620b00cf914b9c449f",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\agents\\qa3elhamor-def93a4ea641ba82\\backend-developer.md",
+      "kind": "agent",
+      "sourceHash": "409b3ee6c8df42489051b0a0bced8e057afb56588cca36185f7549e3a6184219"
+    },
+    ".github/agents/code-logic-reviewer.agent.md": {
+      "hash": "b0ee32199e7842151d1ad993598301efdd4e0c0dcfaa051f5ee79cd129b2575d",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\agents\\qa3elhamor-def93a4ea641ba82\\code-logic-reviewer.md",
+      "kind": "agent",
+      "sourceHash": "2821a01da3808660c876119102881c3af7588d44839cc955a356357039cf67de"
+    },
+    ".github/agents/code-style-reviewer.agent.md": {
+      "hash": "194b119a1b70fc5a17a1b0539cd166ab2fe2c761739494ef84997736b90931aa",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\agents\\qa3elhamor-def93a4ea641ba82\\code-style-reviewer.md",
+      "kind": "agent",
+      "sourceHash": "f1b0a8c0cbc88dec00c8b8a732114ed5be3a21037923978a2996bccc82e52ed8"
+    },
+    ".github/agents/devops-engineer.agent.md": {
+      "hash": "4d68c1bcc5962f1131560accc36c724b48f7d95a88c4ba1d37244c65b11fdee4",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\agents\\qa3elhamor-def93a4ea641ba82\\devops-engineer.md",
+      "kind": "agent",
+      "sourceHash": "76a69fb2e608faa991793ef773d7a7de44b4b01461e3c80dcbe3252d5d755c0c"
+    },
+    ".github/agents/frontend-developer.agent.md": {
+      "hash": "418273c3eccd2c81c3a7b06b9f845e0246117ed813b726141f0ddcd866e5dbfa",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\agents\\qa3elhamor-def93a4ea641ba82\\frontend-developer.md",
+      "kind": "agent",
+      "sourceHash": "a45e413dbe9dff6da85f3a01a138e6a685cdb0f25ee2278c135579dd4e3d7627"
+    },
+    ".github/agents/modernization-detector.agent.md": {
+      "hash": "aa8ca7799b3ababbf1bf69c2207345448e2ed127d139bff5bfff810b25c633b1",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\agents\\qa3elhamor-def93a4ea641ba82\\modernization-detector.md",
+      "kind": "agent",
+      "sourceHash": "6b1f4a8a9b99ac746911ef98b598191c7d0a04dc72ca252bd5bd4ffc3e873dd9"
+    },
+    ".github/agents/project-manager.agent.md": {
+      "hash": "138c615dee2c48daa1f4dfb359aac38d1506bc11f874b59459dca6f295dbe246",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\agents\\qa3elhamor-def93a4ea641ba82\\project-manager.md",
+      "kind": "agent",
+      "sourceHash": "bc7cac17d600c7377025b955e26d5714eaa0a88a6edf28184d267c07103d7fac"
+    },
+    ".github/agents/researcher-expert.agent.md": {
+      "hash": "4fe86d87e772fee9267df2f107f524f540b746b953a40d8bebb5df4b64365f65",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\agents\\qa3elhamor-def93a4ea641ba82\\researcher-expert.md",
+      "kind": "agent",
+      "sourceHash": "915feb4f21378f14ee44d028156d5e98bf8dec7f7446451f524cd097bba232b6"
+    },
+    ".github/agents/senior-tester.agent.md": {
+      "hash": "55e0c9ee54df41fc2db7653c06fa811a6eb60e688e7b6dfb8a0e39a6d5453a33",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\agents\\qa3elhamor-def93a4ea641ba82\\senior-tester.md",
+      "kind": "agent",
+      "sourceHash": "91e54516588c4692eff77cff634427214014ff88a3d73d1cb5cc1c111c66fb7e"
+    },
+    ".github/agents/software-architect.agent.md": {
+      "hash": "d7a561ef9881487357fce3c5004cb3dd181e6817a56f4a1553d1031e237907aa",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\agents\\qa3elhamor-def93a4ea641ba82\\software-architect.md",
+      "kind": "agent",
+      "sourceHash": "c7cf261c364dfab126ba870febb9ba50ddb232f107b64bba3e615cb099d9e9f3"
+    },
+    ".github/agents/team-leader.agent.md": {
+      "hash": "9e0b8022289abf3e2c8bbddecf89b408509c52f9471c3fe6365556a6c569b4a2",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\agents\\qa3elhamor-def93a4ea641ba82\\team-leader.md",
+      "kind": "agent",
+      "sourceHash": "1ce63a3e67d88e8c1a6ffa4f993dc7544d81d47c2014e807c89efa13c5733585"
+    },
+    ".github/agents/technical-content-writer.agent.md": {
+      "hash": "bb5059e2cff511662c2f3807d4a416792193f260ea6370c7c52a425dcbcf0e82",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\agents\\qa3elhamor-def93a4ea641ba82\\technical-content-writer.md",
+      "kind": "agent",
+      "sourceHash": "e08391c8c53e222215a71f69963d7fe224837724b6dcb1ed46cc0560579b31d5"
+    },
+    ".github/agents/ui-ux-designer.agent.md": {
+      "hash": "9c72ed4c908f20541add3032aa8a5c5e860edac7cad55505e3d858342a3c6f0d",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\agents\\qa3elhamor-def93a4ea641ba82\\ui-ux-designer.md",
+      "kind": "agent",
+      "sourceHash": "a9e1c9c75400f096fedc90b44213822d35c52bd8d63a2eebd38daa02661c5854"
+    },
+    ".github/agents/video-director.agent.md": {
+      "hash": "b353dfeef1a77d4e25bbe96c7c8219170ac61a370a2d8fc5ef56db3b9d6ae921",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\agents\\qa3elhamor-def93a4ea641ba82\\video-director.md",
+      "kind": "agent",
+      "sourceHash": "e696adb53c637c79a43b93518229494c9ce09cc8f4e8340a842cb0e5f133e609"
+    },
+    ".github/agents/visual-reviewer.agent.md": {
+      "hash": "43b24fc85a49d95635f242de51ab0458ae6496b2a4e2683101c3123e617bc3a8",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\agents\\qa3elhamor-def93a4ea641ba82\\visual-reviewer.md",
+      "kind": "agent",
+      "sourceHash": "c1cb18bd075ecbb9ff151b69993c02135fb6095ccc32edea75b355e0bc954e54"
+    },
+    ".github/skills/agent-lanes": {
+      "hash": "3f84b377c4d03e3e7c9ac66b3a92a8b90c8469781fa9fb29fe3ef802c2e45242",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\skills\\agent-lanes",
+      "kind": "skill"
+    },
+    ".github/skills/angular-3d-scene-crafter": {
+      "hash": "5379254036c8eda74da13c68938a34d608c90525503106f22956acdfbae81f85",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\skills\\angular-3d-scene-crafter",
+      "kind": "skill"
+    },
+    ".github/skills/angular-frontend-patterns": {
+      "hash": "5bc86087dbbaeb354259ba24bec208d12ea918ef0c08d446977e4a0c3f439f49",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\skills\\angular-frontend-patterns",
+      "kind": "skill"
+    },
+    ".github/skills/angular-gsap-animation-crafter": {
+      "hash": "ec946a6efa8da237de92619cf781a5a97df73914d0592c6756109dfe0b205cd4",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\skills\\angular-gsap-animation-crafter",
+      "kind": "skill"
+    },
+    ".github/skills/ddd-architecture": {
+      "hash": "bdc52c14a78c3027c93a2b40d5fa67c8a09387b18b8658c40fa80e5ae26d7ba7",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\skills\\ddd-architecture",
+      "kind": "skill"
+    },
+    ".github/skills/execute-phase-gated-task": {
+      "hash": "4a8f9d509ca7dcc080b3b07740d8ce29ea0de8780472c0327af060fba0355c59",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\skills\\execute-phase-gated-task",
+      "kind": "skill"
+    },
+    ".github/skills/extract-and-relocate-angular-component-feature": {
+      "hash": "e5123400a7a065e67938afc86d2c91e5150110c0b00668d8e4e81c4382e7fb54",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\skills\\extract-and-relocate-angular-component-feature",
+      "kind": "skill"
+    },
+    ".github/skills/humanize-library": {
+      "hash": "1a5bbe8ad75754e9b51e38d9f87d13a8ffc1fe0245d385d55e6fc8927e2d421f",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\skills\\humanize-library",
+      "kind": "skill"
+    },
+    ".github/skills/impeccable": {
+      "hash": "3c4fbbc892adaec20fbe5b578127f507de73584a64c1052f15ed65ff11e32c7e",
+      "source": "C:\\Users\\abdal\\.ptah\\plugins\\ptah-skillssh-pbakaus-impeccable\\skills\\impeccable",
+      "kind": "skill"
+    },
+    ".github/skills/nestjs-backend-patterns": {
+      "hash": "91c49289ca691f694ded50b8b2644c23b72923ff2b5ca19631f8761ee987595d",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\skills\\nestjs-backend-patterns",
+      "kind": "skill"
+    },
+    ".github/skills/nestjs-deployment": {
+      "hash": "0842c0793eb6786c5027b63e083e365ff9d0e1e5cae205b1a722e4ec0632e5fb",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\skills\\nestjs-deployment",
+      "kind": "skill"
+    },
+    ".github/skills/nx-workspace-architect": {
+      "hash": "fd93c1f7c7392595ea97896ae1c2c72accfdc453612ccfe95d5fc018e8c80899",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\skills\\nx-workspace-architect",
+      "kind": "skill"
+    },
+    ".github/skills/orchestration": {
+      "hash": "050569dab0a28ad88934fe50c202eb6fc64edb46e9278b9411ca216e66fdf083",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\skills\\orchestration",
+      "kind": "skill"
+    },
+    ".github/skills/ptah-cli-usage": {
+      "hash": "6c58f4ea2894f497614b555f89e189e353a3513c55e5d77cc52803818eed0816",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\skills\\ptah-cli-usage",
+      "kind": "skill"
+    },
+    ".github/skills/resilient-nestjs-patterns": {
+      "hash": "5716dfe4be544eca80a3ddfadca9e9db9d8fdceeb101a1b7382dab65ffe08162",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\skills\\resilient-nestjs-patterns",
+      "kind": "skill"
+    },
+    ".github/skills/saas-platform-patterns": {
+      "hash": "a344b410a6edb1f8ffa8398d77924ad622f204002d3b7b8eabf04c3311a53e83",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\skills\\saas-platform-patterns",
+      "kind": "skill"
+    },
+    ".github/skills/saas-workspace-initializer": {
+      "hash": "8cc55430e5843fd0ef0a62945a5e65e1db930712bb0d42dc14a8130ada04d026",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\skills\\saas-workspace-initializer",
+      "kind": "skill"
+    },
+    ".github/skills/skill-creator": {
+      "hash": "4563c27018941f97883826906a81d96755bbb9ca34370fbc857a370da5739707",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\skills\\skill-creator",
+      "kind": "skill"
+    },
+    ".github/skills/technical-content-writer": {
+      "hash": "914a990b5c145c4de91ff63b1fd422e014482e73497475419f4915ee1fe2883a",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\skills\\technical-content-writer",
+      "kind": "skill"
+    },
+    ".github/skills/tribunal": {
+      "hash": "57114c416c5dc3f8854a922a99a0ce50c1be85029175a79346f274723e0ef473",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\skills\\tribunal",
+      "kind": "skill"
+    },
+    ".github/skills/typesafe-ai": {
+      "hash": "b477603e1fe25248773b5bb03790deaa93303b6f3d6a01e909584aa5f7944591",
+      "source": "C:\\Users\\abdal\\.ptah\\plugins\\ptah-skillssh-typesafe-ai-skills\\skills\\typesafe-ai",
+      "kind": "skill"
+    },
+    ".github/skills/ui-ux-designer": {
+      "hash": "4768ba0297865b172c90eb424152b1075ce1f388531be9abf4967294456a2445",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\skills\\ui-ux-designer",
+      "kind": "skill"
+    },
+    ".github/skills/webhook-architecture": {
+      "hash": "9ceff9a329650dd9d7d1324e986d09d8084a722b26e9c8535543980277782258",
+      "source": "C:\\Users\\abdal\\.ptah\\user\\skills\\webhook-architecture",
+      "kind": "skill"
+    }
+  }
+}

@@ -1,0 +1,11 @@
+Model Information:
+* title:	Bikini Bottom Map 3D Model
+* source:	https://sketchfab.com/3d-models/bikini-bottom-map-3d-model-8951fa974ac94e97b83e05ff01c92b3b
+* author:	spongebob.evolution (https://sketchfab.com/spongebob.evolution)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Bikini Bottom Map 3D Model" (https://sketchfab.com/3d-models/bikini-bottom-map-3d-model-8951fa974ac94e97b83e05ff01c92b3b) by spongebob.evolution (https://sketchfab.com/spongebob.evolution) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

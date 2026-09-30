@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "owner": "ptah",
+  "target": "vscode",
+  "entries": {
+    ".vscode/mcp.json#firecrawl": {
+      "hash": "a6b75e9299e1f8ca698ebc56e95568994ac9d8cb3351198a5e96a616d7a04823",
+      "source": "io.github.firecrawl/firecrawl-mcp-server",
+      "kind": "mcp"
+    },
+    ".vscode/mcp.json#shopify-dev-mcp": {
+      "hash": "68c3c0eca9496b8a76ccd2bd71a04ec9927c0d9cdc31a557f2b341065535ff77",
+      "source": "shopify-dev-mcp",
+      "kind": "mcp"
+    }
+  }
+}
