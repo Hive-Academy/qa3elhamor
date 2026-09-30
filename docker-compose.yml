@@ -1,0 +1,38 @@
+# Local Postgres for the complaints wall (apps/api). Development and the integration suite
+# only; production uses a managed Postgres (Neon or Supabase) via DATABASE_URL.
+#
+#   docker compose up -d --wait postgres
+#
+# Creates two databases: `qa3elhamor` for `npm run api:dev`, and `qa3elhamor_test`, which
+# `nx run api:integration` migrates and truncates freely. Port 15432 avoids a Postgres already
+# on 5432 and stays below Windows' dynamic range (49152+), where Hyper-V reserves ports and
+# binds fail.
+name: qa3elhamor
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: qa3elhamor
+      POSTGRES_PASSWORD: qa3elhamor
+      POSTGRES_DB: qa3elhamor
+    ports:
+      - '15432:5432'
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    configs:
+      - source: create-test-database
+        target: /docker-entrypoint-initdb.d/10-create-test-database.sql
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U qa3elhamor -d qa3elhamor_test']
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+configs:
+  create-test-database:
+    content: |
+      CREATE DATABASE qa3elhamor_test OWNER qa3elhamor;
+
+volumes:
+  postgres-data:

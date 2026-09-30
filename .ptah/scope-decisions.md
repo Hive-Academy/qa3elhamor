@@ -167,6 +167,12 @@ Not specified by the user. **Assumption: Vercel or Netlify** — static hosting 
 serverless functions in the same deploy, which is exactly the shape the wall seam needs and
 the lowest-friction target for forkers. Revisit if the owner has a fixed target.
 
+> **Decided (2026-10-01, orchestrator, during cms-integration): Netlify.** Decap CMS's GitHub
+> backend can authenticate through Netlify's built-in OAuth provider, which keeps "zero auth
+> code" true without running our own OAuth handshake; Vercel would need one. Netlify Functions
+> take Fetch-API `Request → Response` handlers, so `apps/api` stays host-agnostic and the
+> Netlify adapter is a thin wrapper. `deploy-static` may still revisit this.
+
 ---
 
 ## Asset and licensing constraints

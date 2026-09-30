@@ -37,6 +37,12 @@
   "include": ["src/**/*.js", "src/**/*.jsx", "src/**/*.ts", "src/**/*.tsx"],
   "references": [
     {
+      "path": "../../libs/dive/domain/tsconfig.lib.json"
+    },
+    {
+      "path": "../../libs/dive/feature/tsconfig.lib.json"
+    },
+    {
       "path": "../../libs/world/feature/tsconfig.lib.json"
     },
     {

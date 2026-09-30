@@ -27,4 +27,9 @@ describe('App', () => {
     render(<App />);
     expect(screen.getByText(/8 assets manifested/)).toBeTruthy();
   });
+
+  it('shows the dive depth, near the surface on arrival', () => {
+    render(<App />);
+    expect(screen.getByText(/^−\d{1,2} m$/)).toBeTruthy();
+  });
 });

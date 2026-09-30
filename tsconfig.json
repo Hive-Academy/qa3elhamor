@@ -32,6 +32,18 @@
     },
     {
       "path": "./libs/world/feature"
+    },
+    {
+      "path": "./libs/complaints/data-access"
+    },
+    {
+      "path": "./libs/complaints/feature-api"
+    },
+    {
+      "path": "./libs/dive/feature"
+    },
+    {
+      "path": "./libs/dive/domain"
     }
   ],
   "compilerOptions": {}

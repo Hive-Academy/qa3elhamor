@@ -5,7 +5,9 @@
   "dependencies": {
     "@qa3elhamor/world-domain": "*",
     "@qa3elhamor/shared-util": "*",
-    "@qa3elhamor/world-feature": "*"
+    "@qa3elhamor/world-feature": "*",
+    "@qa3elhamor/dive-domain": "*",
+    "@qa3elhamor/dive-feature": "*"
   },
   "nx": {
     "name": "web",

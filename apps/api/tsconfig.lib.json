@@ -12,6 +12,12 @@
   "references": [
     {
       "path": "../../libs/shared/api-interfaces/tsconfig.lib.json"
+    },
+    {
+      "path": "../../libs/complaints/feature-api/tsconfig.lib.json"
+    },
+    {
+      "path": "../../libs/complaints/data-access/tsconfig.lib.json"
     }
   ],
   "exclude": [

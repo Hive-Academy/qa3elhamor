@@ -4,7 +4,12 @@
   "license": "MIT",
   "scripts": {
     "assets:compress": "tsx tools/asset-pipeline/compress.ts",
-    "assets:verify": "tsx tools/asset-pipeline/compress.ts --verify"
+    "assets:verify": "tsx tools/asset-pipeline/compress.ts --verify",
+    "db:up": "docker compose up -d --wait postgres",
+    "db:migrate": "nx run complaints-data-access:migrate-deploy",
+    "api:dev": "nx run api:serve",
+    "api:integration": "nx run api:integration",
+    "cms:local": "npx decap-server"
   },
   "private": true,
   "devDependencies": {
@@ -49,7 +54,8 @@
     "typescript": "~6.0.3",
     "typescript-eslint": "^8.58.0",
     "vite": "^8.0.0",
-    "vitest": "~4.1.0"
+    "vitest": "~4.1.0",
+    "yaml": "^2.9.0"
   },
   "workspaces": [
     "apps/*",

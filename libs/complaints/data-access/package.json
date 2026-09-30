@@ -1,0 +1,90 @@
+{
+  "name": "@qa3elhamor/complaints-data-access",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "import": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./package.json": "./package.json"
+  },
+  "nx": {
+    "name": "complaints-data-access",
+    "tags": [
+      "scope:complaints",
+      "type:data-access",
+      "platform:serverless"
+    ],
+    "targets": {
+      "prisma-generate": {
+        "command": "prisma generate",
+        "options": {
+          "cwd": "{projectRoot}"
+        },
+        "cache": true,
+        "inputs": [
+          "{projectRoot}/prisma/schema.prisma",
+          "{projectRoot}/prisma.config.ts",
+          {
+            "externalDependencies": [
+              "prisma"
+            ]
+          }
+        ],
+        "outputs": [
+          "{projectRoot}/src/generated"
+        ]
+      },
+      "migrate-deploy": {
+        "command": "prisma migrate deploy",
+        "options": {
+          "cwd": "{projectRoot}"
+        },
+        "cache": false
+      },
+      "migrate-dev": {
+        "command": "prisma migrate dev",
+        "options": {
+          "cwd": "{projectRoot}"
+        },
+        "cache": false
+      },
+      "lint": {
+        "dependsOn": [
+          "prisma-generate"
+        ]
+      },
+      "typecheck": {
+        "dependsOn": [
+          "^typecheck",
+          "prisma-generate"
+        ]
+      },
+      "build": {
+        "dependsOn": [
+          "^build",
+          "prisma-generate"
+        ]
+      },
+      "test": {
+        "dependsOn": [
+          "^build",
+          "prisma-generate"
+        ]
+      }
+    }
+  },
+  "dependencies": {
+    "@prisma/adapter-pg": "^7.10.0",
+    "@prisma/client": "^7.10.0",
+    "@qa3elhamor/complaints-domain": "*"
+  },
+  "devDependencies": {
+    "prisma": "^7.10.0"
+  }
+}

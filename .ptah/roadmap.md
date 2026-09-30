@@ -63,7 +63,8 @@ See `.ptah/scope-decisions.md` for the full discovery record and the asset/IP co
       **Charter.** Create `libs/world/feature` with the R3F components that make the scene read as deep ocean: exponential fog, a caustics projection on the ocean floor, an instanced bubble/plankton particle system, and the ambient light rig. This is the atmosphere the entire site trades on — if the water does not feel deep and murky, no landmark work will save it. Success: `apps/web` renders a navigable underwater scene holding 60 FPS on a mid-tier laptop with no landmarks present.
       **Depends on:** asset-compression
 
-- [ ] dive-camera: Scroll-driven CatmullRom camera path
+- [x] dive-camera: Scroll-driven CatmullRom camera path
+      **Outcome.** `libs/dive/{domain,feature}`: arc-length-parameterised `DivePath`, frame-rate-independent spring over native page scroll, observable state (`useDiveState`: progress, depth, maxDepth, nearest/focused waypoint, mode), `focusWaypoint`/`suspend`/`release`/`scrollToWaypoint` for landmark-kernel, reduced-motion jump mode. Route data in `apps/web/src/app/dive.config.ts` (drift-tested against placements.json). Deferred: error boundary for an invalid dive config.
       **Charter.** Create `libs/dive/{domain,feature}` implementing the dive: a `DivePath` value object over a CatmullRom spline, waypoints per landmark, and a scroll-bound camera controller that eases along the curve. The dive is the site's core navigation metaphor and the single interaction every visitor performs, so its feel is the difference between memorable and gimmicky. Success: scrolling moves the camera smoothly down the spline, depth state is observable, and the path is defined by data rather than hardcoded coordinates.
       **Depends on:** world-environment
 
@@ -117,7 +118,8 @@ See `.ptah/scope-decisions.md` for the full discovery record and the asset/IP co
       **Charter.** Wire private complaints from the Bureau form to a serverless-free form service (Web3Forms or Formspree) behind an adapter interface, so the static path stays static. Deliverability is the whole point of a contact form, and the adapter keeps the provider swappable for forkers who prefer another service. Success: submitting the Bureau form delivers a real message, and swapping providers requires only an env var and one adapter file.
       **Depends on:** complaints-domain, landmark-bureau
 
-- [ ] complaints-api: Serverless wall endpoints with Prisma
+- [x] complaints-api: Serverless wall endpoints with Prisma
+      **Outcome.** Prisma 7 + Postgres (`docker-compose.yml`, committed migration with CHECK constraints), Fetch-native handlers in `libs/complaints/feature-api` behind a tiny router in `apps/api`: submit (8 KiB cap, per-IP-HMAC rate limit keyed on IPv4 / IPv6 /64, check+log+insert in one transaction), approved wall (cursor pagination, CDN cache headers), bearer-token moderation (constant-time, 409 on concurrent moderation). No `DATABASE_URL` → wall returns 503, everything still builds. 9 integration tests (`npm run api:integration`). Hand-off to security-hardening: CDN purge on reject/delete, rate-limit malformed requests, forged client-IP outside Netlify's edge, API security headers.
       **Charter.** Build the project's only backend seam in `apps/api` plus `libs/complaints/{data-access,feature-api}`: Prisma schema and migrations against a managed Postgres, and three handlers — submit a public complaint, list approved complaints, and a token-protected moderation route. Rate limiting and input validation ship with it, because an unauthenticated public write endpoint is the site's entire attack surface. Success: the three endpoints work against a real database, abusive submission rates are rejected, and the site still builds and deploys with the database absent.
       **Depends on:** complaints-domain
 

@@ -1,0 +1,53 @@
+// The complaints wall: the only persistent state in the project.
+//
+// Only PUBLIC complaints are stored here. Private complaints go to a form service and never
+// touch this database, so `visibility` is a constant column kept for parity with the domain
+// snapshot (and so `restoreComplaint` can re-validate a row on its own).
+//
+// The generated client is written to `src/generated/prisma` (git-ignored) by the Nx
+// `prisma-generate` target, which `typecheck`, `build` and `test` depend on.
+
+generator client {
+  provider               = "prisma-client"
+  output                 = "../src/generated/prisma"
+  moduleFormat           = "esm"
+  runtime                = "nodejs"
+  importFileExtension    = "js"
+  generatedFileExtension = "ts"
+}
+
+// The connection URL comes from `DATABASE_URL`, read in `prisma.config.ts` (Prisma 7).
+datasource db {
+  provider = "postgresql"
+}
+
+/// Mirrors `ComplaintSnapshot` from `@qa3elhamor/complaints-domain`, column for column.
+model Complaint {
+  id            String   @id @db.VarChar(64)
+  visibility    String   @db.VarChar(16)
+  status        String   @db.VarChar(16)
+  subject       String
+  body          String
+  senderName    String   @map("sender_name")
+  senderSpecies String?  @map("sender_species")
+  /// Always null for public complaints; kept so the row matches the snapshot shape.
+  replyEmail    String?  @map("reply_email")
+  submittedAt   DateTime @map("submitted_at") @db.Timestamptz(3)
+  updatedAt     DateTime @map("updated_at") @db.Timestamptz(3)
+
+  // Serves both the wall (approved, newest first) and the moderation queue (pending).
+  @@index([status, submittedAt(sort: Desc), id(sort: Desc)], map: "complaint_status_submitted_idx")
+  @@map("complaint")
+}
+
+/// One row per accepted public submission, for rate limiting. `clientKey` is an HMAC-SHA256
+/// of the client IP under a server-side salt: the raw IP is never stored.
+model SubmissionLog {
+  id          BigInt   @id @default(autoincrement())
+  clientKey   String   @map("client_key") @db.Char(64)
+  submittedAt DateTime @map("submitted_at") @db.Timestamptz(3)
+
+  @@index([clientKey, submittedAt], map: "submission_log_client_idx")
+  @@index([submittedAt], map: "submission_log_submitted_idx")
+  @@map("submission_log")
+}
