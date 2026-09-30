@@ -1,0 +1,12 @@
+# Build section only (added by cms-integration so that a CMS commit to main rebuilds the site).
+# deploy-static owns everything else in this file: headers (CSP), redirects and functions.
+#
+# `nx build web` runs content-data-access:validate first, so invalid CMS content fails the build
+# and the previous deploy stays live.
+[build]
+  command = "npx nx build web"
+  publish = "apps/web/dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+  NX_DAEMON = "false"

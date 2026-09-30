@@ -3,42 +3,80 @@
   "items": [
     {
       "id": "qaa-el-hamour-site",
-      "title": { "en": "Qaa El-Hamour", "ar": "قاع الهامور" },
+      "title": {
+        "en": "Qaa El-Hamour",
+        "ar": "قاع الهامور"
+      },
       "summary": {
         "en": "SAMPLE: this website. A scroll-driven dive to the sea floor where the portfolio lives inside landmarks.",
         "ar": "نموذج: هذا الموقع. غطسة إلى قاع البحر حيث يسكن الملف الشخصي داخل المعالم."
       },
-      "description": "Built as a forkable template: every word comes from content files, and each landmark is a data entry plus an overlay.",
+      "description": {
+        "en": "Built as a forkable template: every word comes from content files, and each landmark is a data entry plus an overlay."
+      },
       "highlights": [
-        "3D scene that stays interactive on mid-range phones.",
-        "Readable 2D fallback for visitors without WebGL."
+        {
+          "en": "3D scene that stays interactive on mid-range phones."
+        },
+        {
+          "en": "Readable 2D fallback for visitors without WebGL."
+        }
       ],
-      "role": "Design and development",
-      "period": { "start": "2026-06" },
+      "role": {
+        "en": "Design and development"
+      },
+      "period": {
+        "start": "2026-06"
+      },
       "tech": ["TypeScript", "React Three Fiber", "Nx", "Vite"],
       "links": [
-        { "kind": "repo", "url": "https://github.com/your-handle/qa3elhamor" },
-        { "kind": "live", "url": "https://example.com" }
+        {
+          "kind": "repo",
+          "url": "https://github.com/your-handle/qa3elhamor"
+        },
+        {
+          "kind": "live",
+          "url": "https://example.com"
+        }
       ],
       "featured": true,
       "order": 1
     },
     {
       "id": "tide-tables",
-      "title": "Tide Tables (SAMPLE)",
-      "summary": "An offline-first tide forecast app for fishermen who have no signal at sea.",
+      "title": {
+        "en": "Tide Tables (SAMPLE)"
+      },
+      "summary": {
+        "en": "An offline-first tide forecast app for fishermen who have no signal at sea."
+      },
       "highlights": [
-        "Syncs a month of forecasts in under 200 KB.",
-        "Used daily by a (fictional) fleet of 300 boats."
+        {
+          "en": "Syncs a month of forecasts in under 200 KB."
+        },
+        {
+          "en": "Used daily by a (fictional) fleet of 300 boats."
+        }
       ],
-      "role": "Solo developer",
-      "period": { "start": "2021-04", "end": "2021-09" },
+      "role": {
+        "en": "Solo developer"
+      },
+      "period": {
+        "start": "2021-04",
+        "end": "2021-09"
+      },
       "tech": ["TypeScript", "Service Workers", "IndexedDB"],
       "links": [
-        { "kind": "repo", "url": "https://github.com/your-handle/tide-tables" },
+        {
+          "kind": "repo",
+          "url": "https://github.com/your-handle/tide-tables"
+        },
         {
           "kind": "case-study",
-          "label": { "en": "Read the write-up", "ar": "اقرأ التفاصيل" },
+          "label": {
+            "en": "Read the write-up",
+            "ar": "اقرأ التفاصيل"
+          },
           "url": "https://example.com/tide-tables"
         }
       ],
@@ -46,10 +84,19 @@
     },
     {
       "id": "reef-kit",
-      "title": "Reef Kit (SAMPLE)",
-      "summary": "An accessible React component library with a coral-themed design system.",
+      "title": {
+        "en": "Reef Kit (SAMPLE)"
+      },
+      "summary": {
+        "en": "An accessible React component library with a coral-themed design system."
+      },
       "tech": ["React", "Storybook", "CSS custom properties"],
-      "links": [{ "kind": "repo", "url": "https://github.com/your-handle/reef-kit" }]
+      "links": [
+        {
+          "kind": "repo",
+          "url": "https://github.com/your-handle/reef-kit"
+        }
+      ]
     }
   ]
 }

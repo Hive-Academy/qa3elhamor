@@ -9,6 +9,10 @@
   },
   "nx": {
     "name": "content-files",
-    "tags": ["scope:content", "type:data", "platform:shared"]
+    "tags": [
+      "scope:content",
+      "type:data",
+      "platform:shared"
+    ]
   }
 }

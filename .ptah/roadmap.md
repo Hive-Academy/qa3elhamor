@@ -93,7 +93,8 @@ See `.ptah/scope-decisions.md` for the full discovery record and the asset/IP co
       **Charter.** Build the Municipal Complaints Bureau as the second MVP landmark: an underwater booth whose click floats up a paper-scroll contact form with subject, complaint body, and sender name/species, submitted under a Sardine Municipal Stamp. This completes the MVP and is the site's only conversion point, turning the trend's central motif into the call to action. Success: the form validates and renders correctly; actual delivery is wired in `complaints-contact-adapter`.
       **Depends on:** landmark-kernel, content-model
 
-- [ ] cms-integration: Git-based CMS wiring
+- [x] cms-integration: Git-based CMS wiring
+      **Outcome.** Decap CMS 3.16.3 (unpkg, SRI-pinned) at `/admin/`, GitHub backend via Netlify OAuth, `npm run cms:local` for local editing; `config.yml` mirrors the content model and a 163-test parity spec fails on drift. Local bio edit → `content/site.json` rewritten and still valid (verified). **Not yet verified live:** the commit → Netlify redeploy loop needs the owner's Netlify site + GitHub OAuth app (steps in `docs/cms.md`); recommended production setting `publish_mode: editorial_workflow` so edits arrive as PRs validated by the deploy preview.
       **Charter.** Wire a Git-based CMS (Decap or Tina) so content edits commit to the repository and trigger a rebuild, with schemas matching the `content-model` types. The CMS provider owns its own authentication, which is what lets the site keep zero auth code while still satisfying the editable-content requirement. Success: editing the bio through the CMS UI produces a commit and a redeployed site with no code change.
       **Depends on:** content-model
 

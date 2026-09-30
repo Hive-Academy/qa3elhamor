@@ -3,42 +3,87 @@
   "items": [
     {
       "id": "sardine-municipal-works",
-      "company": "Sardine Municipal Works (SAMPLE)",
-      "role": { "en": "Senior Frontend Engineer", "ar": "مهندس واجهات أول" },
-      "location": "Remote",
-      "period": { "start": "2023-03" },
-      "summary": "Leads the public-facing web platform for a city of several million sardines.",
+      "company": {
+        "en": "Sardine Municipal Works (SAMPLE)"
+      },
+      "role": {
+        "en": "Senior Frontend Engineer",
+        "ar": "مهندس واجهات أول"
+      },
+      "location": {
+        "en": "Remote"
+      },
+      "period": {
+        "start": "2023-03"
+      },
+      "summary": {
+        "en": "Leads the public-facing web platform for a city of several million sardines."
+      },
       "highlights": [
-        "Cut median page load from 4.1s to 1.6s by moving rendering to the edge and splitting the bundle per route.",
-        "Introduced an Nx monorepo that let four teams share a design system without a release train.",
-        "Mentored three engineers through their first production on-call rotation."
+        {
+          "en": "Cut median page load from 4.1s to 1.6s by moving rendering to the edge and splitting the bundle per route."
+        },
+        {
+          "en": "Introduced an Nx monorepo that let four teams share a design system without a release train."
+        },
+        {
+          "en": "Mentored three engineers through their first production on-call rotation."
+        }
       ],
       "tech": ["TypeScript", "React", "Nx", "Vite", "Playwright"],
-      "quip": "Ships on time. Suspiciously cheerful about it. Two stars. The sardines insisted on the second one."
+      "quip": {
+        "en": "Ships on time. Suspiciously cheerful about it. Two stars. The sardines insisted on the second one."
+      }
     },
     {
       "id": "coral-reef-logistics",
-      "company": "Coral Reef Logistics (SAMPLE)",
-      "role": "Full-Stack Developer",
-      "period": { "start": "2020-06", "end": "2023-02" },
+      "company": {
+        "en": "Coral Reef Logistics (SAMPLE)"
+      },
+      "role": {
+        "en": "Full-Stack Developer"
+      },
+      "period": {
+        "start": "2020-06",
+        "end": "2023-02"
+      },
       "highlights": [
-        "Built the shipment-tracking API used by 40 partner reefs, handling 2M requests a day.",
-        "Replaced a nightly batch job with an event-driven pipeline, making delivery estimates live."
+        {
+          "en": "Built the shipment-tracking API used by 40 partner reefs, handling 2M requests a day."
+        },
+        {
+          "en": "Replaced a nightly batch job with an event-driven pipeline, making delivery estimates live."
+        }
       ],
       "tech": ["Node.js", "PostgreSQL", "Redis", "AWS"],
-      "quip": "Kept asking why we do things the way we do. We still do not know. Neither does he."
+      "quip": {
+        "en": "Kept asking why we do things the way we do. We still do not know. Neither does he."
+      }
     },
     {
       "id": "kelp-street-studio",
-      "company": "Kelp Street Studio (SAMPLE)",
-      "role": "Junior Web Developer",
-      "period": { "start": "2018-09", "end": "2020-05" },
+      "company": {
+        "en": "Kelp Street Studio (SAMPLE)"
+      },
+      "role": {
+        "en": "Junior Web Developer"
+      },
+      "period": {
+        "start": "2018-09",
+        "end": "2020-05"
+      },
       "highlights": [
-        "Delivered 20+ marketing sites for small reef businesses.",
-        "Wrote the studio's first automated accessibility checks."
+        {
+          "en": "Delivered 20+ marketing sites for small reef businesses."
+        },
+        {
+          "en": "Wrote the studio's first automated accessibility checks."
+        }
       ],
       "tech": ["JavaScript", "CSS", "WordPress"],
-      "quip": "Once fixed the printer. Has not let anyone forget it."
+      "quip": {
+        "en": "Once fixed the printer. Has not let anyone forget it."
+      }
     }
   ]
 }

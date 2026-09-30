@@ -1,0 +1,258 @@
+# Decap CMS configuration. Every collection below mirrors the content model in
+# libs/content/domain; libs/content/data-access/src/lib/cms-config.spec.ts fails when they drift.
+# Rule it enforces: a field is `required: false` exactly when the parser treats it as optional.
+# A widget under an optional object carries `parser_required: true` when the parser needs it once the
+# object exists (Decap would otherwise block saving an object the editor left empty).
+# Localized text is an { en, ar } object (the `&l10n` field list is reused everywhere). Plain-string
+# shorthand in content files is still valid, but the CMS always writes the object form.
+backend:
+  name: github
+  repo: Hive-Academy/qa3elhamor # forkers change only this line
+  branch: main
+
+# For production review, uncomment (not supported by decap-server; see docs/cms.md):
+# publish_mode: editorial_workflow
+
+# Used with `npm run cms:local` (npx decap-server); ignored by the deployed site.
+local_backend: true
+
+media_folder: apps/web/public/media
+public_folder: /media
+
+collections:
+  - name: content
+    label: Site content
+    editor: { preview: false }
+    files:
+      - name: site
+        label: Profile and copy
+        file: content/site.json
+        format: json
+        fields:
+          - name: profile
+            label: Profile
+            widget: object
+            fields:
+              - name: name
+                label: Name
+                widget: object
+                fields: &l10n
+                  - { name: en, label: English, widget: string }
+                  - { name: ar, label: 'Arabic (RTL, right-to-left)', widget: string, required: false }
+              - { name: headline, label: Headline, widget: object, fields: *l10n }
+              - name: bio
+                label: Bio (one entry per paragraph)
+                widget: list
+                min: 1
+                summary: '{{fields.en}}'
+                fields: *l10n
+              - name: location
+                label: Location
+                widget: object
+                required: false
+                fields: &l10nopt
+                  - { name: en, label: English, widget: string, required: false, parser_required: true }
+                  - { name: ar, label: 'Arabic (RTL, right-to-left)', widget: string, required: false }
+              - name: avatar
+                label: Avatar
+                widget: object
+                required: false
+                fields:
+                  - { name: src, label: Image, widget: image, required: false, parser_required: true }
+                  - { name: alt, label: Alt text, widget: object, required: false, parser_required: true, fields: *l10nopt }
+              - name: skills
+                label: Skill groups
+                widget: list
+                required: false
+                summary: '{{fields.label.en}}'
+                fields:
+                  - &id
+                    name: id
+                    label: 'Id (lowercase slug, stable, e.g. kelp-shake)'
+                    widget: string
+                    pattern: ['^[a-z0-9]+(?:-[a-z0-9]+)*$', 'Use a lowercase slug such as "kelp-shake"']
+                  - { name: label, label: Label, widget: object, fields: *l10n }
+                  - name: skills
+                    label: Skills
+                    widget: list
+                    min: 1
+                    field: { name: skill, label: Skill, widget: string }
+              - name: links
+                label: Contact links
+                widget: list
+                required: false
+                summary: '{{fields.kind}}: {{fields.label.en}}'
+                fields:
+                  - name: kind
+                    label: Kind
+                    widget: select
+                    options: [email, github, linkedin, x, mastodon, website, other]
+                  - { name: label, label: Label, widget: object, fields: *l10n }
+                  - name: url
+                    label: 'URL (https://, http://, or mailto: for email)'
+                    widget: string
+                    pattern: ['^(https?://[^\s/]+\S*|mailto:[^@\s]+@[^@\s]+\.[^@\s]+)$', 'Use an absolute https:// URL, or mailto: for email']
+          - name: copy
+            label: Interface copy
+            widget: object
+            fields:
+              - { name: siteTitle, label: Site title, widget: object, fields: *l10n }
+              - { name: siteDescription, label: Site description, widget: object, fields: *l10n }
+              - { name: aboutTitle, label: About title, widget: object, fields: *l10n }
+              - { name: resumeTitle, label: Resume title, widget: object, fields: *l10n }
+              - { name: servicesTitle, label: Services title, widget: object, fields: *l10n }
+              - { name: contactTitle, label: Contact title, widget: object, fields: *l10n }
+              - { name: contactSubmitLabel, label: Contact submit label, widget: object, fields: *l10n }
+              - { name: closeLabel, label: Close label, widget: object, fields: *l10n }
+              - { name: creditsTitle, label: Credits title, widget: object, fields: *l10n }
+
+      - name: resume
+        label: Resume
+        file: content/resume.json
+        format: json
+        fields:
+          - name: items
+            label: Experience (newest first)
+            widget: list
+            summary: '{{fields.company.en}}: {{fields.role.en}}'
+            fields:
+              - *id
+              - { name: company, label: Company, widget: object, fields: *l10n }
+              - name: companyUrl
+                label: Company URL
+                widget: string
+                required: false
+                pattern: ['^https?://[^\s/]+\S*$', 'Use an absolute https:// URL']
+              - { name: role, label: Role, widget: object, fields: *l10n }
+              - { name: location, label: Location, widget: object, required: false, fields: *l10nopt }
+              - name: period
+                label: Period
+                widget: object
+                fields:
+                  - &month
+                    name: start
+                    label: Start (YYYY-MM)
+                    widget: string
+                    pattern: ['^\d{4}-(0[1-9]|1[0-2])$', 'Use a month as YYYY-MM, e.g. 2024-03']
+                  - { <<: *month, name: end, label: 'End (YYYY-MM, leave empty for a current role)', required: false }
+              - { name: summary, label: Summary, widget: object, required: false, fields: *l10nopt }
+              - name: highlights
+                label: Highlights
+                widget: list
+                required: false
+                summary: '{{fields.en}}'
+                fields: *l10n
+              - name: tech
+                label: Tech
+                widget: list
+                required: false
+                field: { name: tech, label: Technology, widget: string }
+              - { name: quip, label: 'Quip (the joke under the entry)', widget: object, required: false, fields: *l10nopt }
+
+      - name: services
+        label: Services
+        file: content/services.json
+        format: json
+        fields:
+          - name: items
+            label: Services
+            widget: list
+            summary: '{{fields.title.en}}'
+            fields:
+              - *id
+              - { name: menuName, label: 'Menu name (the playful name)', widget: object, fields: *l10n }
+              - { name: title, label: 'Title (the real name)', widget: object, fields: *l10n }
+              - { name: description, label: Description, widget: object, fields: *l10n }
+              - { name: price, label: Price, widget: object, required: false, fields: *l10nopt }
+              - name: tags
+                label: Tags
+                widget: list
+                required: false
+                field: { name: tag, label: Tag, widget: string }
+
+      - name: projects
+        label: Projects
+        file: content/projects.json
+        format: json
+        fields:
+          - name: items
+            label: Projects
+            widget: list
+            summary: '{{fields.title.en}}'
+            fields:
+              - *id
+              - { name: title, label: Title, widget: object, fields: *l10n }
+              - { name: summary, label: Summary, widget: object, fields: *l10n }
+              - { name: description, label: Description, widget: object, required: false, fields: *l10nopt }
+              - name: highlights
+                label: Highlights
+                widget: list
+                required: false
+                summary: '{{fields.en}}'
+                fields: *l10n
+              - { name: role, label: Role, widget: object, required: false, fields: *l10nopt }
+              - name: period
+                label: Period
+                widget: object
+                required: false
+                fields:
+                  - { <<: *month, required: false, parser_required: true }
+                  - { <<: *month, name: end, label: 'End (YYYY-MM, leave empty if ongoing)', required: false }
+              - name: tech
+                label: Tech
+                widget: list
+                required: false
+                field: { name: tech, label: Technology, widget: string }
+              - name: links
+                label: Links
+                widget: list
+                required: false
+                summary: '{{fields.kind}}'
+                fields:
+                  - name: kind
+                    label: Kind
+                    widget: select
+                    options: [repo, live, case-study]
+                  - { name: label, label: Label, widget: object, required: false, fields: *l10nopt }
+                  - name: url
+                    label: URL
+                    widget: string
+                    pattern: ['^https?://[^\s/]+\S*$', 'Use an absolute https:// URL']
+              - name: media
+                label: Media
+                widget: object
+                required: false
+                fields:
+                  - { name: src, label: Image, widget: image, required: false, parser_required: true }
+                  - { name: alt, label: Alt text, widget: object, required: false, parser_required: true, fields: *l10nopt }
+              - { name: featured, label: Featured, widget: boolean, required: false, default: false }
+              - name: order
+                label: 'Order (lowest first; projects without one follow in file order)'
+                widget: number
+                value_type: int
+                required: false
+
+      - name: credits
+        label: Credits
+        file: content/credits.json
+        format: json
+        fields:
+          - name: items
+            label: Credits
+            widget: list
+            summary: '{{fields.title.en}}'
+            fields:
+              - *id
+              - name: kind
+                label: Kind
+                widget: select
+                options: [design, inspiration, font, library, other]
+              - { name: title, label: Title, widget: object, fields: *l10n }
+              - { name: author, label: Author, widget: string, required: false }
+              - name: url
+                label: URL
+                widget: string
+                required: false
+                pattern: ['^https?://[^\s/]+\S*$', 'Use an absolute https:// URL']
+              - { name: license, label: License, widget: string, required: false }
+              - { name: note, label: Note, widget: object, required: false, fields: *l10nopt }

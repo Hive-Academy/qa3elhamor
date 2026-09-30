@@ -32,6 +32,13 @@
         "options": {
           "command": "tsx libs/content/data-access/src/bin/validate-content.ts"
         }
+      },
+      "test": {
+        "inputs": [
+          "default",
+          "^production",
+          "{workspaceRoot}/apps/web/public/admin/config.yml"
+        ]
       }
     }
   },

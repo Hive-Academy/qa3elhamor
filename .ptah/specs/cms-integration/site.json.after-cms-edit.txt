@@ -1,0 +1,128 @@
+{
+  "_sample": "SAMPLE CONTENT for a fictional developer. Replace every value with your own; see content/README.md.",
+  "profile": {
+    "name": {
+      "en": "Your Name",
+      "ar": "اسمك"
+    },
+    "headline": {
+      "en": "Full-stack developer (SAMPLE)",
+      "ar": "مطوّر برمجيات متكامل (نموذج)"
+    },
+    "bio": [
+      {
+        "en": "SAMPLE BIO. I build fast, accessible web apps and the occasional 3D experience that probably did not need to be 3D. Registered resident of Qaa El-Hamour, the bottom of the sea, where the rent is low and the pressure is high. (edited via CMS)",
+        "ar": "نبذة نموذجية. أبني تطبيقات ويب سريعة وسهلة الاستخدام، ومن حين لآخر تجربة ثلاثية الأبعاد. مقيم رسمي في قاع الهامور."
+      },
+      {
+        "en": "SAMPLE BIO, second paragraph. Replace this with how you work, what you care about, and what you are looking for next."
+      }
+    ],
+    "location": {
+      "en": "Qaa El-Hamour (sea floor)",
+      "ar": "قاع الهامور"
+    },
+    "skills": [
+      {
+        "id": "frontend",
+        "label": {
+          "en": "Frontend",
+          "ar": "الواجهات الأمامية"
+        },
+        "skills": [
+          "TypeScript",
+          "React",
+          "Three.js",
+          "CSS"
+        ]
+      },
+      {
+        "id": "backend",
+        "label": {
+          "en": "Backend",
+          "ar": "الخوادم"
+        },
+        "skills": [
+          "Node.js",
+          "PostgreSQL",
+          "REST APIs"
+        ]
+      },
+      {
+        "id": "tooling",
+        "label": {
+          "en": "Tooling",
+          "ar": "الأدوات"
+        },
+        "skills": [
+          "Nx",
+          "Vite",
+          "Vitest",
+          "GitHub Actions"
+        ]
+      }
+    ],
+    "links": [
+      {
+        "kind": "github",
+        "label": {
+          "en": "GitHub"
+        },
+        "url": "https://github.com/your-handle"
+      },
+      {
+        "kind": "linkedin",
+        "label": {
+          "en": "LinkedIn"
+        },
+        "url": "https://www.linkedin.com/in/your-handle"
+      },
+      {
+        "kind": "email",
+        "label": {
+          "en": "Email",
+          "ar": "البريد الإلكتروني"
+        },
+        "url": "mailto:you@example.com"
+      }
+    ]
+  },
+  "copy": {
+    "resumeTitle": {
+      "en": "Performance Reviews",
+      "ar": "تقييمات الأداء"
+    },
+    "aboutTitle": {
+      "en": "Citizenship Card",
+      "ar": "بطاقة المواطنة"
+    },
+    "siteTitle": {
+      "en": "Your Name, Qaa El-Hamour",
+      "ar": "اسمك، قاع الهامور"
+    },
+    "siteDescription": {
+      "en": "SAMPLE: the portfolio of a developer who has hit rock bottom, and built a website there.",
+      "ar": "نموذج: موقع مطوّر بقى في القاع، وبنى موقعه هناك."
+    },
+    "contactTitle": {
+      "en": "Municipal Complaints Bureau",
+      "ar": "مكتب الشكاوى البلدي"
+    },
+    "servicesTitle": {
+      "en": "Today's Menu",
+      "ar": "قائمة اليوم"
+    },
+    "contactSubmitLabel": {
+      "en": "Stamp and send",
+      "ar": "اختم وأرسل"
+    },
+    "closeLabel": {
+      "en": "Swim back",
+      "ar": "رجوع"
+    },
+    "creditsTitle": {
+      "en": "Credits",
+      "ar": "شكر وتقدير"
+    }
+  }
+}
