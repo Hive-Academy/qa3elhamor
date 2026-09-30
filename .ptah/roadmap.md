@@ -72,6 +72,14 @@ See `.ptah/scope-decisions.md` for the full discovery record and the asset/IP co
       **Charter.** Detect device capability and sustained frame rate, then select a quality tier that gates particle counts, postprocessing, texture resolution, and shadow use — wired to the tier field already present in the asset manifest. A WebGL site that stutters on mid-range Android is unusable for the largely mobile Egyptian audience this trend belongs to. Success: the scene degrades measurably on a throttled device and holds an acceptable frame rate at every tier.
       **Depends on:** world-environment
 
+- [ ] dive-tuning: Camera path, framing and scroll feel pass (added 2026-10-01, owner feedback)
+      **Charter.** The dive route in `apps/web/src/app/dive.config.ts` was a first guess made before any landmark was in the scene, and the owner reports the scrolling and camera positions "not quite right". Re-author the route now that all four landmarks exist: framing at each waypoint (landmark centred, readable, not clipped by terrain), pacing (scroll distance per landmark, dwell near waypoints, no dead stretches), smoothness (spring responsiveness, look-ahead, sway), mobile touch scrolling, and the end of the dive (no staring into dark kelp). Success: a screenshot at every waypoint on desktop and a 390 px phone frames its landmark cleanly, and the owner signs off on the feel.
+      **Depends on:** dive-camera, landmark-kernel
+
+- [ ] ambient-life: Fish, the Hamour, and a living seabed (added 2026-10-01, owner feedback)
+      **Charter.** The scene has particles but no life. Add IP-safe ambient life: instanced procedural fish schools with cheap boids-style motion, and one original hero creature — the **Hamour (grouper)** the trend is named after — as a low-poly model authored for this project (no SpongeBob characters), gently patrolling the dive path, plus swaying kelp. All gated by quality tier. The bundled SpongeBob/Patrick character models stay unplaced by default (Nickelodeon IP on a site carrying the owner's name — scope-decisions §IP); forkers may place them via config. Success: the dive feels inhabited at every tier without breaking the frame-rate budget.
+      **Depends on:** quality-tiers
+
 ---
 
 ## Phase 4: Landmarks & Content
@@ -110,6 +118,12 @@ See `.ptah/scope-decisions.md` for the full discovery record and the asset/IP co
 ---
 
 ## Phase 5: Complaints
+
+> **Scope note (2026-10-01).** The site deploys to GitHub Pages (static only). The public
+> complaints *wall* is the only feature that needs a backend (`apps/api` + Postgres); it ships
+> **disabled by default** and turns on only when `VITE_WALL_API_URL` points at a hosted API.
+> The Bureau contact form needs no backend (form service). The wall code stays in the
+> template for forkers who host the API.
 
 - [x] complaints-domain: Complaint aggregate and moderation states
       **Outcome.** `libs/complaints/domain`: visibility-split `Complaint` aggregate (private: submitted→delivered/failed; public: pending→approved/rejected→deleted), UGC validation after normalisation, clock injection, `restoreComplaint(unknown)` treats storage as untrusted. 197 tests.

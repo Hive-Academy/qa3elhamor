@@ -84,6 +84,7 @@ commit batch 3 (three items, one commit or one per item) and push.
 - **Batch 4 (MVP):** landmark-pineapple (Citizenship Card: bio + skills from content),
   landmark-bureau (contact scroll form), **asset-attribution-ui** (pulled forward: must exist
   before the repo goes public), quality-tiers (also wires `trackQualityTier`).
+- **Batch 4.5 (owner feedback 2026-10-01):** owner content into `content/*.json`, `dive-tuning` (camera framing/scroll feel), `ambient-life` (fish schools + an original Hamour hero creature; SpongeBob/Patrick stay unplaced — IP). See the new roadmap items.
 - **Batch 5:** complaints-contact-adapter (Web3Forms/Formspree), complaints-wall (in-world
   board; uses kernel `in-world` presentation), landmark-tiki, landmark-krusty-krab,
   i18n-bilingual (content is already `{ en, ar? }`; locale is hard-coded `en` in app.tsx).
@@ -93,6 +94,8 @@ commit batch 3 (three items, one commit or one per item) and push.
   launch-checklist (open source + publish).
 
 ## 4. Deployment target — CHANGED by the owner
+
+**Backend decision (2026-10-01):** the site is static on GitHub Pages; the complaints *wall* is the only backend feature and ships disabled by default (enabled via `VITE_WALL_API_URL` when a forker/owner hosts `apps/api`). Contact form → form service, no backend. See the Phase 5 scope note in the roadmap.
 
 Owner wants **GitHub Pages at https://abdallah-khalil.github.io/** (user site) and the repo
 **open-sourced after they validate** locally. Consequences to design `deploy-static` around:
@@ -154,7 +157,7 @@ npm run assets:compress | assets:verify
 
 ## 7. Needs from the owner (ask only when the item that needs it starts)
 
-1. **Real content** for `content/*.json` (currently SAMPLE "Your Name"): confirmed bio,
+1. **Real content** — RECEIVED 2026-10-01, transcribed in `.ptah/owner-profile.md` (phone deliberately omitted; ⚠ items need confirmation: email spelling, LinkedIn slug, Ptah URL, Anubis star figure). Write it into `content/*.json` right after batch 4 (the MVP-landmarks agent edits `content/site.json` during batch 4). Original note: confirmed bio,
    headline, location, experience entries with dates, skills, projects (with links),
    services, social links, public contact email, avatar photo, Arabic versions (optional).
    Known background to draft from (confirm before publishing): 12+ years software engineer;
