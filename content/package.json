@@ -1,0 +1,14 @@
+{
+  "name": "@qa3elhamor/content-files",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./*.json": "./*.json",
+    "./package.json": "./package.json"
+  },
+  "nx": {
+    "name": "content-files",
+    "tags": ["scope:content", "type:data", "platform:shared"]
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "_sample": "SAMPLE CONTENT: list only what your site really uses. 3D model licence credits are NOT listed here; they live with the asset manifest (libs/world/domain).",
+  "items": [
+    {
+      "id": "site-design",
+      "kind": "design",
+      "title": { "en": "Concept and design", "ar": "الفكرة والتصميم" },
+      "author": "Your Name"
+    },
+    {
+      "id": "qaa-el-hamour-trend",
+      "kind": "inspiration",
+      "title": { "en": "The Qaa El-Hamour trend", "ar": "تريند قاع الهامور" },
+      "note": { "en": "\"We've hit rock bottom\", taken literally.", "ar": "بقينا في القاع، حرفيًا." }
+    },
+    {
+      "id": "three-js",
+      "kind": "library",
+      "title": "three.js",
+      "url": "https://threejs.org",
+      "license": "MIT"
+    }
+  ]
+}

@@ -1,39 +1,43 @@
 import { Canvas } from '@react-three/fiber';
 import { WEB_ASSETS, initialLoadBudgetBytes } from '@qa3elhamor/world-domain';
+import { OCEAN_CAMERA_START, OceanWorld, assetUrl } from '@qa3elhamor/world-feature';
+
+/** Resolved once: the manifest owns the path, Vite owns the deploy base. */
+const ENVIRONMENT_URL = assetUrl('environment', import.meta.env.BASE_URL);
 
 /**
- * Foundation scaffold.
+ * Composition root. `apps/web` is the only place allowed to wire content into scene
+ * libraries, which keeps a fork's changes confined to data.
  *
- * This renders a fogged, empty ocean volume to prove the R3F + Vite + Nx pipeline works
- * end to end and that the world manifest resolves across library boundaries. It is NOT the
- * environment — fog density, caustics, bubbles, and the ocean floor are the
- * `world-environment` roadmap item, and the camera dive is `dive-camera`. Both replace this
- * component wholesale.
- *
- * `apps/web` is the composition root: it is the only place allowed to wire content into
- * scene libraries, which is what keeps a fork's changes confined to data.
+ * The scene is the `world-environment` atmosphere with orbit controls bounded to the water
+ * volume; `dive-camera` replaces the controls, `landmark-kernel` mounts landmarks as
+ * `OceanWorld` children (scene-world units, see `WORLD_SCALE`).
  */
 export function App() {
   const budgetMb = (initialLoadBudgetBytes() / (1024 * 1024)).toFixed(1);
 
   return (
     <div className="shell">
-      <Canvas camera={{ position: [0, 1.5, 6], fov: 55 }}>
-        <color attach="background" args={['#0a1e3f']} />
-        <fogExp2 attach="fog" args={['#0a1e3f', 0.06]} />
-        <ambientLight intensity={0.6} />
-        <directionalLight position={[3, 8, 4]} intensity={1.2} />
-        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1, 0]}>
-          <planeGeometry args={[60, 60]} />
-          <meshStandardMaterial color="#123a5e" />
-        </mesh>
+      <Canvas
+        className="ocean-canvas"
+        dpr={[1, 2]}
+        // At a device pixel ratio of 1.5 or more the canvas already renders 2.25-4x the
+        // fragments, which smooths edges on its own; MSAA on top would double the cost where
+        // it is least visible. quality-tiers takes over this policy.
+        gl={{ antialias: window.devicePixelRatio < 1.5, powerPreference: 'high-performance' }}
+        camera={{ position: [...OCEAN_CAMERA_START], fov: 55, near: 0.1, far: 400 }}
+        aria-hidden="true"
+      >
+        <OceanWorld environmentUrl={ENVIRONMENT_URL} />
       </Canvas>
 
-      <aside className="scaffold-note">
-        <h1>قاع الهامور</h1>
-        <p>
-          Foundation scaffold — {WEB_ASSETS.length} assets manifested, {budgetMb} MB
-          initial-load budget. See <code>.ptah/roadmap.md</code> for what comes next.
+      <aside className="scene-note">
+        <h1 lang="ar" dir="rtl">
+          قاع الهامور
+        </h1>
+        <p>Drag to look around, scroll to swim closer.</p>
+        <p className="scene-note__meta">
+          {WEB_ASSETS.length} assets manifested, {budgetMb} MB initial-load budget.
         </p>
       </aside>
     </div>

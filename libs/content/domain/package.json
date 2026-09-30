@@ -1,0 +1,27 @@
+{
+  "name": "@qa3elhamor/content-domain",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "import": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./package.json": "./package.json"
+  },
+  "nx": {
+    "name": "content-domain",
+    "tags": [
+      "scope:content",
+      "type:domain",
+      "platform:shared"
+    ]
+  },
+  "dependencies": {
+    "@qa3elhamor/shared-domain": "*"
+  }
+}

@@ -20,6 +20,18 @@
     },
     {
       "path": "./libs/world/domain"
+    },
+    {
+      "path": "./libs/content/data-access"
+    },
+    {
+      "path": "./libs/complaints/domain"
+    },
+    {
+      "path": "./libs/content/domain"
+    },
+    {
+      "path": "./libs/world/feature"
     }
   ],
   "compilerOptions": {}

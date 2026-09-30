@@ -4,13 +4,30 @@
   "private": true,
   "dependencies": {
     "@qa3elhamor/world-domain": "*",
-    "@qa3elhamor/shared-util": "*"
+    "@qa3elhamor/shared-util": "*",
+    "@qa3elhamor/world-feature": "*"
   },
   "nx": {
     "name": "web",
     "tags": [
       "type:app",
       "platform:web"
-    ]
+    ],
+    "implicitDependencies": [
+      "content-data-access"
+    ],
+    "targets": {
+      "build": {
+        "dependsOn": [
+          "^build",
+          {
+            "projects": [
+              "content-data-access"
+            ],
+            "target": "validate"
+          }
+        ]
+      }
+    }
   }
 }

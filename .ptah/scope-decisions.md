@@ -34,6 +34,13 @@ Rationale: the owner explicitly chose the template framing over personal-portfol
 Combined with the monetization answer below, this reads as an open-source starter used as a
 brand play rather than a paid product.
 
+> **Amended (2026-10-01, owner).** The owner's own deployment is also their **personal
+> website**, showcasing their experience. This does not change the architecture — it raises
+> the bar on the content model: the owner's real bio, experience, and services must be fully
+> expressible as content data, and the repository itself doubles as a portfolio piece, so code
+> quality and documentation are part of the product. Nothing personal is hardcoded; the owner
+> is simply the first "forker".
+
 ### Core jobs-to-be-done
 
 Four capability areas, all selected as real functionality rather than static decoration:

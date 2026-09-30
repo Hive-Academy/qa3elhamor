@@ -1,0 +1,29 @@
+{
+  "_sample": "SAMPLE CONTENT: replace with the services you actually offer; see content/README.md.",
+  "items": [
+    {
+      "id": "kelp-shake",
+      "menuName": { "en": "Kelp Shake", "ar": "ميلك شيك الطحالب" },
+      "title": "Performance audit",
+      "description": "A thorough look at why your site is slow, with a prioritised list of fixes and the numbers to back each one.",
+      "price": "3 sand dollars",
+      "tags": ["Core Web Vitals", "Profiling"]
+    },
+    {
+      "id": "classic-krabby-patty",
+      "menuName": "Classic Krabby Patty",
+      "title": "Full-stack web application",
+      "description": "Design, build and deploy a web application end to end: data model, API, interface, tests and CI.",
+      "price": "Market price",
+      "tags": ["TypeScript", "Node.js", "React"]
+    },
+    {
+      "id": "secret-formula",
+      "menuName": { "en": "Secret Formula", "ar": "الوصفة السرية" },
+      "title": "Interactive 3D web experiences",
+      "description": "WebGL scenes that stay fast on phones, degrade gracefully, and still work without the 3D.",
+      "price": "Not for sale (ask anyway)",
+      "tags": ["Three.js", "React Three Fiber"]
+    }
+  ]
+}

@@ -58,7 +58,8 @@ See `.ptah/scope-decisions.md` for the full discovery record and the asset/IP co
 
 ## Phase 3: The Dive
 
-- [ ] world-environment: Underwater environment and shaders
+- [x] world-environment: Underwater environment and shaders
+      **Outcome.** `libs/world/feature`: `<OceanWorld>` with fog, procedural caustics patched into map materials, GPU-animated plankton/bubbles, light rig, error-bounded model load, bounded orbit controls. World-scale convention: `WORLD_SCALE = 20`, single-sourced via `WorldScaleProvider`/`useSceneToWorld` — landmarks sit in raw scene-world units inside `<WorldSpace>`. 60 FPS measured on an RTX 3070 laptop only; mid-tier reading still owed (quality-tiers). Open minors: `.ptah/specs/world-environment/code-logic-review-glm-r2.md` #2–4; `OceanWorld` children need their own `<Suspense>`.
       **Charter.** Create `libs/world/feature` with the R3F components that make the scene read as deep ocean: exponential fog, a caustics projection on the ocean floor, an instanced bubble/plankton particle system, and the ambient light rig. This is the atmosphere the entire site trades on — if the water does not feel deep and murky, no landmark work will save it. Success: `apps/web` renders a navigable underwater scene holding 60 FPS on a mid-tier laptop with no landmarks present.
       **Depends on:** asset-compression
 
@@ -78,7 +79,8 @@ See `.ptah/scope-decisions.md` for the full discovery record and the asset/IP co
       **Charter.** Create `libs/landmarks/{domain,feature,ui}` defining what a landmark *is*: a positioned model with a hit target, hover and focus states, a camera-focus transition, and a bound HTML overlay. This is the template's single most important abstraction — four landmarks ship and forkers will add their own, so the abstraction must make a new landmark a data entry plus an overlay component, never a scene-graph edit. Success: a landmark is declarable from data, and adding one requires no change to `libs/dive` or `libs/world`.
       **Depends on:** dive-camera
 
-- [ ] content-model: Content domain and CMS-backed data access
+- [x] content-model: Content domain and CMS-backed data access
+      **Outcome.** `libs/content/{domain,data-access}` + `content/` workspace package (`@qa3elhamor/content-files`): SiteProfile, ResumeEntry, ServiceItem, ProjectItem, Credit; inline `{ en; ar? }` localisation; `nx build web` depends on `content-data-access:validate`, so invalid content cannot deploy. Ships SAMPLE content for a fictional "Your Name" — the owner's real content replaces it.
       **Charter.** Create `libs/content/{domain,data-access}` modelling `SiteProfile`, `ResumeEntry`, `ServiceItem`, and `Credit`, loaded from CMS-generated JSON at build time. Content must be fully data-driven for the template goal — a forker changes content files and nothing else — and the strict scope boundary means landmarks never import this library directly. Success: all site copy resolves from content files, and `apps/web` wires content into landmarks as props.
       **Depends on:** shared-primitives
 
@@ -106,7 +108,8 @@ See `.ptah/scope-decisions.md` for the full discovery record and the asset/IP co
 
 ## Phase 5: Complaints
 
-- [ ] complaints-domain: Complaint aggregate and moderation states
+- [x] complaints-domain: Complaint aggregate and moderation states
+      **Outcome.** `libs/complaints/domain`: visibility-split `Complaint` aggregate (private: submitted→delivered/failed; public: pending→approved/rejected→deleted), UGC validation after normalisation, clock injection, `restoreComplaint(unknown)` treats storage as untrusted. 197 tests.
       **Charter.** Create `libs/complaints/domain` with the `Complaint` aggregate, its `Visibility` (private routes to the owner's inbox, public routes to the wall), and its moderation lifecycle. Modelling contact and the wall as one aggregate with two visibilities is the domain insight of this project — the trend's own metaphor is that everything is a complaint filed with the municipality. Success: the aggregate enforces valid state transitions and is shared by both the static and serverless paths.
       **Depends on:** shared-primitives
 

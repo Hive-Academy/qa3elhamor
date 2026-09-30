@@ -63,8 +63,12 @@ export default [
                 'type:domain',
                 'type:util',
                 'type:api-interfaces',
+                'type:data',
               ],
             },
+            // Plain data packages (e.g. the CMS-owned `content/` files) contain no code and
+            // import nothing; only data-access reads them, and validates them on the way in.
+            { sourceTag: 'type:data', onlyDependOnLibsWithTags: [] },
             // Domain is the innermost layer: pure models, no framework, no I/O.
             {
               sourceTag: 'type:domain',
