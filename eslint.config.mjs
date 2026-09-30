@@ -75,6 +75,11 @@ export default [
               sourceTag: 'type:api-interfaces',
               onlyDependOnLibsWithTags: ['type:api-interfaces', 'type:domain'],
             },
+            // Build-time tooling (e.g. the asset pipeline) reads the domain manifests.
+            {
+              sourceTag: 'type:tool',
+              onlyDependOnLibsWithTags: ['type:domain', 'type:util'],
+            },
 
             // --- scope dimension: strict bounded-context isolation ---
             //
@@ -111,6 +116,10 @@ export default [
               sourceTag: 'scope:telemetry',
               onlyDependOnLibsWithTags: ['scope:telemetry', 'scope:shared'],
             },
+            {
+              sourceTag: 'scope:tools',
+              onlyDependOnLibsWithTags: ['scope:tools', 'scope:world', 'scope:shared'],
+            },
 
             // --- platform dimension ---
             //
@@ -127,6 +136,10 @@ export default [
             {
               sourceTag: 'platform:shared',
               onlyDependOnLibsWithTags: ['platform:shared'],
+            },
+            {
+              sourceTag: 'platform:node',
+              onlyDependOnLibsWithTags: ['platform:node', 'platform:shared'],
             },
           ],
         },

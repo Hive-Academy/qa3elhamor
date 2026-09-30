@@ -19,6 +19,6 @@ describe('App', () => {
 
   it('reports the manifested asset count from the world library', () => {
     render(<App />);
-    expect(screen.getByText(/4 models manifested/)).toBeTruthy();
+    expect(screen.getByText(/8 assets manifested/)).toBeTruthy();
   });
 });

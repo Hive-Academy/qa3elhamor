@@ -22,6 +22,6 @@
     ]
   },
   "dependencies": {
-    "@qa3elhamor/shared-domain": "workspace:*"
+    "@qa3elhamor/shared-domain": "*"
   }
 }

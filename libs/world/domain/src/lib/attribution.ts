@@ -1,6 +1,4 @@
-import type { Branded } from '@qa3elhamor/shared-domain';
-
-export type AssetId = Branded<'Asset'>;
+import type { SourceModelId } from './asset-manifest.js';
 
 /**
  * A licence obligation attached to a bundled asset.
@@ -34,10 +32,12 @@ const CC_BY_4 = {
 
 /**
  * Credits for the four models bundled in `assets/`, transcribed from their `license.txt`
- * files. Adding a model to `SOURCE_ASSETS` without adding its credit here is a licence
- * violation, and the manifest test asserts the pairing.
+ * files and keyed by source model. Every web asset derived from a model (the map's landmarks
+ * included) is a derivative work carrying that model's credit. Adding a model to
+ * `SOURCE_MODELS` without its credit here fails to type-check, and the manifest test asserts
+ * the pairing.
  */
-export const ATTRIBUTIONS: Readonly<Record<string, Attribution>> = {
+export const ATTRIBUTIONS: Readonly<Record<SourceModelId, Attribution>> = {
   'bikini-bottom-map': {
     title: 'Bikini Bottom Map 3D Model',
     author: 'spongebob.evolution',
@@ -46,7 +46,7 @@ export const ATTRIBUTIONS: Readonly<Record<string, Attribution>> = {
       'https://sketchfab.com/3d-models/bikini-bottom-map-3d-model-8951fa974ac94e97b83e05ff01c92b3b',
     ...CC_BY_4,
   },
-  'pineapple-house': {
+  'pineapple-interior': {
     title: 'Sbfbb-SpongeBob House',
     author: 'Sajin Mickey Firey fan 1342 from Cheryl hill',
     authorUrl: 'https://sketchfab.com/cherylhill28',

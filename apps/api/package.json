@@ -21,6 +21,6 @@
     ]
   },
   "dependencies": {
-    "@qa3elhamor/shared-api-interfaces": "workspace:*"
+    "@qa3elhamor/shared-api-interfaces": "*"
   }
 }

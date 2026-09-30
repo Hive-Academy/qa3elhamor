@@ -1,5 +1,5 @@
 import { Canvas } from '@react-three/fiber';
-import { SOURCE_ASSETS, totalBudgetBytes } from '@qa3elhamor/world-domain';
+import { WEB_ASSETS, initialLoadBudgetBytes } from '@qa3elhamor/world-domain';
 
 /**
  * Foundation scaffold.
@@ -14,7 +14,7 @@ import { SOURCE_ASSETS, totalBudgetBytes } from '@qa3elhamor/world-domain';
  * scene libraries, which is what keeps a fork's changes confined to data.
  */
 export function App() {
-  const budgetMb = (totalBudgetBytes() / (1024 * 1024)).toFixed(1);
+  const budgetMb = (initialLoadBudgetBytes() / (1024 * 1024)).toFixed(1);
 
   return (
     <div className="shell">
@@ -32,8 +32,8 @@ export function App() {
       <aside className="scaffold-note">
         <h1>قاع الهامور</h1>
         <p>
-          Foundation scaffold — {SOURCE_ASSETS.length} models manifested, {budgetMb} MB
-          compressed budget. See <code>.ptah/roadmap.md</code> for what comes next.
+          Foundation scaffold — {WEB_ASSETS.length} assets manifested, {budgetMb} MB
+          initial-load budget. See <code>.ptah/roadmap.md</code> for what comes next.
         </p>
       </aside>
     </div>

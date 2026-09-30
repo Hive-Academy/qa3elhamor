@@ -3,8 +3,8 @@
   "version": "0.0.1",
   "private": true,
   "dependencies": {
-    "@qa3elhamor/world-domain": "workspace:*",
-    "@qa3elhamor/shared-util": "workspace:*"
+    "@qa3elhamor/world-domain": "*",
+    "@qa3elhamor/shared-util": "*"
   },
   "nx": {
     "name": "web",

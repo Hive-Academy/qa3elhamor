@@ -27,10 +27,6 @@ build/
 test-output/
 coverage/
 
-# Compressed 3D assets emitted by tools/ — the sources under assets/ are committed,
-# their web-ready derivatives are not. See the `asset-compression` roadmap item.
-apps/web/public/models/
-
 # Environment
 .env
 .env.local

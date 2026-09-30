@@ -1,0 +1,9 @@
+{
+  "name": "@qa3elhamor/asset-pipeline",
+  "private": true,
+  "type": "module",
+  "nx": {
+    "name": "asset-pipeline",
+    "tags": ["scope:tools", "type:tool", "platform:node"]
+  }
+}

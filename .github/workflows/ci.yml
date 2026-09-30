@@ -30,6 +30,9 @@ jobs:
 
       - run: npm ci
 
+      # Committed 3D outputs must still match the manifest and stay within their byte budgets.
+      - run: npm run assets:verify
+
       # Sets NX_BASE/NX_HEAD so `nx affected` compares against the right commits.
       - uses: nrwl/nx-set-shas@v4
 

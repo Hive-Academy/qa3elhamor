@@ -1,84 +1,174 @@
 import type { QualityTier } from './quality-tier.js';
 import { ATTRIBUTIONS } from './attribution.js';
 
+export type SourceModelId =
+  | 'bikini-bottom-map'
+  | 'pineapple-interior'
+  | 'spongebob-character'
+  | 'patrick-character';
+
 /**
- * The contract every 3D asset is described by.
+ * A raw model committed under `assets/`. Licence credit is keyed by this id.
  *
- * `sourcePath` points at the raw model committed under `assets/`; `compressedPath` is what
- * the `asset-compression` pipeline emits and what the site actually loads. Both are recorded
- * so the pipeline is reproducible from the repository alone.
+ * Every source model stays listed here, and keeps its CC-BY-4.0 credit, whether or not
+ * anything derived from it ships.
+ */
+export interface SourceModel {
+  readonly id: SourceModelId;
+  /** The model's `scene.gltf`, relative to the repository root. */
+  readonly path: string;
+  /** Real total of the model's directory in bytes, as committed. */
+  readonly bytes: number;
+}
+
+/**
+ * A web-ready file the site loads, derived from one source model.
+ *
+ * Outputs of the `asset-compression` pipeline are committed, so the site never builds them
+ * at deploy time. A derived asset is a derivative work: it carries its source model's
+ * CC-BY-4.0 credit, so extracting a landmark from the map does not detach it from the map's
+ * attribution.
  */
 export interface AssetEntry {
   readonly id: string;
-  /** Raw model as committed, relative to the repository root. */
-  readonly sourcePath: string;
-  /** Web-ready output, relative to the web app's public directory. Null until compressed. */
-  readonly compressedPath: string | null;
-  /** Size of the raw source in bytes, as committed. */
-  readonly sourceBytes: number;
+  /** The raw model this output is derived from; its credit applies to this output. */
+  readonly sourceModel: SourceModelId;
+  /** Compressed output, relative to `apps/web/public`, e.g. `models/landmark-tiki.glb`. */
+  readonly compressedPath: string;
   /**
-   * Ceiling for the compressed output in bytes. `asset-compression` fails the build when an
-   * output exceeds this, and `perf-budget` sums these to gate the total payload.
+   * Ceiling for the compressed output in bytes. The pipeline fails when an output exceeds
+   * this. Budgets are the numbers to argue with, not predictions.
    */
   readonly budgetBytes: number;
   /** Lowest quality tier at which this asset is loaded at all. */
   readonly minimumTier: QualityTier;
+  /** True when the asset is fetched on demand and excluded from the initial-load budget. */
+  readonly lazy: boolean;
 }
 
-const MB = 1024 * 1024;
+const KiB = 1024;
+const MiB = 1024 * KiB;
 
-/**
- * The four models committed under `assets/`, totalling ~27.6 MB raw.
- *
- * The budgets below are deliberately aggressive — an order of magnitude under source — and
- * are the target `asset-compression` must hit with Meshopt/Draco geometry and KTX2 textures.
- * They are the number to argue with during that roadmap item, not a prediction.
- */
-export const SOURCE_ASSETS: readonly AssetEntry[] = [
+/** The four models committed under `assets/`, with their real directory totals. */
+export const SOURCE_MODELS: readonly SourceModel[] = [
   {
     id: 'bikini-bottom-map',
-    sourcePath: 'assets/bikini_bottom_map_3d_model/scene.gltf',
-    compressedPath: null,
-    sourceBytes: 5.0 * MB,
-    budgetBytes: 1.5 * MB,
-    minimumTier: 'low',
+    path: 'assets/bikini_bottom_map_3d_model/scene.gltf',
+    bytes: 4_942_248,
   },
   {
-    id: 'pineapple-house',
-    sourcePath: 'assets/sbfbb-spongebob_house/scene.gltf',
-    compressedPath: null,
-    sourceBytes: 2.3 * MB,
-    budgetBytes: 0.6 * MB,
-    minimumTier: 'low',
+    // The pineapple's interior only; the map supplies the exterior shell.
+    id: 'pineapple-interior',
+    path: 'assets/sbfbb-spongebob_house/scene.gltf',
+    bytes: 2_289_066,
   },
   {
     id: 'spongebob-character',
-    sourcePath: 'assets/sponge_on_the_run_spongebob_base_model/scene.gltf',
-    compressedPath: null,
-    sourceBytes: 17 * MB,
-    budgetBytes: 2 * MB,
-    minimumTier: 'medium',
+    path: 'assets/sponge_on_the_run_spongebob_base_model/scene.gltf',
+    bytes: 17_354_286,
   },
   {
     id: 'patrick-character',
-    sourcePath: 'assets/sponge_on_the_run_patrick_base_model_textured/scene.gltf',
-    compressedPath: null,
-    sourceBytes: 3.3 * MB,
-    budgetBytes: 1 * MB,
+    path: 'assets/sponge_on_the_run_patrick_base_model_textured/scene.gltf',
+    bytes: 3_393_407,
+  },
+];
+
+/**
+ * Every file the site loads. The map is split into the environment (landmark nodes removed)
+ * and one entry per MVP landmark, so a regression is attributable to the file that caused it.
+ * Characters and the interior are lazy: none is needed for the first view.
+ */
+export const WEB_ASSETS: readonly AssetEntry[] = [
+  {
+    id: 'environment',
+    sourceModel: 'bikini-bottom-map',
+    compressedPath: 'models/environment.glb',
+    budgetBytes: 1200 * KiB,
+    minimumTier: 'low',
+    lazy: false,
+  },
+  {
+    id: 'landmark-pineapple',
+    sourceModel: 'bikini-bottom-map',
+    compressedPath: 'models/landmark-pineapple.glb',
+    budgetBytes: 150 * KiB,
+    minimumTier: 'low',
+    lazy: false,
+  },
+  {
+    id: 'landmark-tiki',
+    sourceModel: 'bikini-bottom-map',
+    compressedPath: 'models/landmark-tiki.glb',
+    budgetBytes: 150 * KiB,
+    minimumTier: 'low',
+    lazy: false,
+  },
+  {
+    id: 'landmark-krusty-krab',
+    sourceModel: 'bikini-bottom-map',
+    compressedPath: 'models/landmark-krusty-krab.glb',
+    budgetBytes: 150 * KiB,
+    minimumTier: 'low',
+    lazy: false,
+  },
+  {
+    // Source for the Chum Bucket reskin.
+    id: 'landmark-bureau',
+    sourceModel: 'bikini-bottom-map',
+    compressedPath: 'models/landmark-bureau.glb',
+    budgetBytes: 150 * KiB,
+    minimumTier: 'low',
+    lazy: false,
+  },
+  {
+    id: 'pineapple-interior',
+    sourceModel: 'pineapple-interior',
+    compressedPath: 'models/pineapple-interior.glb',
+    budgetBytes: 600 * KiB,
     minimumTier: 'high',
+    lazy: true,
+  },
+  {
+    id: 'spongebob-character',
+    sourceModel: 'spongebob-character',
+    compressedPath: 'models/spongebob-character.glb',
+    budgetBytes: 2 * MiB,
+    minimumTier: 'medium',
+    lazy: true,
+  },
+  {
+    id: 'patrick-character',
+    sourceModel: 'patrick-character',
+    compressedPath: 'models/patrick-character.glb',
+    budgetBytes: 1 * MiB,
+    minimumTier: 'high',
+    lazy: true,
   },
 ];
 
 export const findAsset = (id: string): AssetEntry | undefined =>
-  SOURCE_ASSETS.find((asset) => asset.id === id);
+  WEB_ASSETS.find((asset) => asset.id === id);
 
-/** Total compressed budget across every asset — the ceiling `perf-budget` enforces. */
-export const totalBudgetBytes = (
-  assets: readonly AssetEntry[] = SOURCE_ASSETS
-): number => assets.reduce((sum, asset) => sum + asset.budgetBytes, 0);
+/** The source model for an id. Throws only if `SOURCE_MODELS` and `SourceModelId` diverge. */
+export const findSourceModel = (id: SourceModelId): SourceModel => {
+  const model = SOURCE_MODELS.find((candidate) => candidate.id === id);
+  if (!model) {
+    throw new Error(`Source model "${id}" is not listed in SOURCE_MODELS`);
+  }
+  return model;
+};
 
-/** Asset ids that have no attribution record. Non-empty means a licence violation. */
+/** Total compressed budget across every asset, lazy or not. */
+export const totalBudgetBytes = (assets: readonly AssetEntry[] = WEB_ASSETS): number =>
+  assets.reduce((sum, asset) => sum + asset.budgetBytes, 0);
+
+/** Compressed budget of what the first view loads: non-lazy assets only. */
+export const initialLoadBudgetBytes = (assets: readonly AssetEntry[] = WEB_ASSETS): number =>
+  totalBudgetBytes(assets.filter((asset) => !asset.lazy));
+
+/** Source model ids that have no attribution record. Non-empty means a licence violation. */
 export const assetsMissingAttribution = (
-  assets: readonly AssetEntry[] = SOURCE_ASSETS
-): readonly string[] =>
-  assets.filter((asset) => !ATTRIBUTIONS[asset.id]).map((asset) => asset.id);
+  models: readonly SourceModel[] = SOURCE_MODELS
+): readonly SourceModelId[] =>
+  models.filter((model) => !ATTRIBUTIONS[model.id]).map((model) => model.id);

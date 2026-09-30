@@ -1,0 +1,16 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "composite": false,
+    "declarationMap": false,
+    "emitDeclarationOnly": false,
+    "noEmit": true,
+    "types": ["node"]
+  },
+  "include": ["*.ts"],
+  "references": [
+    {
+      "path": "../../libs/world/domain"
+    }
+  ]
+}
