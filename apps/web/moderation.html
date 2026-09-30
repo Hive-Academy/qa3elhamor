@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Moderation | Qaa El-Hamour</title>
+    <!--
+      Private tool: keep it out of search indexes. The meta tag is the in-page guard; deploy-static
+      must also send `X-Robots-Tag: noindex, nofollow` for /moderation.html (a header covers
+      crawlers that never parse the HTML), and robots.txt disallows the path.
+    -->
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="referrer" content="no-referrer" />
+    <meta name="theme-color" content="#0a1e3f" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/moderation/main.tsx"></script>
+  </body>
+</html>

@@ -60,7 +60,7 @@ and keep going.
 asset-audit, asset-compression, world-environment, content-model, complaints-domain,
 dive-camera, complaints-api, cms-integration.
 
-**Batch 3 — implemented, NOT yet committed (in the working tree):**
+**Batch 3 — COMMITTED (moderation, telemetry, landmark-kernel; all APPROVED). The notes below are kept for history:**
 
 | Item | State | Review |
 |---|---|---|

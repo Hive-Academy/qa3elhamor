@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import App from './app';
 
@@ -31,5 +31,16 @@ describe('App', () => {
   it('shows the dive depth, near the surface on arrival', () => {
     render(<App />);
     expect(screen.getByText(/^−\d{1,2} m$/)).toBeTruthy();
+  });
+
+  it('lists every landmark for keyboard users and opens its overlay', () => {
+    render(<App />);
+    const nav = screen.getByRole('navigation', { name: 'Landmarks' });
+    expect(nav.querySelectorAll('button')).toHaveLength(4);
+    fireEvent.click(screen.getByRole('button', { name: /Complaints Bureau/ }));
+    const dialog = screen.getByRole('dialog', { name: 'Complaints Bureau' });
+    expect(dialog.textContent).toMatch(/Check back soon/);
+    fireEvent.keyDown(dialog, { key: 'Escape' });
+    expect(screen.queryByRole('dialog')).toBeNull();
   });
 });

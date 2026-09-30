@@ -15,6 +15,17 @@
   },
   "nx": {
     "name": "landmarks-ui",
-    "tags": ["scope:landmarks", "type:ui", "platform:web"]
+    "tags": [
+      "scope:landmarks",
+      "type:ui",
+      "platform:web"
+    ]
+  },
+  "dependencies": {
+    "@qa3elhamor/landmarks-domain": "*"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
   }
 }

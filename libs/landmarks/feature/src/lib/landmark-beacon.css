@@ -1,0 +1,87 @@
+/* Beacons are positioned by drei's <Html>; these rules only style the label itself. */
+.lmk-beacon-anchor {
+  pointer-events: none;
+}
+
+.lmk-beacon {
+  display: inline-grid;
+  grid-template-columns: auto auto;
+  column-gap: 0.4rem;
+  align-items: center;
+  padding: 0.25rem 0.6rem 0.25rem 0.45rem;
+  border: 1px solid rgba(255, 214, 140, 0.35);
+  border-radius: 999px;
+  background: rgba(4, 16, 34, 0.6);
+  color: #f3ead3;
+  font:
+    600 0.8125rem/1.25 system-ui,
+    -apple-system,
+    'Segoe UI',
+    sans-serif;
+  white-space: nowrap;
+  cursor: pointer;
+  pointer-events: auto;
+  user-select: none;
+  transition:
+    opacity 250ms ease,
+    background-color 150ms ease,
+    border-color 150ms ease,
+    transform 150ms ease;
+}
+
+.lmk-beacon[data-hidden] {
+  pointer-events: none;
+}
+
+.lmk-beacon__dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: #ffcf7a;
+  box-shadow: 0 0 0 0 rgba(255, 207, 122, 0.6);
+  animation: lmk-beacon-pulse 2.4s ease-out infinite;
+}
+
+.lmk-beacon__caption {
+  grid-column: 2;
+  display: none;
+  font-weight: 400;
+  font-size: 0.75rem;
+  opacity: 0.8;
+}
+
+.lmk-beacon[data-state='hovered'],
+.lmk-beacon[data-state='focused'] {
+  border-color: rgba(255, 214, 140, 0.85);
+  background: rgba(20, 40, 70, 0.85);
+  transform: translateY(-2px);
+}
+
+.lmk-beacon[data-state='hovered'] .lmk-beacon__caption,
+.lmk-beacon[data-state='focused'] .lmk-beacon__caption {
+  display: block;
+}
+
+@keyframes lmk-beacon-pulse {
+  70% {
+    box-shadow: 0 0 0 0.45rem rgba(255, 207, 122, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 207, 122, 0);
+  }
+}
+
+.lmk-beacon[data-reduced-motion],
+.lmk-beacon[data-reduced-motion] .lmk-beacon__dot {
+  transition: none;
+  animation: none;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lmk-beacon,
+  .lmk-beacon__dot {
+    transition: none;
+    animation: none;
+  }
+}

@@ -1,6 +1,7 @@
 /// <reference types='vitest' />
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import { resolve } from 'node:path';
 
 export default defineConfig(() => ({
   root: import.meta.dirname,
@@ -8,6 +9,12 @@ export default defineConfig(() => ({
   server: {
     port: 4200,
     host: 'localhost',
+    // Dev only: the API dev server (`npm run api:dev`) runs on 8787. Proxying keeps calls
+    // same-origin, as they are in production where Netlify serves both. `server.proxy` does
+    // not apply to `vite build` or `vite preview`.
+    proxy: {
+      '/api': { target: 'http://localhost:8787', changeOrigin: false },
+    },
   },
   preview: {
     port: 4200,
@@ -22,6 +29,14 @@ export default defineConfig(() => ({
     outDir: './dist',
     emptyOutDir: true,
     reportCompressedSize: true,
+    // Two pages, two entry graphs: the moderation console is its own input so no moderation
+    // code ever lands in the public site's bundle.
+    rolldownOptions: {
+      input: {
+        main: resolve(import.meta.dirname, 'index.html'),
+        moderation: resolve(import.meta.dirname, 'moderation.html'),
+      },
+    },
     commonjsOptions: {
       transformMixedEsModules: true,
     },

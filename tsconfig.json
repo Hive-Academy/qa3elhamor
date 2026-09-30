@@ -44,6 +44,21 @@
     },
     {
       "path": "./libs/dive/domain"
+    },
+    {
+      "path": "./libs/telemetry/data-access"
+    },
+    {
+      "path": "./libs/landmarks/feature"
+    },
+    {
+      "path": "./libs/landmarks/domain"
+    },
+    {
+      "path": "./libs/telemetry/domain"
+    },
+    {
+      "path": "./libs/landmarks/ui"
     }
   ],
   "compilerOptions": {}

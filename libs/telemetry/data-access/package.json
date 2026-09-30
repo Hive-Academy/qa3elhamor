@@ -3,6 +3,9 @@
   "version": "0.0.1",
   "private": true,
   "type": "module",
+  "dependencies": {
+    "@qa3elhamor/telemetry-domain": "*"
+  },
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "exports": {

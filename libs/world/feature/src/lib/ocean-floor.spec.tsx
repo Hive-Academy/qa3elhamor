@@ -1,7 +1,17 @@
 import { render, screen } from '@testing-library/react';
-import { BoxGeometry, DataTexture, Group, Mesh, MeshStandardMaterial } from 'three';
+import {
+  BoxGeometry,
+  DataTexture,
+  Group,
+  Mesh,
+  MeshStandardMaterial,
+} from 'three';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { ModelErrorBoundary, disposeObjectTree, retainModel } from './ocean-floor.js';
+import {
+  ModelErrorBoundary,
+  disposeObjectTree,
+  retainModel,
+} from './ocean-floor.js';
 
 function Explode(): never {
   throw new Error('404 environment.glb');
@@ -17,15 +27,22 @@ describe('ModelErrorBoundary', () => {
 
     render(
       <>
-        <ModelErrorBoundary url="/models/environment.glb" onError={onError} clearCache={clearCache}>
+        <ModelErrorBoundary
+          url="/models/environment.glb"
+          onError={onError}
+          clearCache={clearCache}
+        >
           <Explode />
         </ModelErrorBoundary>
         <p>ocean still here</p>
-      </>
+      </>,
     );
 
     expect(screen.getByText('ocean still here')).toBeTruthy();
-    expect(onError).toHaveBeenCalledWith(expect.any(Error), '/models/environment.glb');
+    expect(onError).toHaveBeenCalledWith(
+      expect.any(Error),
+      '/models/environment.glb',
+    );
     expect(clearCache).toHaveBeenCalledWith('/models/environment.glb');
   });
 
@@ -40,7 +57,7 @@ describe('ModelErrorBoundary', () => {
     const { rerender } = render(
       <ModelErrorBoundary url="/a.glb" {...props}>
         <Model />
-      </ModelErrorBoundary>
+      </ModelErrorBoundary>,
     );
     expect(screen.queryByText('model')).toBeNull();
 
@@ -48,7 +65,7 @@ describe('ModelErrorBoundary', () => {
     rerender(
       <ModelErrorBoundary url="/b.glb" {...props}>
         <Model />
-      </ModelErrorBoundary>
+      </ModelErrorBoundary>,
     );
     expect(screen.getByText('model')).toBeTruthy();
   });
@@ -61,7 +78,10 @@ describe('model lifetime', () => {
     const texture = new DataTexture(new Uint8Array(4), 1, 1);
     const material = new MeshStandardMaterial({ map: texture });
     const geometry = new BoxGeometry();
-    const root = new Group().add(new Mesh(geometry, material), new Mesh(geometry, material));
+    const root = new Group().add(
+      new Mesh(geometry, material),
+      new Mesh(geometry, material),
+    );
     const disposed = { geometry: 0, material: 0, texture: 0 };
     geometry.addEventListener('dispose', () => disposed.geometry++);
     material.addEventListener('dispose', () => disposed.material++);
@@ -72,6 +92,19 @@ describe('model lifetime', () => {
     expect(disposed.geometry).toBeGreaterThan(0);
     expect(disposed.material).toBe(1);
     expect(disposed.texture).toBe(1);
+  });
+
+  it('disposes a texture shared by two materials once', () => {
+    const texture = new DataTexture(new Uint8Array(4), 1, 1);
+    const geometry = new BoxGeometry();
+    const root = new Group().add(
+      new Mesh(geometry, new MeshStandardMaterial({ map: texture })),
+      new Mesh(geometry, new MeshStandardMaterial({ normalMap: texture })),
+    );
+    let count = 0;
+    texture.addEventListener('dispose', () => count++);
+    disposeObjectTree(root);
+    expect(count).toBe(1);
   });
 
   it('survives an immediate re-acquire (StrictMode remount) and releases after the last user', () => {

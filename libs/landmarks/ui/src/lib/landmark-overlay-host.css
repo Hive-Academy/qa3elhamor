@@ -1,0 +1,137 @@
+/*
+ * The overlay shell: a municipal notice on aged paper, floated up out of dark water.
+ * Custom properties are the theming surface; override them on `.lmk-overlay` in the app.
+ */
+.lmk-overlay {
+  --lmk-paper: #f3ead3;
+  --lmk-paper-edge: #dccb9f;
+  --lmk-ink: #2a2118;
+  --lmk-ink-soft: #5b4a36;
+  --lmk-rule: #8c3b2a;
+  --lmk-focus: #0b6fa4;
+  --lmk-water: rgba(3, 12, 28, 0.62);
+
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: var(--lmk-water);
+  animation: lmk-overlay-fade 180ms ease-out;
+}
+
+.lmk-overlay__paper {
+  position: relative;
+  width: min(34rem, 100%);
+  max-height: min(85vh, 44rem);
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: 1.25rem 1.5rem 1.5rem;
+  border: 1px solid var(--lmk-paper-edge);
+  border-radius: 0.25rem;
+  background:
+    radial-gradient(
+      120% 80% at 50% 0%,
+      rgba(255, 255, 255, 0.35),
+      transparent 60%
+    ),
+    var(--lmk-paper);
+  color: var(--lmk-ink);
+  box-shadow:
+    0 0 0 4px var(--lmk-paper),
+    0 0 0 5px var(--lmk-rule),
+    0 24px 60px rgba(0, 0, 0, 0.45);
+  font-family: Georgia, 'Times New Roman', 'Noto Naskh Arabic', serif;
+  line-height: 1.55;
+  animation: lmk-overlay-float 260ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.lmk-overlay__paper:focus {
+  outline: none;
+}
+
+.lmk-overlay__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-block-end: 1rem;
+  padding-block-end: 0.75rem;
+  border-block-end: 3px double var(--lmk-rule);
+}
+
+.lmk-overlay__title {
+  margin: 0;
+  font-size: clamp(1.25rem, 4.5vw, 1.625rem);
+  line-height: 1.25;
+  letter-spacing: 0.01em;
+}
+
+.lmk-overlay__close {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  margin: -0.35rem;
+  border: 1px solid transparent;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--lmk-ink);
+  font-size: 1.75rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.lmk-overlay__close:hover {
+  border-color: var(--lmk-paper-edge);
+  background: rgba(140, 59, 42, 0.08);
+}
+
+.lmk-overlay__close:focus-visible,
+.lmk-overlay__body :focus-visible {
+  outline: 3px solid var(--lmk-focus);
+  outline-offset: 2px;
+}
+
+.lmk-overlay__body {
+  font-size: 1rem;
+  color: var(--lmk-ink);
+}
+
+.lmk-overlay__body p {
+  margin: 0 0 0.75rem;
+}
+
+@media (max-width: 30rem) {
+  .lmk-overlay {
+    align-items: end;
+    padding: 0.5rem;
+  }
+
+  .lmk-overlay__paper {
+    max-height: 88vh;
+    padding: 1rem 1.125rem 1.25rem;
+  }
+}
+
+@keyframes lmk-overlay-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes lmk-overlay-float {
+  from {
+    opacity: 0;
+    transform: translateY(1.5rem) rotate(-0.6deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lmk-overlay,
+  .lmk-overlay__paper {
+    animation: none;
+  }
+}

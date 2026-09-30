@@ -76,7 +76,8 @@ See `.ptah/scope-decisions.md` for the full discovery record and the asset/IP co
 
 ## Phase 4: Landmarks & Content
 
-- [ ] landmark-kernel: Reusable landmark abstraction
+- [x] landmark-kernel: Reusable landmark abstraction
+      **Outcome.** `libs/landmarks/{domain,feature,ui}`: a landmark = one `LandmarkDefinition` in `apps/web/src/app/landmarks.config.ts` + one overlay (or in-world scene) component. `presentation: dialog | in-world | none`; per-landmark Suspense/error boundaries; hover tint, distance-faded occlusion-aware beacons; accessible dialog host (inert background, focus trap, focus return to `LandmarkNav`); switching between landmarks; dive `focusWaypoint/release` owns scroll restore. `useCompressedModel` in world-feature (per-consumer clones, refcounted disposal). All four landmarks placed with placeholder overlays. Docs: `libs/landmarks/README.md`.
       **Charter.** Create `libs/landmarks/{domain,feature,ui}` defining what a landmark *is*: a positioned model with a hit target, hover and focus states, a camera-focus transition, and a bound HTML overlay. This is the template's single most important abstraction — four landmarks ship and forkers will add their own, so the abstraction must make a new landmark a data entry plus an overlay component, never a scene-graph edit. Success: a landmark is declarable from data, and adding one requires no change to `libs/dive` or `libs/world`.
       **Depends on:** dive-camera
 
@@ -128,7 +129,8 @@ See `.ptah/scope-decisions.md` for the full discovery record and the asset/IP co
       **Charter.** Render approved public complaints as an in-world board — a municipal notice wall visitors dive past and can post to — reading from `complaints-api`. This is the feature that makes the site participatory rather than a portfolio, mirroring the Facebook group the trend actually was. Success: a visitor posts a complaint, sees it enter moderation, and approved complaints appear on the wall for everyone.
       **Depends on:** complaints-api, landmark-kernel
 
-- [ ] complaints-moderation: Moderation surface
+- [x] complaints-moderation: Moderation surface
+      **Outcome.** Separate Vite entry `apps/web/moderation.html` (moderation code never ships in the public bundle): sessionStorage-only token, status tabs, approve/reject/delete with optimistic updates scoped per source status, 409 refresh, cursor paging, timeouts, error boundary, noindex + robots.txt. Hand-off to deploy/security: `X-Robots-Tag`, CSP/frame-ancestors, where it is hosted when the site is on GitHub Pages.
       **Charter.** Provide a minimal moderation view behind the shared-secret token — list pending complaints, approve, reject, delete — with no user system. Public UGC without moderation is an unacceptable liability for a site carrying the owner's name and brand. Success: a pending complaint can be approved or rejected from the surface, and an invalid token returns 401.
       **Depends on:** complaints-api
 
@@ -136,7 +138,8 @@ See `.ptah/scope-decisions.md` for the full discovery record and the asset/IP co
 
 ## Phase 6: Telemetry & Template Readiness
 
-- [ ] telemetry-events: Dive and engagement analytics
+- [x] telemetry-events: Dive and engagement analytics
+      **Outcome.** `libs/telemetry/{domain,data-access}`: allow-listed cookieless events (depth milestones, landmark clicks, overlay opens, drop-off on pagehide with bfcache re-arm, quality tier), Plausible/Umami/no-op adapters, default off, DNT/GPC honoured, lazy idle script load. Wired via `<SiteTelemetry/>` and the landmark port. `quality_tier_resolved` has no caller until quality-tiers. Docs: `docs/analytics.md`. Not yet verified against a live provider dashboard.
       **Charter.** Create `libs/telemetry/{domain,data-access}` dispatching cookieless events to a hosted provider (Plausible or Umami): dive depth reached, landmark clicks, overlay opens, drop-off point, and resolved quality tier. Cookieless keeps the site clear of consent banners, and dive-depth data is the only way to know whether visitors actually reach the deeper landmarks. Success: events land in the provider dashboard and no analytics cookie is set.
       **Depends on:** dive-camera
 

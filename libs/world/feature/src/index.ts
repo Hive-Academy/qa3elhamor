@@ -9,3 +9,4 @@ export * from './lib/ocean-lights.js';
 export * from './lib/ocean-particles.js';
 export * from './lib/ocean-floor.js';
 export * from './lib/ocean-world.js';
+export * from './lib/use-compressed-model.js';

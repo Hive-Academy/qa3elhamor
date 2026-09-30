@@ -15,6 +15,20 @@
   },
   "nx": {
     "name": "landmarks-feature",
-    "tags": ["scope:landmarks", "type:feature", "platform:web"]
+    "tags": [
+      "scope:landmarks",
+      "type:feature",
+      "platform:web"
+    ]
+  },
+  "dependencies": {
+    "@qa3elhamor/landmarks-domain": "*",
+    "@qa3elhamor/landmarks-ui": "*"
+  },
+  "peerDependencies": {
+    "@react-three/drei": "^10.7.8",
+    "@react-three/fiber": "^9.7.0",
+    "react": "^19.0.0",
+    "three": "^0.185.1"
   }
 }

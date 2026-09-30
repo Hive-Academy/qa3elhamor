@@ -7,7 +7,13 @@
     "@qa3elhamor/shared-util": "*",
     "@qa3elhamor/world-feature": "*",
     "@qa3elhamor/dive-domain": "*",
-    "@qa3elhamor/dive-feature": "*"
+    "@qa3elhamor/dive-feature": "*",
+    "@qa3elhamor/shared-api-interfaces": "*",
+    "@qa3elhamor/telemetry-domain": "*",
+    "@qa3elhamor/telemetry-data-access": "*",
+    "@qa3elhamor/landmarks-domain": "*",
+    "@qa3elhamor/landmarks-ui": "*",
+    "@qa3elhamor/landmarks-feature": "*"
   },
   "nx": {
     "name": "web",

@@ -1,0 +1,195 @@
+/* Moderation console. Same palette as the public site (styles.css): deep-sea navy and pale ice. */
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  background: #0a1e3f;
+  color: #e6f2ff;
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  line-height: 1.5;
+}
+
+.mod-shell {
+  max-width: 48rem;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.mod-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(230, 242, 255, 0.14);
+}
+
+.mod-header h1 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.mod-muted {
+  color: rgba(230, 242, 255, 0.75);
+}
+
+:focus-visible {
+  outline: 2px solid #7fd3ff;
+  outline-offset: 2px;
+}
+
+.mod-button {
+  min-height: 2.5rem;
+  padding: 0.4rem 1rem;
+  border: 1px solid rgba(230, 242, 255, 0.35);
+  border-radius: 0.375rem;
+  background: rgba(4, 16, 34, 0.55);
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.mod-button:hover:not(:disabled) {
+  background: rgba(230, 242, 255, 0.1);
+}
+
+.mod-button:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.mod-button--primary,
+.mod-button--approve {
+  border-color: #3fb68b;
+  background: #145c44;
+}
+
+.mod-button--reject {
+  border-color: #e0a84a;
+  background: #5c4214;
+}
+
+.mod-button--delete {
+  border-color: #e0685a;
+  background: #5c1f19;
+}
+
+.mod-signin {
+  display: grid;
+  gap: 0.5rem;
+  max-width: 24rem;
+  margin-top: 1.5rem;
+}
+
+.mod-signin h2 {
+  margin: 0;
+}
+
+.mod-signin input {
+  min-height: 2.5rem;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid rgba(230, 242, 255, 0.35);
+  border-radius: 0.375rem;
+  background: #041022;
+  color: inherit;
+  font: inherit;
+}
+
+.mod-alert {
+  margin: 0.5rem 0;
+  padding: 0.6rem 0.8rem;
+  border-radius: 0.375rem;
+  border: 1px solid rgba(127, 211, 255, 0.5);
+  background: rgba(127, 211, 255, 0.1);
+}
+
+.mod-alert p {
+  margin: 0 0 0.5rem;
+}
+
+.mod-alert--error {
+  border-color: #e0685a;
+  background: rgba(224, 104, 90, 0.15);
+}
+
+.mod-tabs {
+  display: flex;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+  border-bottom: 1px solid rgba(230, 242, 255, 0.14);
+}
+
+.mod-tab {
+  min-height: 2.5rem;
+  padding: 0.4rem 0.9rem;
+  border: 0;
+  border-bottom: 3px solid transparent;
+  background: none;
+  color: rgba(230, 242, 255, 0.75);
+  font: inherit;
+  cursor: pointer;
+}
+
+.mod-tab[aria-selected='true'] {
+  border-bottom-color: #7fd3ff;
+  color: #e6f2ff;
+  font-weight: 600;
+}
+
+.mod-panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.mod-panel__head h2 {
+  font-size: 1.2rem;
+}
+
+.mod-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.mod-card {
+  padding: 0.9rem 1rem;
+  border: 1px solid rgba(230, 242, 255, 0.14);
+  border-radius: 0.5rem;
+  background: rgba(4, 16, 34, 0.55);
+}
+
+.mod-card__subject {
+  margin: 0 0 0.25rem;
+  font-size: 1.1rem;
+  overflow-wrap: anywhere;
+}
+
+.mod-card__meta {
+  margin: 0;
+  font-size: 0.85rem;
+  color: rgba(230, 242, 255, 0.8);
+}
+
+.mod-card__body {
+  margin: 0.6rem 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.mod-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.mod-button--more {
+  display: block;
+  margin: 1rem auto;
+}

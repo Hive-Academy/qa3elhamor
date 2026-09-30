@@ -1,5 +1,11 @@
 import { useLoader } from '@react-three/fiber';
-import { Component, Suspense, useLayoutEffect, type ErrorInfo, type ReactNode } from 'react';
+import {
+  Component,
+  Suspense,
+  useLayoutEffect,
+  type ErrorInfo,
+  type ReactNode,
+} from 'react';
 import type { Material, Mesh, Object3D, Texture } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
@@ -19,15 +25,19 @@ const withMeshopt = (loader: GLTFLoader): void => {
  * Drops a model from R3F's loader cache, so the next mount fetches it again. Used after a
  * failed load (the cache would otherwise keep re-throwing the rejection) and on unmount.
  */
-export const clearOceanModel = (url: string): void => useLoader.clear(GLTFLoader, url);
+export const clearOceanModel = (url: string): void =>
+  useLoader.clear(GLTFLoader, url);
 
-const isMesh = (object: Object3D): object is Mesh => (object as Mesh).isMesh === true;
+const isMesh = (object: Object3D): object is Mesh =>
+  (object as Mesh).isMesh === true;
 
 const materialsOf = (mesh: Mesh): readonly Material[] =>
   Array.isArray(mesh.material) ? mesh.material : [mesh.material];
 
 const isTexture = (value: unknown): value is Texture =>
-  typeof value === 'object' && value !== null && (value as Texture).isTexture === true;
+  typeof value === 'object' &&
+  value !== null &&
+  (value as Texture).isTexture === true;
 
 /** Releases the GPU memory held by every geometry, material and texture under `root`. */
 export function disposeObjectTree(root: Object3D): void {
@@ -37,12 +47,15 @@ export function disposeObjectTree(root: Object3D): void {
     object.geometry.dispose();
     for (const material of materialsOf(object)) materials.add(material);
   });
+  // Materials often share maps: collect textures first so each is disposed once.
+  const textures = new Set<Texture>();
   for (const material of materials) {
     for (const value of Object.values(material)) {
-      if (isTexture(value)) value.dispose();
+      if (isTexture(value)) textures.add(value);
     }
     material.dispose();
   }
+  for (const texture of textures) texture.dispose();
 }
 
 interface OceanFloorModelProps {
@@ -82,7 +95,8 @@ function OceanFloorModel({ url, caustics }: OceanFloorModelProps) {
   useLayoutEffect(() => {
     gltf.scene.traverse((object) => {
       if (!isMesh(object)) return;
-      for (const material of materialsOf(object)) applyCaustics(material, caustics);
+      for (const material of materialsOf(object))
+        applyCaustics(material, caustics);
     });
   }, [gltf, caustics]);
 
@@ -94,7 +108,7 @@ function OceanFloorModel({ url, caustics }: OceanFloorModelProps) {
         disposeObjectTree(gltf.scene);
         clearOceanModel(url);
       }),
-    [gltf, url]
+    [gltf, url],
   );
 
   return <primitive object={gltf.scene} />;
@@ -118,7 +132,10 @@ interface ModelErrorBoundaryState {
  * the ocean keeps rendering, the error is reported, and the loader cache is cleared so a
  * later mount (or a new `url`) is a real retry rather than a replay of the cached rejection.
  */
-export class ModelErrorBoundary extends Component<ModelErrorBoundaryProps, ModelErrorBoundaryState> {
+export class ModelErrorBoundary extends Component<
+  ModelErrorBoundaryProps,
+  ModelErrorBoundaryState
+> {
   override state: ModelErrorBoundaryState = { failedUrl: null };
 
   static getDerivedStateFromError(): Partial<ModelErrorBoundaryState> {
@@ -144,7 +161,10 @@ export class ModelErrorBoundary extends Component<ModelErrorBoundaryProps, Model
 }
 
 const reportModelError = (error: unknown, url: string): void => {
-  console.error(`Ocean environment model failed to load from ${url}; rendering the ocean without it.`, error);
+  console.error(
+    `Ocean environment model failed to load from ${url}; rendering the ocean without it.`,
+    error,
+  );
 };
 
 export interface OceanFloorProps {
@@ -160,7 +180,11 @@ export interface OceanFloorProps {
  * while loading and nothing (plus `onError`) if the load fails, so the ocean around it is
  * never blocked by the model.
  */
-export function OceanFloor({ url, caustics, onError = reportModelError }: OceanFloorProps) {
+export function OceanFloor({
+  url,
+  caustics,
+  onError = reportModelError,
+}: OceanFloorProps) {
   return (
     <ModelErrorBoundary url={url} onError={onError}>
       <Suspense fallback={null}>
