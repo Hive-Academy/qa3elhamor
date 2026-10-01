@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { findAsset } from '@qa3elhamor/world-domain';
 import { describe, expect, it } from 'vitest';
+import { ComingSoonOverlay } from './coming-soon-overlay';
 import { DIVE_CONFIG } from './dive.config';
 import {
   LANDMARKS,
@@ -55,5 +56,12 @@ describe('landmarks config', () => {
     expect(Object.keys(LANDMARK_OVERLAYS).sort()).toEqual(
       LANDMARKS.flatMap((d) => (d.overlay ? [d.overlay] : [])).sort(),
     );
+  });
+
+  it('binds real overlays to the MVP landmarks; the rest stay placeholders', () => {
+    expect(LANDMARK_OVERLAYS['pineapple']).not.toBe(ComingSoonOverlay);
+    expect(LANDMARK_OVERLAYS['bureau']).not.toBe(ComingSoonOverlay);
+    expect(LANDMARK_OVERLAYS['tiki']).toBe(ComingSoonOverlay);
+    expect(LANDMARK_OVERLAYS['krusty-krab']).toBe(ComingSoonOverlay);
   });
 });

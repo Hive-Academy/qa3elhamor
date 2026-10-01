@@ -46,6 +46,9 @@ export default defineConfig(() => ({
     watch: false,
     globals: true,
     environment: 'jsdom',
+    // jsdom + three/R3F module graphs are slow to import when the whole workspace tests in
+    // parallel (CI, `run-many`); the 5 s default flaked there while passing in isolation.
+    testTimeout: 15_000,
     include: ['{src,tests}/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
     reporters: ['default'],
     coverage: {

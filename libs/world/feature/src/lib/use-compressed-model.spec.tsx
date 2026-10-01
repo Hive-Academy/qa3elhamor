@@ -12,7 +12,7 @@ function Probe({
   url,
   onModel,
 }: {
-  url: string;
+  url: string | null;
   onModel: (model: unknown) => void;
 }) {
   onModel(useCompressedModel(url));
@@ -24,7 +24,7 @@ describe('useCompressedModel', () => {
     const scene = new Group().add(
       new Mesh(new BoxGeometry(), new MeshStandardMaterial()),
     );
-    mocks.useLoader.mockReturnValue({ scene });
+    mocks.useLoader.mockReturnValue([{ scene }]);
     const seen: unknown[] = [];
     render(
       <>
@@ -43,7 +43,7 @@ describe('useCompressedModel', () => {
     const scene = new Group().add(
       new Mesh(geometry, new MeshStandardMaterial()),
     );
-    mocks.useLoader.mockReturnValue({ scene });
+    mocks.useLoader.mockReturnValue([{ scene }]);
     const dispose = vi.spyOn(geometry, 'dispose');
     const onModel = vi.fn();
     const { unmount } = render(
@@ -55,7 +55,7 @@ describe('useCompressedModel', () => {
     expect((instance.children[0] as Mesh).geometry).toBe(geometry);
     expect(mocks.useLoader).toHaveBeenCalledWith(
       expect.any(Function),
-      '/models/landmark-tiki.glb',
+      ['/models/landmark-tiki.glb'],
       expect.any(Function),
     );
 
@@ -66,5 +66,23 @@ describe('useCompressedModel', () => {
       expect.any(Function),
       '/models/landmark-tiki.glb',
     );
+  });
+
+  it('fetches nothing for a null url and returns an empty placeholder', () => {
+    vi.useFakeTimers();
+    mocks.useLoader.mockClear();
+    mocks.useLoader.clear.mockClear();
+    mocks.useLoader.mockReturnValue([]);
+    const onModel = vi.fn();
+    const { unmount } = render(<Probe url={null} onModel={onModel} />);
+
+    expect(mocks.useLoader).toHaveBeenCalledWith(expect.any(Function), [], expect.any(Function));
+    const placeholder = onModel.mock.calls[0][0] as Group;
+    expect(placeholder).toBeInstanceOf(Group);
+    expect(placeholder.children).toHaveLength(0);
+
+    unmount();
+    vi.runAllTimers();
+    expect(mocks.useLoader.clear).not.toHaveBeenCalled();
   });
 });

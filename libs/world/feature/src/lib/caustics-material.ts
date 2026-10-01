@@ -186,3 +186,16 @@ export function applyCaustics(material: Material, uniforms: CausticsUniforms): b
   material.needsUpdate = true;
   return true;
 }
+
+/**
+ * Undoes `applyCaustics`: restores the material's built-in shader hooks and forces one
+ * recompile, so a tier with caustics off pays nothing for them. No-op on unpatched materials.
+ */
+export function removeCaustics(material: Material): void {
+  if (!('causticsUniforms' in material.userData)) return;
+  delete material.userData['causticsUniforms'];
+  // The patch set own properties; deleting them re-exposes three's prototype defaults.
+  Reflect.deleteProperty(material, 'onBeforeCompile');
+  Reflect.deleteProperty(material, 'customProgramCacheKey');
+  material.needsUpdate = true;
+}

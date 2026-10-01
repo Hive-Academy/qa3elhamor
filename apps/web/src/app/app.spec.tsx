@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import App from './app';
+import { siteTelemetry } from './telemetry';
 
 // jsdom has no WebGL context, so the R3F canvas cannot mount here. Stub `Canvas` and assert
 // the DOM overlay instead; the scene itself is covered by the visual-regression suite in the
@@ -39,8 +40,24 @@ describe('App', () => {
     expect(nav.querySelectorAll('button')).toHaveLength(4);
     fireEvent.click(screen.getByRole('button', { name: /Complaints Bureau/ }));
     const dialog = screen.getByRole('dialog', { name: 'Complaints Bureau' });
-    expect(dialog.textContent).toMatch(/Check back soon/);
+    expect(dialog.querySelector('form')).toBeTruthy();
     fireEvent.keyDown(dialog, { key: 'Escape' });
     expect(screen.queryByRole('dialog')).toBeNull();
+  });
+
+  it('pins the quality tier from ?quality= and reports it to analytics once', () => {
+    const resolved = vi.spyOn(siteTelemetry().session, 'qualityTierResolved');
+    window.history.replaceState(null, '', '/?quality=low');
+    try {
+      const { container } = render(<App />);
+      const stage = container.querySelector('.stage');
+      expect(stage?.getAttribute('data-quality-tier')).toBe('low');
+      expect(stage?.getAttribute('data-quality-settled')).toBe('true');
+      expect(resolved).toHaveBeenCalledTimes(1);
+      expect(resolved).toHaveBeenCalledWith('low');
+    } finally {
+      window.history.replaceState(null, '', '/');
+      resolved.mockRestore();
+    }
   });
 });

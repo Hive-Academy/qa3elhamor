@@ -1,4 +1,4 @@
-import { useLoader } from '@react-three/fiber';
+import { useLoader, useThree } from '@react-three/fiber';
 import {
   Component,
   Suspense,
@@ -9,7 +9,7 @@ import {
 import type { Material, Mesh, Object3D, Texture } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
-import { applyCaustics, type CausticsUniforms } from './caustics-material.js';
+import { applyCaustics, removeCaustics, type CausticsUniforms } from './caustics-material.js';
 
 /**
  * Every web asset is Meshopt-compressed (EXT_meshopt_compression is marked required), so the
@@ -60,7 +60,26 @@ export function disposeObjectTree(root: Object3D): void {
 
 interface OceanFloorModelProps {
   readonly url: string;
-  readonly caustics: CausticsUniforms;
+  readonly caustics: CausticsUniforms | null;
+  readonly anisotropy: number;
+}
+
+const TEXTURE_SLOTS = ['map', 'normalMap', 'roughnessMap', 'metalnessMap', 'emissiveMap', 'aoMap'] as const;
+
+/** Sets anisotropic filtering on every texture of the model; re-uploads only those that change. */
+function applyAnisotropy(root: Object3D, anisotropy: number): void {
+  root.traverse((object) => {
+    if (!isMesh(object)) return;
+    for (const material of materialsOf(object)) {
+      const slots = material as unknown as Partial<Record<(typeof TEXTURE_SLOTS)[number], unknown>>;
+      for (const slot of TEXTURE_SLOTS) {
+        const texture = slots[slot];
+        if (!isTexture(texture) || texture.anisotropy === anisotropy) continue;
+        texture.anisotropy = anisotropy;
+        texture.needsUpdate = true;
+      }
+    }
+  });
 }
 
 const mountedModels = new Map<Object3D, number>();
@@ -89,16 +108,24 @@ export function retainModel(root: Object3D, release: () => void): () => void {
  * `OceanFloor` using it unmounts it is disposed and evicted from the loader cache, so
  * swapping `url` or tearing the scene down does not pin ~65k triangles and their textures.
  */
-function OceanFloorModel({ url, caustics }: OceanFloorModelProps) {
+function OceanFloorModel({ url, caustics, anisotropy }: OceanFloorModelProps) {
   const gltf = useLoader(GLTFLoader, url, withMeshopt);
+  const maxAnisotropy = useThree((three) => three.gl.capabilities.getMaxAnisotropy());
 
   useLayoutEffect(() => {
     gltf.scene.traverse((object) => {
       if (!isMesh(object)) return;
-      for (const material of materialsOf(object))
-        applyCaustics(material, caustics);
+      for (const material of materialsOf(object)) {
+        if (caustics) applyCaustics(material, caustics);
+        else removeCaustics(material);
+      }
     });
   }, [gltf, caustics]);
+
+  useLayoutEffect(
+    () => applyAnisotropy(gltf.scene, Math.max(1, Math.min(anisotropy, maxAnisotropy))),
+    [gltf, anisotropy, maxAnisotropy]
+  );
 
   // Layout effect: acquire synchronously on commit so a remount re-retains before the
   // previous owner's deferred release timer can fire and dispose a still-used scene.
@@ -170,7 +197,10 @@ const reportModelError = (error: unknown, url: string): void => {
 export interface OceanFloorProps {
   /** Public URL of the environment GLB; resolve it with `assetUrl('environment', base)`. */
   readonly url: string;
-  readonly caustics: CausticsUniforms;
+  /** Shared caustics uniforms, or null to render the map without the caustics patch. */
+  readonly caustics: CausticsUniforms | null;
+  /** Anisotropic filtering for the model's textures, capped by the GPU. Default 1 (off). */
+  readonly anisotropy?: number;
   /** Called when the model cannot be loaded. Defaults to a console error. */
   readonly onError?: (error: unknown, url: string) => void;
 }
@@ -183,12 +213,13 @@ export interface OceanFloorProps {
 export function OceanFloor({
   url,
   caustics,
+  anisotropy = 1,
   onError = reportModelError,
 }: OceanFloorProps) {
   return (
     <ModelErrorBoundary url={url} onError={onError}>
       <Suspense fallback={null}>
-        <OceanFloorModel url={url} caustics={caustics} />
+        <OceanFloorModel url={url} caustics={caustics} anisotropy={anisotropy} />
       </Suspense>
     </ModelErrorBoundary>
   );

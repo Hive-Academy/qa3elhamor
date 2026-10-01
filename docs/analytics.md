@@ -82,9 +82,9 @@ slug is ignored rather than overwriting it.
 **Current wiring.** Depth milestones and drop-off come from `<SiteTelemetry />` inside
 `<DiveProvider>` (`apps/web/src/app/app.tsx`); landmark opens come from the landmark kernel
 through `reportLandmarkEvent` in `apps/web/src/app/landmark-ports.ts`.
-`quality_tier_resolved` is catalogued and ready (`trackQualityTier`) but has no caller yet:
-the page has no tier resolution until the quality-tiers roadmap item lands, which will call
-it once the tier is final. Until then this event does not appear in the dashboard.
+`quality_tier_resolved` is sent once, with the final tier, by
+`<QualityProvider onSettled={trackQualityTier}>` in `App`. `overlay_opened` for overlays
+that are not landmarks (`trackOverlayOpened`) has no caller until the complaints-wall item.
 
 On the exit path with Umami, when the tracker script is not loaded, this code posts the
 event directly to `/api/send` with Umami's standard event fields: website id, page

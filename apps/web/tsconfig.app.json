@@ -37,6 +37,15 @@
   "include": ["src/**/*.js", "src/**/*.jsx", "src/**/*.ts", "src/**/*.tsx"],
   "references": [
     {
+      "path": "../../libs/complaints/domain/tsconfig.lib.json"
+    },
+    {
+      "path": "../../libs/content/data-access/tsconfig.lib.json"
+    },
+    {
+      "path": "../../libs/content/domain/tsconfig.lib.json"
+    },
+    {
       "path": "../../libs/landmarks/feature/tsconfig.lib.json"
     },
     {
@@ -59,6 +68,9 @@
     },
     {
       "path": "../../libs/dive/domain/tsconfig.lib.json"
+    },
+    {
+      "path": "../../libs/world/ui/tsconfig.lib.json"
     },
     {
       "path": "../../libs/world/feature/tsconfig.lib.json"

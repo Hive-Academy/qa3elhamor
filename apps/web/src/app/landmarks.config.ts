@@ -6,8 +6,14 @@ import {
 } from '@qa3elhamor/landmarks-domain';
 import type { LandmarkSceneRegistry } from '@qa3elhamor/landmarks-feature';
 import type { LandmarkOverlayRegistry } from '@qa3elhamor/landmarks-ui';
+import { profile, siteCopy } from '@qa3elhamor/content-data-access';
 import { ComingSoonOverlay } from './coming-soon-overlay';
 import { LANDMARK_PLACEMENTS, buildDiveSpec } from './dive.config';
+import { createCitizenshipCardOverlay } from './overlays/citizenship-card';
+import {
+  createComplaintScrollOverlay,
+  pendingSubmitter,
+} from './overlays/complaint-scroll';
 
 /**
  * The landmarks on the page, in the order the dive meets them. Adding one is an entry here,
@@ -57,12 +63,21 @@ export const LANDMARKS: readonly LandmarkDefinition[] = [
   },
 ];
 
-/** Overlay components by key. Each is a placeholder until its landmark item lands. */
+/**
+ * Overlay components by key, with their content bound here (the landmark libraries never import
+ * content). Tiki and Krusty Krab stay placeholders until their landmark items land.
+ *
+ * The bureau's `pendingSubmitter` sends nothing anywhere and says so to the visitor;
+ * `complaints-contact-adapter` replaces it with the real delivery.
+ */
 export const LANDMARK_OVERLAYS: LandmarkOverlayRegistry = {
-  pineapple: ComingSoonOverlay,
+  pineapple: createCitizenshipCardOverlay({ profile, copy: siteCopy }),
   tiki: ComingSoonOverlay,
   'krusty-krab': ComingSoonOverlay,
-  bureau: ComingSoonOverlay,
+  bureau: createComplaintScrollOverlay({
+    copy: siteCopy,
+    submitter: pendingSubmitter,
+  }),
 };
 
 /** The dive's waypoint ids: the only targets a landmark may send the camera to. */

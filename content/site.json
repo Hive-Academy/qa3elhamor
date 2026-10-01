@@ -83,8 +83,8 @@
       "ar": "نموذج: موقع مطوّر بقى في القاع، وبنى موقعه هناك."
     },
     "aboutTitle": {
-      "en": "Citizenship Card",
-      "ar": "بطاقة المواطنة"
+      "en": "Citizenship Card — Qaa El-Hamour",
+      "ar": "بطاقة مواطن — قاع الهامور"
     },
     "resumeTitle": {
       "en": "Performance Reviews",
@@ -109,6 +109,138 @@
     "creditsTitle": {
       "en": "Credits",
       "ar": "شكر وتقدير"
+    },
+    "citizenCardIssuer": {
+      "en": "Municipality of Qaa El-Hamour · Civil Registry",
+      "ar": "بلدية قاع الهامور · السجل المدني"
+    },
+    "citizenNameLabel": {
+      "en": "Name",
+      "ar": "الاسم"
+    },
+    "citizenOccupationLabel": {
+      "en": "Occupation",
+      "ar": "المهنة"
+    },
+    "citizenResidenceLabel": {
+      "en": "Residence",
+      "ar": "محل الإقامة"
+    },
+    "citizenResidenceDefault": {
+      "en": "The bottom. Officially.",
+      "ar": "القاع. رسميًا."
+    },
+    "citizenStatusLabel": {
+      "en": "Civil status",
+      "ar": "الحالة المدنية"
+    },
+    "citizenStatusValue": {
+      "en": "Hit rock bottom, and settled in:",
+      "ar": "استقرّ في القاع:"
+    },
+    "citizenStatusMotto": {
+      "en": "بقينا في القاع",
+      "ar": "بقينا في القاع"
+    },
+    "citizenBioTitle": {
+      "en": "Statement of the citizen",
+      "ar": "إفادة المواطن"
+    },
+    "citizenSkillsTitle": {
+      "en": "Underwater specialties",
+      "ar": "تخصصات تحت الماء"
+    },
+    "citizenLinksTitle": {
+      "en": "Reach this citizen",
+      "ar": "للتواصل مع المواطن"
+    },
+    "complaintIntro": {
+      "en": "File your complaint with the Municipality. It goes privately to this citizen's desk; the Sardine President reads every one, eventually.",
+      "ar": "قدّم شكواك إلى البلدية. تصل بشكل خاص إلى مكتب هذا المواطن، والرئيس السرديني يقرأ كل شكوى، ولو بعد حين."
+    },
+    "complaintSubjectLabel": {
+      "en": "Subject of the complaint",
+      "ar": "موضوع الشكوى"
+    },
+    "complaintBodyLabel": {
+      "en": "Details of the complaint",
+      "ar": "تفاصيل الشكوى"
+    },
+    "complaintNameLabel": {
+      "en": "Your name",
+      "ar": "اسمك"
+    },
+    "complaintSpeciesLabel": {
+      "en": "Sea species",
+      "ar": "الفصيلة البحرية"
+    },
+    "complaintSpeciesSuggestions": {
+      "en": "Sardine, Grouper, Disgruntled clam, Jellyfish, Recruiter shark",
+      "ar": "سردين، هامور، محارة غاضبة، قنديل بحر، قرش توظيف"
+    },
+    "complaintEmailLabel": {
+      "en": "Reply address",
+      "ar": "عنوان للرد"
+    },
+    "complaintEmailHint": {
+      "en": "So the Municipality can answer you. Never published.",
+      "ar": "حتى تتمكن البلدية من الرد عليك. لا يُنشر أبدًا."
+    },
+    "complaintOptional": {
+      "en": "optional",
+      "ar": "اختياري"
+    },
+    "complaintCounter": {
+      "en": "{count} of {limit} characters",
+      "ar": "{count} من {limit} حرفًا"
+    },
+    "complaintSending": {
+      "en": "Stamping…",
+      "ar": "جارٍ الختم…"
+    },
+    "complaintStampText": {
+      "en": "Sardine Municipal Stamp",
+      "ar": "ختم الرئيس السرديني"
+    },
+    "complaintSuccessTitle": {
+      "en": "Complaint stamped",
+      "ar": "تم ختم الشكوى"
+    },
+    "complaintSuccessBody": {
+      "en": "The Bureau has your complaint. Expect a reply before the next tide.",
+      "ar": "وصلت شكواك إلى المكتب. انتظر الرد قبل المدّ القادم."
+    },
+    "complaintPendingBody": {
+      "en": "Stamped, but the Bureau's post office has not opened yet: your complaint was not sent anywhere. Meanwhile, reach this citizen through the links on the Citizenship Card.",
+      "ar": "تم الختم، لكن مكتب بريد البلدية لم يفتح بعد: لم تُرسل شكواك إلى أي مكان. في الأثناء، تواصل مع المواطن عبر الروابط في بطاقة المواطن."
+    },
+    "complaintFailureBody": {
+      "en": "The stamp slipped and your complaint was not sent. Your text is still here; try again.",
+      "ar": "انزلق الختم ولم تُرسل شكواك. نصّك ما زال هنا؛ حاول مرة أخرى."
+    },
+    "complaintAnotherLabel": {
+      "en": "File another complaint",
+      "ar": "قدّم شكوى أخرى"
+    },
+    "complaintErrorSummary": {
+      "en": "The Municipality cannot accept this form yet. Fix the fields marked below.",
+      "ar": "لا تستطيع البلدية قبول هذا الطلب بعد. صحّح الحقول المحددة أدناه."
+    },
+    "complaintErrorEmpty": {
+      "en": "This field is required.",
+      "ar": "هذا الحقل مطلوب."
+    },
+    "complaintErrorTooLong": {
+      "en": "Too long: the limit is {limit} characters.",
+      "ar": "طويل جدًا: الحد الأقصى {limit} حرفًا."
+    },
+    "complaintErrorControlCharacter": {
+      "en": "Remove the hidden control characters.",
+      "ar": "احذف رموز التحكم المخفية."
+    },
+    "complaintErrorMalformed": {
+      "en": "That does not look like an email address.",
+      "ar": "هذا لا يبدو عنوان بريد إلكتروني."
     }
   }
 }

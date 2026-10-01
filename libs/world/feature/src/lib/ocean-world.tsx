@@ -1,6 +1,7 @@
+import { QUALITY_PROFILES, type QualityProfile } from '@qa3elhamor/world-domain';
 import { OrbitControls } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
-import { useEffect, useLayoutEffect, useMemo, type ReactNode } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useState, type ReactNode } from 'react';
 import type { IUniform } from 'three';
 import {
   CAUSTICS_TIME_PERIOD,
@@ -33,8 +34,12 @@ export interface OceanWorldProps {
   readonly environmentUrl: string;
   /** Partial overrides of `OCEAN_ENVIRONMENT_DEFAULTS`, merged section by section. */
   readonly config?: OceanEnvironmentOverrides;
-  /** Total particle instances; wins over `config.particles.count` (quality-tier gate). */
-  readonly particleCount?: number;
+  /**
+   * Per-device budgets (see `QUALITY_PROFILES`, usually `useQuality().profile`): particle
+   * counts win over `config.particles`, and caustics on/off, caustics texture resolution and
+   * texture anisotropy come from here. Defaults to the high tier.
+   */
+  readonly quality?: QualityProfile;
   /**
    * Scene-world to world multiplier: the one source of the scene's scale. It is provided to
    * the map and to `children` through context (`useWorldScale`, `useSceneToWorld`).
@@ -92,30 +97,41 @@ function WaterClock({ time, causticsTime, config }: WaterClockProps) {
 export function OceanWorld({
   environmentUrl,
   config: overrides,
-  particleCount,
+  quality = QUALITY_PROFILES.high,
   worldScale = WORLD_SCALE,
   controls = true,
   onEnvironmentError,
   children,
 }: OceanWorldProps) {
-  const config = useMemo(
-    () => resolveOceanConfig(overrides, particleCount),
-    [overrides, particleCount]
-  );
+  const { plankton, bubbles } = quality.particles;
+  const config = useMemo(() => {
+    const particleCount = plankton + bubbles;
+    const bubbleShare = particleCount > 0 ? bubbles / particleCount : undefined;
+    const tiered: OceanEnvironmentOverrides = {
+      ...overrides,
+      particles: { ...overrides?.particles, ...(bubbleShare === undefined ? {} : { bubbleShare }) },
+    };
+    return resolveOceanConfig(tiered, particleCount);
+  }, [overrides, plankton, bubbles]);
 
-  // One texture and one uniform set per mount. Config values are written into the uniforms
-  // by the layout effect, which runs before the first frame renders.
-  const causticsUniforms = useMemo(
-    () => createCausticsUniforms(createCausticsTexture(), OCEAN_ENVIRONMENT_DEFAULTS.caustics),
-    []
+  // One uniform set per mount, so the caustics clock survives a tier change. The texture is
+  // rebuilt only when the tier changes its resolution, and swapped into the live uniform.
+  // Config values are written into the uniforms by the layout effects, before the first frame.
+  const { enabled: causticsEnabled, resolution: causticsResolution } = quality.caustics;
+  const causticsTexture = useMemo(() => createCausticsTexture(causticsResolution), [causticsResolution]);
+  const [causticsUniforms] = useState(() =>
+    createCausticsUniforms(causticsTexture, OCEAN_ENVIRONMENT_DEFAULTS.caustics)
   );
   const particleTime = useMemo<IUniform<number>>(() => ({ value: 0 }), []);
 
+  useLayoutEffect(() => {
+    causticsUniforms.uCausticsMap.value = causticsTexture;
+  }, [causticsUniforms, causticsTexture]);
   useLayoutEffect(
     () => updateCausticsUniforms(causticsUniforms, config.caustics),
     [causticsUniforms, config.caustics]
   );
-  useEffect(() => () => causticsUniforms.uCausticsMap.value.dispose(), [causticsUniforms]);
+  useEffect(() => () => causticsTexture.dispose(), [causticsTexture]);
 
   return (
     <WorldScaleProvider scale={worldScale}>
@@ -131,7 +147,8 @@ export function OceanWorld({
       <WorldSpace>
         <OceanFloor
           url={environmentUrl}
-          caustics={causticsUniforms}
+          caustics={causticsEnabled ? causticsUniforms : null}
+          anisotropy={quality.anisotropy}
           onError={onEnvironmentError}
         />
         {children}

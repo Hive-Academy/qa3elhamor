@@ -69,7 +69,8 @@ export function trackOverlayOpened(overlayKey: string): void {
 /**
  * Report the rendering tier. Precondition: call only once the tier is FINAL — the first call
  * per visit wins and later calls are ignored, so a provisional tier reported early would be
- * the one recorded. Not wired yet: the quality-tiers item owns tier resolution.
+ * the one recorded. `app.tsx` passes this to `<QualityProvider onSettled>`, which calls it
+ * once when the frame-rate governor settles (or at once for a `?quality=` override).
  */
 export function trackQualityTier(tier: QualityTier): void {
   siteTelemetry().session.qualityTierResolved(tier);

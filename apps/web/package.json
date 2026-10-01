@@ -6,6 +6,7 @@
     "@qa3elhamor/world-domain": "*",
     "@qa3elhamor/shared-util": "*",
     "@qa3elhamor/world-feature": "*",
+    "@qa3elhamor/world-ui": "*",
     "@qa3elhamor/dive-domain": "*",
     "@qa3elhamor/dive-feature": "*",
     "@qa3elhamor/shared-api-interfaces": "*",
@@ -13,7 +14,10 @@
     "@qa3elhamor/telemetry-data-access": "*",
     "@qa3elhamor/landmarks-domain": "*",
     "@qa3elhamor/landmarks-ui": "*",
-    "@qa3elhamor/landmarks-feature": "*"
+    "@qa3elhamor/landmarks-feature": "*",
+    "@qa3elhamor/content-domain": "*",
+    "@qa3elhamor/content-data-access": "*",
+    "@qa3elhamor/complaints-domain": "*"
   },
   "nx": {
     "name": "web",

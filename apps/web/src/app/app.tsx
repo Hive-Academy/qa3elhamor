@@ -7,12 +7,23 @@ import {
   LandmarkProvider,
 } from '@qa3elhamor/landmarks-feature';
 import type { ReactNode } from 'react';
-import { WEB_ASSETS, initialLoadBudgetBytes } from '@qa3elhamor/world-domain';
+import {
+  QUALITY_PROFILES,
+  WEB_ASSETS,
+  initialLoadBudgetBytes,
+  profilePixelRatio,
+  shouldAntialias,
+} from '@qa3elhamor/world-domain';
 import {
   OceanWorld,
+  QualityMonitor,
+  QualityProvider,
+  QualityReadout,
   assetUrl,
   usePrefersReducedMotion,
+  useQuality,
 } from '@qa3elhamor/world-feature';
+import { SceneCredits, SiteCredits } from './credits';
 import { DepthGauge } from './depth-gauge';
 import { DIVE_CONFIG, buildDivePath } from './dive.config';
 import {
@@ -26,7 +37,7 @@ import {
   LANDMARK_SCENES,
   buildLandmarkRegistry,
 } from './landmarks.config';
-import { SiteTelemetry } from './telemetry';
+import { SiteTelemetry, trackQualityTier } from './telemetry';
 
 /** Resolved once: the manifest owns the path, Vite owns the deploy base. */
 const ENVIRONMENT_URL = assetUrl('environment', import.meta.env.BASE_URL);
@@ -62,22 +73,41 @@ function Landmarks({ children }: { readonly children: ReactNode }) {
  * kernel drives the camera through the dive and opens overlays in the DOM, outside the canvas.
  */
 export function App() {
+  return (
+    <QualityProvider onSettled={trackQualityTier}>
+      <Site />
+    </QualityProvider>
+  );
+}
+
+/**
+ * The page under `<QualityProvider>`. The tier's profile gates the pixel ratio, particles,
+ * caustics, texture filtering and beacon occlusion; `?quality=low|medium|high` pins it.
+ */
+function Site() {
   const budgetMb = (initialLoadBudgetBytes() / (1024 * 1024)).toFixed(1);
   const reducedMotion = usePrefersReducedMotion();
+  const quality = useQuality();
 
   return (
     <DiveProvider path={DIVE_PATH} reducedMotion={reducedMotion}>
       <SiteTelemetry />
       <Landmarks>
-        <div className="stage">
+        <div
+          className="stage"
+          data-quality-tier={quality.tier}
+          data-quality-settled={quality.settled}
+        >
           <Canvas
             className="ocean-canvas"
-            dpr={[1, 2]}
-            // At a device pixel ratio of 1.5 or more the canvas already renders 2.25-4x the
-            // fragments, which smooths edges on its own; MSAA on top would double the cost where
-            // it is least visible. quality-tiers takes over this policy.
+            dpr={profilePixelRatio(quality.profile, window.devicePixelRatio)}
+            // The context is created once, so MSAA follows the tier the page started at
+            // (`shouldAntialias`); later downgrades shed pixels, particles and caustics instead.
             gl={{
-              antialias: window.devicePixelRatio < 1.5,
+              antialias: shouldAntialias(
+                QUALITY_PROFILES[quality.initialTier],
+                window.devicePixelRatio,
+              ),
               powerPreference: 'high-performance',
             }}
             camera={{
@@ -88,15 +118,22 @@ export function App() {
             }}
             aria-hidden="true"
           >
-            <OceanWorld environmentUrl={ENVIRONMENT_URL} controls={false}>
+            <OceanWorld
+              environmentUrl={ENVIRONMENT_URL}
+              controls={false}
+              quality={quality.profile}
+            >
               <LandmarkLayer
                 useModel={useLandmarkModel}
                 evictModel={evictLandmarkModel}
                 scenes={LANDMARK_SCENES}
                 reducedMotion={reducedMotion}
+                beaconOcclusion={quality.profile.beaconOcclusion}
               />
+              <SceneCredits />
             </OceanWorld>
             <DiveCamera />
+            <QualityMonitor />
           </Canvas>
         </div>
 
@@ -112,9 +149,11 @@ export function App() {
         </aside>
 
         <DepthGauge />
+        <SiteCredits />
         <LandmarkNav />
         <DiveScroll screens={DIVE_CONFIG.screens} />
         <LandmarkOverlays overlays={LANDMARK_OVERLAYS} />
+        {import.meta.env.DEV && <QualityReadout />}
       </Landmarks>
     </DiveProvider>
   );

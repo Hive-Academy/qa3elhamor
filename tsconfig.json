@@ -59,6 +59,9 @@
     },
     {
       "path": "./libs/landmarks/ui"
+    },
+    {
+      "path": "./libs/world/ui"
     }
   ],
   "compilerOptions": {}

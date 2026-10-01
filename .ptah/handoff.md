@@ -81,10 +81,10 @@ commit batch 3 (three items, one commit or one per item) and push.
 
 **Remaining, in planned batch order:**
 
-- **Batch 4 (MVP):** landmark-pineapple (Citizenship Card: bio + skills from content),
+- **Batch 4 (MVP) — COMMITTED, all APPROVED:** landmark-pineapple (Citizenship Card: bio + skills from content),
   landmark-bureau (contact scroll form), **asset-attribution-ui** (pulled forward: must exist
   before the repo goes public), quality-tiers (also wires `trackQualityTier`).
-- **Batch 4.5 (owner feedback 2026-10-01):** owner content into `content/*.json`, `dive-tuning` (camera framing/scroll feel), `ambient-life` (fish schools + an original Hamour hero creature; SpongeBob/Patrick stay unplaced — IP). See the new roadmap items.
+- **Batch 4.5 (owner feedback 2026-10-01):** owner content into `content/*.json`, `dive-tuning` (camera framing/scroll feel), **`diegetic-overlays`** (owner wants the modal popups replaced by in-world presentations — prototype the Pineapple card first, get sign-off, then roll out; see the roadmap charter), `ambient-life` (fish schools + an original Hamour hero creature; SpongeBob/Patrick stay unplaced — IP). See the new roadmap items.
 - **Batch 5:** complaints-contact-adapter (Web3Forms/Formspree), complaints-wall (in-world
   board; uses kernel `in-world` presentation), landmark-tiki, landmark-krusty-krab,
   i18n-bilingual (content is already `{ en, ar? }`; locale is hard-coded `en` in app.tsx).

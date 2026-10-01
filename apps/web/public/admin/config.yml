@@ -105,6 +105,39 @@ collections:
               - { name: contactSubmitLabel, label: Contact submit label, widget: object, fields: *l10n }
               - { name: closeLabel, label: Close label, widget: object, fields: *l10n }
               - { name: creditsTitle, label: Credits title, widget: object, fields: *l10n }
+              - { name: citizenCardIssuer, label: Citizen card issuer, widget: object, fields: *l10n }
+              - { name: citizenNameLabel, label: Citizen name label, widget: object, fields: *l10n }
+              - { name: citizenOccupationLabel, label: Citizen occupation label, widget: object, fields: *l10n }
+              - { name: citizenResidenceLabel, label: Citizen residence label, widget: object, fields: *l10n }
+              - { name: citizenResidenceDefault, label: Citizen residence default, widget: object, fields: *l10n }
+              - { name: citizenStatusLabel, label: Citizen status label, widget: object, fields: *l10n }
+              - { name: citizenStatusValue, label: Citizen status value, widget: object, fields: *l10n }
+              - { name: citizenStatusMotto, label: Citizen status motto (the trend's Arabic words), widget: object, fields: *l10n }
+              - { name: citizenBioTitle, label: Citizen bio title, widget: object, fields: *l10n }
+              - { name: citizenSkillsTitle, label: Citizen skills title, widget: object, fields: *l10n }
+              - { name: citizenLinksTitle, label: Citizen links title, widget: object, fields: *l10n }
+              - { name: complaintIntro, label: Complaint intro, widget: object, fields: *l10n }
+              - { name: complaintSubjectLabel, label: Complaint subject label, widget: object, fields: *l10n }
+              - { name: complaintBodyLabel, label: Complaint body label, widget: object, fields: *l10n }
+              - { name: complaintNameLabel, label: Complaint name label, widget: object, fields: *l10n }
+              - { name: complaintSpeciesLabel, label: Complaint species label, widget: object, fields: *l10n }
+              - { name: complaintSpeciesSuggestions, label: Complaint species suggestions, widget: object, fields: *l10n }
+              - { name: complaintEmailLabel, label: Complaint email label, widget: object, fields: *l10n }
+              - { name: complaintEmailHint, label: Complaint email hint, widget: object, fields: *l10n }
+              - { name: complaintOptional, label: Complaint optional, widget: object, fields: *l10n }
+              - { name: complaintCounter, label: Complaint counter, widget: object, fields: *l10n }
+              - { name: complaintSending, label: Complaint sending, widget: object, fields: *l10n }
+              - { name: complaintStampText, label: Complaint stamp text, widget: object, fields: *l10n }
+              - { name: complaintSuccessTitle, label: Complaint success title, widget: object, fields: *l10n }
+              - { name: complaintSuccessBody, label: Complaint success body, widget: object, fields: *l10n }
+              - { name: complaintPendingBody, label: Complaint pending body, widget: object, fields: *l10n }
+              - { name: complaintFailureBody, label: Complaint failure body, widget: object, fields: *l10n }
+              - { name: complaintAnotherLabel, label: Complaint another label, widget: object, fields: *l10n }
+              - { name: complaintErrorSummary, label: Complaint error summary, widget: object, fields: *l10n }
+              - { name: complaintErrorEmpty, label: Complaint error empty, widget: object, fields: *l10n }
+              - { name: complaintErrorTooLong, label: Complaint error too long, widget: object, fields: *l10n }
+              - { name: complaintErrorControlCharacter, label: Complaint error control character, widget: object, fields: *l10n }
+              - { name: complaintErrorMalformed, label: Complaint error malformed, widget: object, fields: *l10n }
 
       - name: resume
         label: Resume

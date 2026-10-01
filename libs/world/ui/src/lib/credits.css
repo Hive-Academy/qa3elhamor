@@ -1,0 +1,122 @@
+/* Credits: page-chrome trigger, dialog and list. Palette shared with the landmark overlays. */
+
+.world-credits__trigger {
+  position: fixed;
+  inset-block-start: 1.5rem;
+  inset-inline-start: 1.5rem;
+  z-index: 35;
+  min-height: 2.75rem;
+  padding: 0 1rem;
+  border: 1px solid rgba(230, 242, 255, 0.14);
+  border-radius: 999px;
+  background: rgba(4, 16, 34, 0.55);
+  backdrop-filter: blur(6px);
+  color: #e6f2ff;
+  font: inherit;
+  font-size: 0.8125rem;
+  letter-spacing: 0.04em;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  cursor: pointer;
+}
+
+.world-credits__trigger:hover {
+  background: rgba(4, 16, 34, 0.8);
+}
+
+.world-credits__trigger:focus-visible,
+.world-credits__close:focus-visible,
+.world-credits__line a:focus-visible {
+  outline: 3px solid #ffd68c;
+  outline-offset: 2px;
+}
+
+.world-credits__dialog {
+  width: min(44rem, calc(100vw - 2rem));
+  max-height: calc(100vh - 3rem);
+  padding: 1.5rem 1.75rem;
+  border: 1px solid rgba(255, 214, 140, 0.45);
+  border-radius: 0.75rem;
+  background: #f3ead3;
+  color: #2a2118;
+  overflow: auto;
+}
+
+.world-credits__dialog::backdrop {
+  background: rgba(4, 16, 34, 0.7);
+}
+
+.world-credits__title {
+  margin: 0 0 0.5rem;
+  font-size: 1.375rem;
+}
+
+.world-credits__intro {
+  margin: 0 0 1rem;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+.world-credits__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.875rem;
+}
+
+.world-credits__item {
+  padding-inline-start: 0.875rem;
+  border-inline-start: 3px solid #7a4b2a;
+}
+
+.world-credits__line {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.world-credits__line a {
+  color: #7a2f1f;
+}
+
+.world-credits__visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.world-credits__unavailable {
+  position: fixed;
+  inset-block-start: 1.5rem;
+  inset-inline-start: 1.5rem;
+  z-index: 35;
+  margin: 0;
+  padding: 0.5rem 1rem;
+  border: 1px solid #ffd68c;
+  border-radius: 999px;
+  background: rgba(4, 16, 34, 0.85);
+  color: #ffd68c;
+  font-size: 0.8125rem;
+}
+
+.world-credits__close {
+  margin-top: 1.25rem;
+  min-height: 2.75rem;
+  padding: 0 1.25rem;
+  border: 1px solid #7a4b2a;
+  border-radius: 999px;
+  background: #2a2118;
+  color: #f3ead3;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}

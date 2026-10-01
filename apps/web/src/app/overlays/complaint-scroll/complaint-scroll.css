@@ -1,0 +1,359 @@
+/*
+ * The Bureau's complaint scroll: a sheet of rolled paper between two wooden rods, inside the
+ * overlay's paper. Colours reuse the overlay shell's `--lmk-*` properties. Logical properties
+ * keep the layout right in RTL.
+ */
+.complaint-scroll {
+  --scroll-paper: #f7efd9;
+  --scroll-rod: #7a5230;
+  --scroll-rod-dark: #4e3219;
+  --scroll-ink: var(--lmk-ink, #2a2118);
+  --scroll-stamp: var(--lmk-rule, #8c3b2a);
+  --scroll-error: #9b1c1c;
+
+  position: relative;
+}
+
+.complaint-scroll__rod {
+  height: 0.875rem;
+  margin-inline: -0.375rem;
+  border-radius: 999px;
+  background: linear-gradient(
+    180deg,
+    var(--scroll-rod) 0%,
+    #a8764a 45%,
+    var(--scroll-rod-dark) 100%
+  );
+  box-shadow: 0 2px 4px rgba(42, 33, 24, 0.35);
+}
+
+.complaint-scroll__sheet {
+  padding: 1rem 1rem 1.25rem;
+  background:
+    linear-gradient(
+      90deg,
+      rgba(122, 82, 48, 0.12),
+      transparent 8%,
+      transparent 92%,
+      rgba(122, 82, 48, 0.12)
+    ),
+    var(--scroll-paper);
+  box-shadow:
+    inset 0 6px 8px -6px rgba(42, 33, 24, 0.45),
+    inset 0 -6px 8px -6px rgba(42, 33, 24, 0.45);
+  animation: complaint-scroll-unroll 420ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  transform-origin: top center;
+}
+
+.complaint-scroll__title {
+  margin: 0 0 0.375rem;
+  font-size: 1.125rem;
+  text-align: center;
+}
+
+.complaint-scroll__title:focus {
+  outline: none;
+}
+
+.complaint-scroll .complaint-scroll__intro {
+  margin: 0 0 1rem;
+  color: var(--lmk-ink-soft, #5b4a36);
+  font-size: 0.9375rem;
+  text-align: center;
+}
+
+.complaint-scroll__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-block-end: 0.875rem;
+  min-width: 0;
+}
+
+.complaint-scroll__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 1rem;
+}
+
+.complaint-scroll__label {
+  font-weight: 700;
+  font-size: 0.9375rem;
+}
+
+.complaint-scroll__optional {
+  font-weight: 400;
+  color: var(--lmk-ink-soft, #5b4a36);
+}
+
+.complaint-scroll input,
+.complaint-scroll textarea {
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.5rem 0.625rem;
+  border: 0;
+  border-block-end: 2px solid var(--lmk-ink-soft, #5b4a36);
+  border-radius: 0.125rem 0.125rem 0 0;
+  background: rgba(255, 255, 255, 0.55);
+  color: var(--scroll-ink);
+  font: inherit;
+  font-family: 'Courier New', ui-monospace, monospace;
+}
+
+.complaint-scroll textarea {
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.complaint-scroll input[aria-invalid='true'],
+.complaint-scroll textarea[aria-invalid='true'] {
+  border-block-end-color: var(--scroll-error);
+  background: rgba(155, 28, 28, 0.06);
+}
+
+.complaint-scroll__count,
+.complaint-scroll__hint {
+  font-size: 0.8125rem;
+  color: var(--lmk-ink-soft, #5b4a36);
+}
+
+.complaint-scroll__count {
+  align-self: flex-end;
+  font-variant-numeric: tabular-nums;
+}
+
+.complaint-scroll__count[data-over] {
+  color: var(--scroll-error);
+  font-weight: 700;
+}
+
+.complaint-scroll .complaint-scroll__error {
+  margin: 0;
+  color: var(--scroll-error);
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.complaint-scroll .complaint-scroll__error::before {
+  content: '✕ ';
+}
+
+.complaint-scroll .complaint-scroll__summary p {
+  margin: 0 0 0.25rem;
+}
+
+.complaint-scroll__summary ul {
+  margin: 0;
+  padding-inline-start: 1.25rem;
+}
+
+.complaint-scroll__summary a {
+  color: inherit;
+  font-weight: 400;
+}
+
+.complaint-scroll__summary:focus-visible,
+.complaint-scroll__summary:focus {
+  outline: 3px solid var(--lmk-focus, #0b6fa4);
+  outline-offset: 2px;
+}
+
+.complaint-scroll .complaint-scroll__summary {
+  scroll-margin-block: 1rem;
+  margin: 0 0 1rem;
+  padding: 0.5rem 0.75rem;
+  border-inline-start: 4px solid var(--scroll-error);
+  background: rgba(155, 28, 28, 0.08);
+  color: var(--scroll-error);
+  font-weight: 700;
+}
+
+/*
+ * The stamp stays in reach: pinned to the bottom of whatever scrolls the form (the dialog's
+ * paper today, an in-world panel later), over a fade that also signals more paper below.
+ */
+.complaint-scroll__submit-row {
+  position: sticky;
+  inset-block-end: 0;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-block-start: 0.5rem;
+  margin-inline: -0.25rem;
+  padding: 1rem 0.25rem 0.5rem;
+  background: linear-gradient(
+    to bottom,
+    rgba(247, 239, 217, 0),
+    var(--scroll-paper) 1rem
+  );
+}
+
+.complaint-scroll__stamp-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.625rem;
+  min-height: 3rem;
+  padding: 0.375rem 1.125rem 0.375rem 0.375rem;
+  border: 2px solid var(--scroll-stamp);
+  border-radius: 999px;
+  background: var(--scroll-stamp);
+  color: #fdf6e3;
+  font: inherit;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  box-shadow: 0 3px 0 #5e2518;
+  transition:
+    transform 120ms ease-out,
+    box-shadow 120ms ease-out;
+}
+
+[dir='rtl'] .complaint-scroll__stamp-button {
+  padding: 0.375rem 0.375rem 0.375rem 1.125rem;
+}
+
+.complaint-scroll__stamp-button:hover {
+  background: #7a3223;
+}
+
+.complaint-scroll__stamp-button:active,
+.complaint-scroll__stamp-button[data-pressing] {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #5e2518;
+}
+
+.complaint-scroll__stamp-button[aria-disabled='true'] {
+  cursor: progress;
+  opacity: 0.85;
+}
+
+.complaint-scroll__stamp-icon {
+  width: 2.25rem;
+  height: 2.25rem;
+  flex: none;
+  border-radius: 50%;
+  background: #fdf6e3;
+  stroke: var(--scroll-stamp);
+  fill: var(--scroll-stamp);
+}
+
+.complaint-scroll__stamp-button[data-pressing] .complaint-scroll__stamp-icon {
+  animation: complaint-stamp-press 700ms ease-in-out infinite;
+}
+
+.complaint-scroll__status {
+  font-style: italic;
+}
+
+/* Stamp art: the legend and eye are ink; the sardine body is a pale wash. */
+.sardine-stamp__legend {
+  stroke: none;
+  font-family: 'Courier New', ui-monospace, monospace;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.sardine-stamp__fill {
+  fill-opacity: 0.2;
+}
+
+.sardine-stamp__eye {
+  stroke: none;
+}
+
+/* The stamped result: the seal lands on the paper. */
+.complaint-scroll--stamped {
+  display: grid;
+  justify-items: center;
+  gap: 0.25rem;
+  padding: 1rem 0.5rem 0.5rem;
+  text-align: center;
+}
+
+.complaint-scroll__seal {
+  width: 9rem;
+  height: 9rem;
+  stroke: var(--scroll-stamp);
+  fill: var(--scroll-stamp);
+  opacity: 0.9;
+  transform: rotate(-8deg);
+  mix-blend-mode: multiply;
+  animation: complaint-stamp-land 520ms cubic-bezier(0.3, 1.4, 0.5, 1) both;
+}
+
+.complaint-scroll__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-block-start: 0.5rem;
+}
+
+.complaint-scroll__secondary {
+  min-height: 2.75rem;
+  padding: 0 1rem;
+  border: 1px solid var(--lmk-ink-soft, #5b4a36);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--scroll-ink);
+  font: inherit;
+  cursor: pointer;
+}
+
+.complaint-scroll__secondary:hover {
+  background: rgba(140, 59, 42, 0.08);
+}
+
+@media (max-width: 30rem) {
+  .complaint-scroll__row {
+    grid-template-columns: 1fr;
+  }
+
+  .complaint-scroll__sheet {
+    padding: 0.875rem 0.75rem 1rem;
+  }
+}
+
+@keyframes complaint-scroll-unroll {
+  from {
+    clip-path: inset(0 0 100% 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+@keyframes complaint-stamp-press {
+  50% {
+    transform: scale(0.82) rotate(-10deg);
+  }
+}
+
+@keyframes complaint-stamp-land {
+  0% {
+    opacity: 0;
+    transform: scale(1.9) rotate(-18deg);
+  }
+  70% {
+    opacity: 0.95;
+    transform: scale(0.94) rotate(-7deg);
+  }
+  100% {
+    opacity: 0.9;
+    transform: scale(1) rotate(-8deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .complaint-scroll__sheet,
+  .complaint-scroll__seal,
+  .complaint-scroll__stamp-button[data-pressing] .complaint-scroll__stamp-icon {
+    animation: none;
+  }
+
+  .complaint-scroll__stamp-button {
+    transition: none;
+  }
+}
