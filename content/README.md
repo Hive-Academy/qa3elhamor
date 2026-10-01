@@ -11,13 +11,14 @@ content/resume.json → items[0].period.start: expected a month as YYYY-MM, got 
 
 The shipped values are now the site owner's real profile. Edit these files to update them.
 
-| File            | Holds                                                              |
-| --------------- | ------------------------------------------------------------------ |
-| `site.json`     | `profile` (name, headline, bio, location, avatar, skills, links) and `copy` (overlay titles, button labels, page title) |
-| `resume.json`   | `items`: experience entries, newest first                          |
-| `services.json` | `items`: services, each with a playful `menuName` and a real `title` |
-| `projects.json` | `items`: work you showcase: `title`, `summary`, optional `description`, `highlights`, `role`, `period`, `tech`, `links` (`repo`, `live`, `case-study`), `media` (`src` + `alt`), `featured`, `order` |
-| `credits.json`  | `items`: design, inspiration, font and library credits             |
+| File              | Holds                                                              |
+| ----------------- | ------------------------------------------------------------------ |
+| `site.json`       | `profile` (name, headline, bio, location, avatar, skills, links) and `copy` (overlay titles, button labels, page title) |
+| `resume.json`     | `items`: experience entries, newest first                          |
+| `services.json`   | `items`: services, each with a playful `menuName` and a real `title` |
+| `projects.json`   | `items`: work you showcase: `title`, `summary`, optional `description`, `highlights`, `role`, `period`, `tech`, `links` (`repo`, `live`, `case-study`), `media` (`src` + `alt`), `featured`, `order` |
+| `credits.json`    | `items`: design, inspiration, font and library credits             |
+| `narration.json`  | `landmarks`: what the narrator says at `pineapple`, `tiki`, `krusty-krab` and `bureau`: `lines` (2 to 5, each at most 140 characters in English), optional `hints` (a list of `{ id, text }`; at the pineapple, `id` is a skill group id from `site.json`) and an optional `farewell` |
 
 ## Rules
 

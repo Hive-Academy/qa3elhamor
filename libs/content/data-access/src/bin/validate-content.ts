@@ -13,7 +13,8 @@ try {
   console.log(
     `Site content is valid: ${content.resume.length} resume entries, ` +
       `${content.projects.length} projects, ${content.services.length} services, ` +
-      `${content.credits.length} credits.`
+      `${content.credits.length} credits, ` +
+      `${Object.keys(content.narration.landmarks).length} narrated landmarks.`
   );
 } catch (error) {
   // Only a content failure gets the friendly report; anything else is a bug and is rethrown.

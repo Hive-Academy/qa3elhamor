@@ -1,4 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react';
+import { WEB_ASSETS } from '@qa3elhamor/world-domain';
 import { describe, expect, it, vi } from 'vitest';
 import App from './app';
 import { siteTelemetry } from './telemetry';
@@ -26,7 +27,9 @@ describe('App', () => {
 
   it('reports the manifested asset count from the world library', () => {
     render(<App />);
-    expect(screen.getByText(/8 assets manifested/)).toBeTruthy();
+    expect(
+      screen.getByText(new RegExp(`${WEB_ASSETS.length} assets manifested`)),
+    ).toBeTruthy();
   });
 
   it('shows the dive depth, near the surface on arrival', () => {

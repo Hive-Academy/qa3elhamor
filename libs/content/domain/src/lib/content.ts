@@ -1,4 +1,5 @@
 import type { Credit } from './credit.js';
+import type { Narration } from './narration.js';
 import type { ProjectItem } from './project-item.js';
 import type { ResumeEntry } from './resume-entry.js';
 import type { ServiceItem } from './service-item.js';
@@ -13,6 +14,7 @@ export interface Content {
   /** In file order; use `sortProjects` for display order. */
   readonly projects: readonly ProjectItem[];
   readonly credits: readonly Credit[];
+  readonly narration: Narration;
 }
 
 /**
@@ -25,6 +27,7 @@ export interface ContentFiles {
   readonly services: unknown;
   readonly projects: unknown;
   readonly credits: unknown;
+  readonly narration: unknown;
 }
 
 export type ContentFileKey = keyof ContentFiles;

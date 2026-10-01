@@ -1,0 +1,125 @@
+Port 4417 is in use on a wildcard address, but localhost:4417 is available. There may be another server running on a wildcard IP on port 4417.
+
+  VITE v8.2.2  ready in 660 ms
+
+  ➜  Local:   http://localhost:4417/
+  ➜  press h + enter to show help
+9:34:45 PM [vite] (client) [console.warn] THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.
+9:34:51 PM [vite] (client) [Unhandled error] Error: @vitejs/plugin-react can't detect preamble. Something is wrong.
+ > ../../libs/world/feature/src/lib/narrator.tsx:168:11
+    167 |    if (!bounds) return null;
+    168 |    return (
+    169 |      <group ref={root} position={post}>
+        |  ^
+    170 |        <group ref={body} visible={false}>
+    171 |          <group scale={fit} position={[-bounds.centreX * fit, -bounds.minY * fit, -bounds.centreZ * fit]}>
+
+9:34:56 PM [vite] (client) [Unhandled error] Error: @vitejs/plugin-react can't detect preamble. Something is wrong.
+ > ../../libs/world/feature/src/lib/narrator.tsx:168:11
+    167 |    if (!bounds) return null;
+    168 |    return (
+    169 |      <group ref={root} position={post}>
+        |  ^
+    170 |        <group ref={body} visible={false}>
+    171 |          <group scale={fit} position={[-bounds.centreX * fit, -bounds.minY * fit, -bounds.centreZ * fit]}>
+
+9:35:00 PM [vite] (client) [Unhandled error] Error: @vitejs/plugin-react can't detect preamble. Something is wrong.
+ > ../../libs/world/feature/src/lib/narrator.tsx:168:11
+    167 |    if (!bounds) return null;
+    168 |    return (
+    169 |      <group ref={root} position={post}>
+        |  ^
+    170 |        <group ref={body} visible={false}>
+    171 |          <group scale={fit} position={[-bounds.centreX * fit, -bounds.minY * fit, -bounds.centreZ * fit]}>
+
+9:35:04 PM [vite] (client) [Unhandled error] Error: @vitejs/plugin-react can't detect preamble. Something is wrong.
+ > ../../libs/world/feature/src/lib/narrator.tsx:168:11
+    167 |    if (!bounds) return null;
+    168 |    return (
+    169 |      <group ref={root} position={post}>
+        |  ^
+    170 |        <group ref={body} visible={false}>
+    171 |          <group scale={fit} position={[-bounds.centreX * fit, -bounds.minY * fit, -bounds.centreZ * fit]}>
+
+9:35:20 PM [vite] (client) [console.warn] THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.
+9:35:27 PM [vite] (client) [console.warn] THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.
+9:35:31 PM [vite] (client) [console.warn] THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.
+9:35:35 PM [vite] (client) [console.warn] THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.
+9:35:40 PM [vite] (client) [console.warn] THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.
+9:36:19 PM [vite] (client) hmr update /src/app/app.tsx, /@fs/D:/projects/qa3elhamor/libs/world/feature/src/lib/narrator.tsx, /@fs/D:/projects/qa3elhamor/.ptah/specs/narrators/preview/preview.tsx
+9:36:23 PM [vite] (client) hmr update /src/app/app.tsx, /@fs/D:/projects/qa3elhamor/libs/world/feature/src/lib/narrator.tsx, /@fs/D:/projects/qa3elhamor/.ptah/specs/narrators/preview/preview.tsx
+9:36:25 PM [vite] (client) hmr update /src/app/app.tsx, /@fs/D:/projects/qa3elhamor/libs/world/feature/src/lib/narrator.tsx, /@fs/D:/projects/qa3elhamor/.ptah/specs/narrators/preview/preview.tsx
+9:36:26 PM [vite] (client) hmr update /src/app/app.tsx, /@fs/D:/projects/qa3elhamor/libs/world/feature/src/lib/narrator.tsx, /@fs/D:/projects/qa3elhamor/.ptah/specs/narrators/preview/preview.tsx
+9:36:31 PM [vite] (client) hmr update /src/app/app.tsx, /@fs/D:/projects/qa3elhamor/libs/world/feature/src/lib/narrator.tsx, /@fs/D:/projects/qa3elhamor/.ptah/specs/narrators/preview/preview.tsx
+9:36:34 PM [vite] (client) hmr update /src/app/app.tsx, /@fs/D:/projects/qa3elhamor/libs/world/feature/src/lib/narrator.tsx, /@fs/D:/projects/qa3elhamor/.ptah/specs/narrators/preview/preview.tsx
+9:36:42 PM [vite] (client) hmr update /src/app/app.tsx, /@fs/D:/projects/qa3elhamor/libs/world/feature/src/lib/narrator.tsx, /@fs/D:/projects/qa3elhamor/.ptah/specs/narrators/preview/preview.tsx
+9:36:44 PM [vite] (client) hmr update /src/app/app.tsx, /@fs/D:/projects/qa3elhamor/libs/world/feature/src/lib/narrator.tsx, /@fs/D:/projects/qa3elhamor/.ptah/specs/narrators/preview/preview.tsx
+9:36:45 PM [vite] (client) hmr update /src/app/app.tsx, /@fs/D:/projects/qa3elhamor/libs/world/feature/src/lib/narrator.tsx, /@fs/D:/projects/qa3elhamor/.ptah/specs/narrators/preview/preview.tsx
+9:36:48 PM [vite] (client) hmr update /src/app/app.tsx, /@fs/D:/projects/qa3elhamor/libs/world/feature/src/lib/narrator.tsx, /@fs/D:/projects/qa3elhamor/.ptah/specs/narrators/preview/preview.tsx
+9:36:49 PM [vite] (client) hmr update /src/app/app.tsx, /@fs/D:/projects/qa3elhamor/libs/world/feature/src/lib/narrator.tsx, /@fs/D:/projects/qa3elhamor/.ptah/specs/narrators/preview/preview.tsx
+9:37:00 PM [vite] (client) [console.error] You are calling ReactDOMClient.createRoot() on a container that has already been passed to createRoot() before. Instead, call root.render() on the existing root instead if you want to update it.
+9:37:00 PM [vite] (client) [console.warn] THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.
+9:37:04 PM [vite] (client) [console.error] You are calling ReactDOMClient.createRoot() on a container that has already been passed to createRoot() before. Instead, call root.render() on the existing root instead if you want to update it.
+9:37:04 PM [vite] (client) [console.warn] THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.
+9:37:08 PM [vite] (client) [console.error] You are calling ReactDOMClient.createRoot() on a container that has already been passed to createRoot() before. Instead, call root.render() on the existing root instead if you want to update it.
+9:37:08 PM [vite] (client) [console.warn] THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.
+9:37:50 PM [vite] (client) hmr update /src/app/app.tsx, /@fs/D:/projects/qa3elhamor/libs/world/feature/src/lib/narrator.tsx, /@fs/D:/projects/qa3elhamor/.ptah/specs/narrators/preview/preview.tsx
+9:38:02 PM [vite] (client) hmr update /src/app/app.tsx, /@fs/D:/projects/qa3elhamor/libs/world/feature/src/lib/narrator.tsx, /@fs/D:/projects/qa3elhamor/.ptah/specs/narrators/preview/preview.tsx
+9:38:05 PM [vite] (client) hmr update /src/app/app.tsx, /@fs/D:/projects/qa3elhamor/libs/world/feature/src/lib/narrator.tsx, /@fs/D:/projects/qa3elhamor/.ptah/specs/narrators/preview/preview.tsx
+9:38:09 PM [vite] (client) hmr update /src/app/app.tsx, /@fs/D:/projects/qa3elhamor/libs/world/feature/src/lib/narrator.tsx, /@fs/D:/projects/qa3elhamor/.ptah/specs/narrators/preview/preview.tsx
+9:38:10 PM [vite] (client) hmr update /src/app/app.tsx, /@fs/D:/projects/qa3elhamor/libs/world/feature/src/lib/narrator.tsx, /@fs/D:/projects/qa3elhamor/.ptah/specs/narrators/preview/preview.tsx
+9:38:13 PM [vite] (client) hmr update /src/app/app.tsx, /@fs/D:/projects/qa3elhamor/libs/world/feature/src/lib/narrator.tsx, /@fs/D:/projects/qa3elhamor/.ptah/specs/narrators/preview/preview.tsx
+9:38:16 PM [vite] (client) hmr update /src/app/app.tsx, /@fs/D:/projects/qa3elhamor/libs/world/feature/src/lib/narrator.tsx, /@fs/D:/projects/qa3elhamor/.ptah/specs/narrators/preview/preview.tsx
+9:38:17 PM [vite] (client) hmr update /src/app/app.tsx, /@fs/D:/projects/qa3elhamor/libs/world/feature/src/lib/narrator.tsx, /@fs/D:/projects/qa3elhamor/.ptah/specs/narrators/preview/preview.tsx
+9:38:21 PM [vite] (client) hmr update /src/app/app.tsx, /@fs/D:/projects/qa3elhamor/libs/world/feature/src/lib/narrator.tsx, /@fs/D:/projects/qa3elhamor/.ptah/specs/narrators/preview/preview.tsx
+9:38:23 PM [vite] (client) hmr update /src/app/app.tsx, /@fs/D:/projects/qa3elhamor/libs/world/feature/src/lib/narrator.tsx, /@fs/D:/projects/qa3elhamor/.ptah/specs/narrators/preview/preview.tsx
+9:38:38 PM [vite] (client) [console.error] You are calling ReactDOMClient.createRoot() on a container that has already been passed to createRoot() before. Instead, call root.render() on the existing root instead if you want to update it.
+9:38:38 PM [vite] (client) [console.warn] THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.
+9:38:42 PM [vite] (client) [console.error] You are calling ReactDOMClient.createRoot() on a container that has already been passed to createRoot() before. Instead, call root.render() on the existing root instead if you want to update it.
+9:38:42 PM [vite] (client) [console.warn] THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.
+9:38:46 PM [vite] (client) [console.error] You are calling ReactDOMClient.createRoot() on a container that has already been passed to createRoot() before. Instead, call root.render() on the existing root instead if you want to update it.
+9:38:46 PM [vite] (client) [console.warn] THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.
+9:39:31 PM [vite] (client) hmr update /src/app/app.tsx, /@fs/D:/projects/qa3elhamor/libs/world/feature/src/lib/narrator.tsx, /@fs/D:/projects/qa3elhamor/.ptah/specs/narrators/preview/preview.tsx
+9:39:33 PM [vite] (client) hmr update /src/app/app.tsx, /@fs/D:/projects/qa3elhamor/libs/world/feature/src/lib/narrator.tsx, /@fs/D:/projects/qa3elhamor/.ptah/specs/narrators/preview/preview.tsx
+9:39:50 PM [vite] (client) [console.error] You are calling ReactDOMClient.createRoot() on a container that has already been passed to createRoot() before. Instead, call root.render() on the existing root instead if you want to update it.
+9:39:50 PM [vite] (client) [console.warn] THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.
+9:39:54 PM [vite] (client) [console.error] You are calling ReactDOMClient.createRoot() on a container that has already been passed to createRoot() before. Instead, call root.render() on the existing root instead if you want to update it.
+9:39:54 PM [vite] (client) [console.warn] THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.
+9:39:58 PM [vite] (client) [console.error] You are calling ReactDOMClient.createRoot() on a container that has already been passed to createRoot() before. Instead, call root.render() on the existing root instead if you want to update it.
+9:39:58 PM [vite] (client) [console.warn] THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.
+9:40:10 PM [vite] (client) [console.error] You are calling ReactDOMClient.createRoot() on a container that has already been passed to createRoot() before. Instead, call root.render() on the existing root instead if you want to update it.
+9:40:10 PM [vite] (client) [console.warn] THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.
+9:40:22 PM [vite] (client) hmr update /src/app/app.tsx, /src/app/overlays/citizenship-card/citizenship-card.tsx, /src/app/overlays/citizenship-card/citizenship-card-in-world.tsx, /src/app/overlays/complaint-scroll/complaint-scroll.tsx
+9:40:24 PM [vite] (client) [console.error] You are calling ReactDOMClient.createRoot() on a container that has already been passed to createRoot() before. Instead, call root.render() on the existing root instead if you want to update it.
+9:40:24 PM [vite] (client) [console.warn] THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.
+9:40:34 PM [vite] (client) hmr update /src/app/app.tsx, /src/app/overlays/citizenship-card/citizenship-card.tsx, /src/app/overlays/citizenship-card/citizenship-card-in-world.tsx, /src/app/overlays/complaint-scroll/complaint-scroll.tsx
+9:40:40 PM [vite] (client) hmr update /src/app/app.tsx, /src/app/overlays/citizenship-card/citizenship-card.tsx, /src/app/overlays/citizenship-card/citizenship-card-in-world.tsx, /src/app/overlays/complaint-scroll/complaint-scroll.tsx
+9:40:43 PM [vite] (client) hmr update /src/app/app.tsx, /src/app/overlays/citizenship-card/citizenship-card.tsx, /src/app/overlays/citizenship-card/citizenship-card-in-world.tsx, /src/app/overlays/complaint-scroll/complaint-scroll.tsx
+9:40:45 PM [vite] (client) hmr update /src/app/app.tsx, /src/app/overlays/citizenship-card/citizenship-card.tsx, /src/app/overlays/citizenship-card/citizenship-card-in-world.tsx, /src/app/overlays/complaint-scroll/complaint-scroll.tsx
+9:41:04 PM [vite] (client) hmr update /src/app/app.tsx
+9:42:37 PM [vite] (client) hmr update /src/app/app.tsx, /@fs/D:/projects/qa3elhamor/libs/world/feature/src/lib/narrator.tsx, /@fs/D:/projects/qa3elhamor/.ptah/specs/narrators/preview/preview.tsx
+9:44:03 PM [vite] (client) hmr update /src/app/app.tsx, /src/app/credits.tsx, /@fs/D:/projects/qa3elhamor/libs/world/feature/src/lib/ambient-life.tsx, /@fs/D:/projects/qa3elhamor/libs/world/feature/src/lib/ocean-world.tsx, /@fs/D:/projects/qa3elhamor/libs/world/feature/src/lib/quality-monitor.tsx, /@fs/D:/projects/qa3elhamor/libs/world/feature/src/lib/quality-context.tsx
+9:45:33 PM [vite] (client) hmr update /src/app/app.tsx, /@fs/D:/projects/qa3elhamor/libs/world/feature/src/lib/narrator.tsx, /@fs/D:/projects/qa3elhamor/.ptah/specs/narrators/preview/preview.tsx
+9:46:09 PM [vite] (client) hmr update /src/app/app.tsx, /src/app/credits.tsx, /@fs/D:/projects/qa3elhamor/libs/world/feature/src/lib/ambient-life.tsx, /@fs/D:/projects/qa3elhamor/libs/world/feature/src/lib/ocean-world.tsx, /@fs/D:/projects/qa3elhamor/libs/world/feature/src/lib/quality-monitor.tsx, /@fs/D:/projects/qa3elhamor/libs/world/feature/src/lib/quality-context.tsx
+9:47:48 PM [vite] (client) [console.error] You are calling ReactDOMClient.createRoot() on a container that has already been passed to createRoot() before. Instead, call root.render() on the existing root instead if you want to update it.
+9:47:48 PM [vite] (client) [console.warn] THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.
+9:47:53 PM [vite] (client) [console.error] You are calling ReactDOMClient.createRoot() on a container that has already been passed to createRoot() before. Instead, call root.render() on the existing root instead if you want to update it.
+9:47:53 PM [vite] (client) [console.warn] THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.
+9:47:57 PM [vite] (client) [console.error] You are calling ReactDOMClient.createRoot() on a container that has already been passed to createRoot() before. Instead, call root.render() on the existing root instead if you want to update it.
+9:47:57 PM [vite] (client) [console.warn] THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.
+9:48:01 PM [vite] (client) [console.error] You are calling ReactDOMClient.createRoot() on a container that has already been passed to createRoot() before. Instead, call root.render() on the existing root instead if you want to update it.
+9:48:01 PM [vite] (client) [console.warn] THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.
+9:48:06 PM [vite] (client) [console.error] You are calling ReactDOMClient.createRoot() on a container that has already been passed to createRoot() before. Instead, call root.render() on the existing root instead if you want to update it.
+9:48:06 PM [vite] (client) [console.warn] THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.
+9:48:10 PM [vite] (client) [console.error] You are calling ReactDOMClient.createRoot() on a container that has already been passed to createRoot() before. Instead, call root.render() on the existing root instead if you want to update it.
+9:48:10 PM [vite] (client) [console.warn] THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.
+9:48:14 PM [vite] (client) [console.error] You are calling ReactDOMClient.createRoot() on a container that has already been passed to createRoot() before. Instead, call root.render() on the existing root instead if you want to update it.
+9:48:14 PM [vite] (client) [console.warn] THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.
+9:48:18 PM [vite] (client) [console.error] You are calling ReactDOMClient.createRoot() on a container that has already been passed to createRoot() before. Instead, call root.render() on the existing root instead if you want to update it.
+9:48:19 PM [vite] (client) [console.warn] THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.
+9:48:23 PM [vite] (client) [console.error] You are calling ReactDOMClient.createRoot() on a container that has already been passed to createRoot() before. Instead, call root.render() on the existing root instead if you want to update it.
+9:48:23 PM [vite] (client) [console.warn] THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.
+9:48:49 PM [vite] (client) [console.error] You are calling ReactDOMClient.createRoot() on a container that has already been passed to createRoot() before. Instead, call root.render() on the existing root instead if you want to update it.
+9:48:49 PM [vite] (client) [console.warn] THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.
+9:49:01 PM [vite] (client) [console.error] You are calling ReactDOMClient.createRoot() on a container that has already been passed to createRoot() before. Instead, call root.render() on the existing root instead if you want to update it.
+9:49:01 PM [vite] (client) [console.warn] THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.

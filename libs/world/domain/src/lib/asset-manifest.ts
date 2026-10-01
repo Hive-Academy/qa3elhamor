@@ -44,6 +44,15 @@ export interface AssetEntry {
   readonly minimumTier: QualityTier;
   /** True when the asset is fetched on demand and excluded from the initial-load budget. */
   readonly lazy: boolean;
+  /** Ceiling for the output's triangle count. The pipeline fails when an output exceeds it. */
+  readonly triangleBudget?: number;
+  /**
+   * Set for a character that stands on the ground: its origin is at its feet (lowest point y = 0,
+   * bounding box centred on x/z), it faces +z, and this is its height in the units of the GLB
+   * (the source model's units, not metres). A consumer scales by `desiredHeight / standingHeight`.
+   * The pipeline fails when the output's real height differs by more than 1%.
+   */
+  readonly standingHeight?: number;
 }
 
 const KiB = 1024;
@@ -77,7 +86,7 @@ export const SOURCE_MODELS: readonly SourceModel[] = [
 /**
  * Every file the site loads. The map is split into the environment (landmark nodes removed)
  * and one entry per MVP landmark, so a regression is attributable to the file that caused it.
- * Characters and the interior are lazy: none is needed for the first view.
+ * Characters, narrators and the interior are lazy: none is needed for the first view.
  */
 export const WEB_ASSETS: readonly AssetEntry[] = [
   {
@@ -144,6 +153,28 @@ export const WEB_ASSETS: readonly AssetEntry[] = [
     budgetBytes: 1 * MiB,
     minimumTier: 'high',
     lazy: true,
+  },
+  {
+    // Talking-narrator LOD of the SpongeBob model: ~12k tris, stood on the ground facing +z.
+    id: 'spongebob-narrator',
+    sourceModel: 'spongebob-character',
+    compressedPath: 'models/spongebob-narrator.glb',
+    budgetBytes: 250 * KiB,
+    minimumTier: 'medium',
+    lazy: true,
+    triangleBudget: 12_500,
+    standingHeight: 10.033,
+  },
+  {
+    // Talking-narrator LOD of the Patrick model: ~10k tris, stood on the ground facing +z.
+    id: 'patrick-narrator',
+    sourceModel: 'patrick-character',
+    compressedPath: 'models/patrick-narrator.glb',
+    budgetBytes: 200 * KiB,
+    minimumTier: 'medium',
+    lazy: true,
+    triangleBudget: 10_000,
+    standingHeight: 14.889,
   },
 ];
 

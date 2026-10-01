@@ -23,6 +23,9 @@ export {
   type ViewClearance,
 } from './lib/hamour-patrol.js';
 export type { KelpClearing } from './lib/kelp-bed.js';
+export * from './lib/narrator.js';
+export * from './lib/narrator-cast.js';
+export { DEFAULT_NARRATOR_MOTION, type NarratorMotionTuning } from './lib/narrator-motion.js';
 export * from './lib/use-compressed-model.js';
 export * from './lib/device-capabilities.js';
 export {

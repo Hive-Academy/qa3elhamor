@@ -40,8 +40,27 @@ The asset list, paths and budgets come from `WEB_ASSETS` and `SOURCE_MODELS` in
    Each GLB is re-read with the Meshopt decoder registered; it must parse,
    contain triangles, and be at most `budgetBytes`.
 
-Per-asset knobs (`join`, `weld`, `simplify`, `maxTextureSize`, `textureQuality`) live in the
+Per-asset knobs (`join`, `weld`, `simplify`, `stand`, `dropNormalMaps`, `bakeVertexColours`,
+`maxTextureSize`, `textureQuality`) live in the
 `OPTIONS` table in `compress.ts`. Output is deterministic: two runs give byte-identical files.
+
+### Narrator LODs (`spongebob-narrator`, `patrick-narrator`)
+
+Talking-narrator versions of the two characters, cut from the raw sources: about 12k and 10k
+triangles, 139 KB and 62 KB. Both are lazy, `medium` tier, stood on the ground (`stand`: feet at y = 0,
+bounding box centred on x/z, facing +z, source units) with the height recorded as `standingHeight` in
+the manifest and `height` in `placements.json`. `verify` fails when an output is not standing at the
+origin, differs from `standingHeight` by more than 1%, or is over its `triangleBudget`.
+
+- `simplify` is attribute-aware (`simplifyAttributeAware`): UV and normal error count, not only
+  position. glTF-Transform's own `simplify` ignores UVs and opened dark slits in SpongeBob's face.
+  `ratioByMaterial` keeps more triangles on the face-bearing meshes (the body skin cracks at 1-2%).
+- Patrick's texture is one flat colour per quad, every quad its own UV island, which pins the
+  simplifier at 16k triangles however hard it is asked. `bakeVertexColours` samples that colour at
+  each triangle's UV centroid onto `COLOR_0`, smooths the quad-border normal splits, and drops the
+  texture. Same look at 3 to 6 m, 62 KB, no texture fetch.
+- `dropNormalMaps` removes SpongeBob's normal map and tangents; invisible at that distance.
+- Before/after captures and the tuning notes: `.ptah/specs/narrators/`.
 
 ### Two deliberate departures from `meshopt({ level: 'medium' })`
 

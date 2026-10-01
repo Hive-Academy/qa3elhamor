@@ -1,0 +1,126 @@
+{
+  "landmarks": {
+    "pineapple": {
+      "lines": [
+        {
+          "en": "Welcome to the pineapple, home of Abdallah Khalil. Registered resident of Qaa El-Hamour: the bottom, officially.",
+          "ar": "أهلاً بيك في الأناناسة، بيت عبدالله خليل. مقيم رسمي في قاع الهامور."
+        },
+        {
+          "en": "He's an AI Solutions Architect with 12+ years of SaaS platforms behind him. He reached the bottom and kept shipping.",
+          "ar": "مهندس حلول ذكاء اصطناعي، وراه أكتر من ١٢ سنة منصات SaaS. وصل القاع وكمّل شغل."
+        },
+        {
+          "en": "Lately: two production AI-native platforms, Pro-Estate and Ptah. Agents, MCP and context engineering, mostly."
+        },
+        {
+          "en": "The card lists his underwater specialties. Pick one and I'll give you the short tour, no sales pitch."
+        }
+      ],
+      "hints": [
+        {
+          "id": "ai-llm-ops",
+          "text": {
+            "en": "LangChain, LangGraph, MCP, RAG. Agents that cooperate, and harnesses that don't mind which model is on shift."
+          }
+        },
+        {
+          "id": "architecture",
+          "text": {
+            "en": "Hexagonal, Clean Architecture, DDD, multi-tenancy. He draws the boxes first, so the code has somewhere to live."
+          }
+        },
+        {
+          "id": "backend",
+          "text": {
+            "en": "NestJS 11 and TypeScript, with Prisma, ZenStack and Bull queues. The plumbing that keeps the reef running."
+          }
+        },
+        {
+          "id": "databases",
+          "text": {
+            "en": "PostgreSQL, MongoDB, Neo4j, Redis, sqlite-vec. A different fish for every current."
+          }
+        },
+        {
+          "id": "frontend",
+          "text": {
+            "en": "Angular 21 with signals and SSR, in Nx monorepos. Even the bottom deserves a good-looking interface."
+          }
+        },
+        {
+          "id": "devops-tooling",
+          "text": {
+            "en": "Docker, Kubernetes, GitHub Actions, Nx. If it isn't in the pipeline, it didn't ship."
+          }
+        }
+      ],
+      "farewell": {
+        "en": "Next stop: Performance Reviews. Follow the current, and the sardines.",
+        "ar": "المحطة الجاية: تقييمات الأداء. امشي مع التيار، ومع السردين."
+      }
+    },
+    "tiki": {
+      "lines": [
+        {
+          "en": "Welcome to Performance Reviews. Every job is on file here, newest first.",
+          "ar": "أهلاً بيك في تقييمات الأداء. كل شغلانة متسجّلة هنا، الأحدث الأول."
+        },
+        {
+          "en": "It starts at Khabeer Group in 2015, then years of freelance work for startups abroad."
+        },
+        {
+          "en": "Then Prio, as Lead Software Development Engineer: owning architecture, CI/CD and mentoring senior engineers."
+        },
+        {
+          "en": "In 2020 he co-founded Miramar Staffing, and he still leads its tech. Reviews: consistently above sea level.",
+          "ar": "ومن ٢٠٢٠ شريك مؤسس في ميرامار ستافينج. التقييم: فوق مستوى سطح البحر."
+        }
+      ],
+      "farewell": {
+        "en": "Reviews filed. The Krusty Krab is just down the current, and the menu is open.",
+        "ar": "التقييمات اتحفظت. الكراستي كراب على بعد تيار، والمنيو مفتوح."
+      }
+    },
+    "krusty-krab": {
+      "lines": [
+        {
+          "en": "Welcome to the Krusty Krab. Today's menu is short, and every dish is a real service.",
+          "ar": "أهلاً بيك في الكراستي كراب. منيو النهارده قصير، وكل طبق خدمة حقيقية."
+        },
+        {
+          "en": "The names are for fun. Underneath: AI agent and MCP architecture, SaaS platforms, leadership, bilingual delivery."
+        },
+        {
+          "en": "Prices are in pearls, kelp and sand dollars. Serious orders go through the Complaints Bureau. Don't ask."
+        }
+      ],
+      "farewell": {
+        "en": "Enjoy your meal. The Bureau is next, for complaints and project ideas alike.",
+        "ar": "بالهنا. المكتب اللي جاي للشكاوى، وللأفكار كمان."
+      }
+    },
+    "bureau": {
+      "lines": [
+        {
+          "en": "This is the Municipal Complaints Bureau. Complaints, questions and project ideas all go in the same tray.",
+          "ar": "ده مكتب الشكاوى البلدي. الشكاوى والأسئلة والأفكار، كله في نفس الدرج."
+        },
+        {
+          "en": "It goes privately to Abdallah's desk. The Sardine President reads every one, eventually."
+        },
+        {
+          "en": "Leave a reply address if you want an answer. The Municipality is efficient, not psychic."
+        },
+        {
+          "en": "We reached the bottom, and we still answer the mail.",
+          "ar": "بقينا في القاع، وبرضه بنرد على البريد."
+        }
+      ],
+      "farewell": {
+        "en": "Thanks for visiting Qaa El-Hamour. Swim safe, and come back down anytime.",
+        "ar": "شكراً لزيارتك قاع الهامور. عوم بالسلامة، وانزل لنا تاني في أي وقت."
+      }
+    }
+  }
+}

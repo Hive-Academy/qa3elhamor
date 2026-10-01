@@ -3,7 +3,8 @@
     "offset": null,
     "bytes": 1169620,
     "budgetBytes": 1228800,
-    "triangles": 65765
+    "triangles": 65765,
+    "height": null
   },
   "landmark-pineapple": {
     "offset": [
@@ -13,7 +14,8 @@
     ],
     "bytes": 28924,
     "budgetBytes": 153600,
-    "triangles": 1264
+    "triangles": 1264,
+    "height": null
   },
   "landmark-tiki": {
     "offset": [
@@ -23,7 +25,8 @@
     ],
     "bytes": 18592,
     "budgetBytes": 153600,
-    "triangles": 815
+    "triangles": 815,
+    "height": null
   },
   "landmark-krusty-krab": {
     "offset": [
@@ -33,7 +36,8 @@
     ],
     "bytes": 51948,
     "budgetBytes": 153600,
-    "triangles": 1045
+    "triangles": 1045,
+    "height": null
   },
   "landmark-bureau": {
     "offset": [
@@ -43,24 +47,42 @@
     ],
     "bytes": 33704,
     "budgetBytes": 153600,
-    "triangles": 1357
+    "triangles": 1357,
+    "height": null
   },
   "pineapple-interior": {
     "offset": null,
     "bytes": 533944,
     "budgetBytes": 614400,
-    "triangles": 16022
+    "triangles": 16022,
+    "height": null
   },
   "spongebob-character": {
     "offset": null,
-    "bytes": 550520,
+    "bytes": 548468,
     "budgetBytes": 2097152,
-    "triangles": 77936
+    "triangles": 77937,
+    "height": null
   },
   "patrick-character": {
     "offset": null,
     "bytes": 870068,
     "budgetBytes": 1048576,
-    "triangles": 65208
+    "triangles": 65208,
+    "height": null
+  },
+  "spongebob-narrator": {
+    "offset": null,
+    "bytes": 138768,
+    "budgetBytes": 256000,
+    "triangles": 12024,
+    "height": 10.033
+  },
+  "patrick-narrator": {
+    "offset": null,
+    "bytes": 61664,
+    "budgetBytes": 204800,
+    "triangles": 9780,
+    "height": 14.889
   }
 }

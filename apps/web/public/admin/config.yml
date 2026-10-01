@@ -289,3 +289,50 @@ collections:
                 pattern: ['^https?://[^\s/]+\S*$', 'Use an absolute https:// URL']
               - { name: license, label: License, widget: string, required: false }
               - { name: note, label: Note, widget: object, required: false, fields: *l10nopt }
+
+      # Each landmark is written out in full: a shared landmark (or hint) anchor would nest the l10n
+      # aliases and exceed the alias budget of the `yaml` parser (used by Decap and the parity spec).
+      - name: narration
+        label: Narration (what the narrator says at each landmark)
+        file: content/narration.json
+        format: json
+        fields:
+          - name: landmarks
+            label: Landmarks
+            widget: object
+            fields:
+              - name: pineapple
+                label: 'Pineapple (about the owner; hint ids are skill group ids)'
+                widget: object
+                fields:
+                  - { name: lines, label: 'Lines (2 to 5, each at most 140 characters in English)', widget: list, min: 2, max: 5, summary: '{{fields.en}}', fields: *l10n }
+                  - name: hints
+                    label: 'Hints (a comment about one object at the landmark, by its id)'
+                    widget: list
+                    required: false
+                    summary: '{{fields.id}}'
+                    fields:
+                      - *id
+                      - { name: text, label: Text, widget: object, fields: *l10n }
+                  - { name: farewell, label: Farewell, widget: object, required: false, fields: *l10nopt }
+              - name: tiki
+                label: 'Tiki (performance reviews)'
+                widget: object
+                fields:
+                  - { name: lines, label: 'Lines (2 to 5, each at most 140 characters in English)', widget: list, min: 2, max: 5, summary: '{{fields.en}}', fields: *l10n }
+                  - { name: hints, label: 'Hints (a comment about one object at the landmark, by its id)', widget: list, required: false, summary: '{{fields.id}}', fields: [*id, { name: text, label: Text, widget: object, fields: *l10n }] }
+                  - { name: farewell, label: Farewell, widget: object, required: false, fields: *l10nopt }
+              - name: krusty-krab
+                label: 'Krusty Krab (services menu)'
+                widget: object
+                fields:
+                  - { name: lines, label: 'Lines (2 to 5, each at most 140 characters in English)', widget: list, min: 2, max: 5, summary: '{{fields.en}}', fields: *l10n }
+                  - { name: hints, label: 'Hints (a comment about one object at the landmark, by its id)', widget: list, required: false, summary: '{{fields.id}}', fields: [*id, { name: text, label: Text, widget: object, fields: *l10n }] }
+                  - { name: farewell, label: Farewell, widget: object, required: false, fields: *l10nopt }
+              - name: bureau
+                label: 'Bureau (contact / complaints)'
+                widget: object
+                fields:
+                  - { name: lines, label: 'Lines (2 to 5, each at most 140 characters in English)', widget: list, min: 2, max: 5, summary: '{{fields.en}}', fields: *l10n }
+                  - { name: hints, label: 'Hints (a comment about one object at the landmark, by its id)', widget: list, required: false, summary: '{{fields.id}}', fields: [*id, { name: text, label: Text, widget: object, fields: *l10n }] }
+                  - { name: farewell, label: Farewell, widget: object, required: false, fields: *l10nopt }

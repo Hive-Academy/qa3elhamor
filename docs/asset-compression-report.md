@@ -21,14 +21,16 @@ The only lossy geometry step is decimation of `spongebob-character` (519,664 to 
 | `landmark-krusty-krab` | bikini-bottom-map (4826.4 KiB) | 50.7 KiB | 150.0 KiB | 33.8% | 1,045 | 1,045 | initial |
 | `landmark-bureau` | bikini-bottom-map (4826.4 KiB) | 32.9 KiB | 150.0 KiB | 21.9% | 1,357 | 1,357 | initial |
 | `pineapple-interior` | pineapple-interior (2235.4 KiB) | 521.4 KiB | 600.0 KiB | 86.9% | 16,022 | 16,022 | lazy |
-| `spongebob-character` | spongebob-character (16947.5 KiB) | 537.6 KiB | 2048.0 KiB | 26.3% | 519,664 | 77,936 | lazy |
+| `spongebob-character` | spongebob-character (16947.5 KiB) | 535.6 KiB | 2048.0 KiB | 26.2% | 519,664 | 77,937 | lazy |
 | `patrick-character` | patrick-character (3313.9 KiB) | 849.7 KiB | 1024.0 KiB | 83.0% | 65,208 | 65,208 | lazy |
+| `spongebob-narrator` | spongebob-character (16947.5 KiB) | 135.5 KiB | 250.0 KiB | 54.2% | 519,664 | 12,024 | lazy |
+| `patrick-narrator` | patrick-character (3313.9 KiB) | 60.2 KiB | 200.0 KiB | 30.1% | 65,208 | 9,780 | lazy |
 
 | Group | Output | Budgets summed |
 |---|---:|---:|
 | Initial load (non-lazy) | 1272.3 KiB | 1800.0 KiB |
-| Lazy | 1908.7 KiB | 3672.0 KiB |
-| Everything | 3181.0 KiB | 5472.0 KiB |
+| Lazy | 2102.5 KiB | 4122.0 KiB |
+| Everything | 3374.7 KiB | 5922.0 KiB |
 <!-- asset-table:end -->
 
 Outputs are byte-identical across runs. Placements (scene-world offsets, for the landmark kernel)

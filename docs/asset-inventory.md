@@ -288,3 +288,14 @@ Proposals for `asset-compression` to act on, not changes made by this item:
 > whether they ship. Compressed and extracted outputs are derivative works carrying the same
 > licence terms, so extracting the Tiki head from the map does not detach it from the
 > `bikini-bottom-map` credit.
+
+## Narrator LODs (added with the `narrators` item)
+
+`spongebob-narrator` (12,099 tris, 139,316 bytes) and `patrick-narrator` (9,780 tris, 61,704 bytes)
+are built by `npm run assets:compress` from the same raw models and carry the same CC-BY-4.0
+credits as `spongebob-character` and `patrick-character` (`shippedCredits()` derives them from
+`sourceModel`). Both are `lazy: true`, `minimumTier: 'medium'`, centred on the ground with the
+manifest's `standingHeight` (10.033 and 14.889 source units) and facing +z. The full-detail
+`spongebob-character` (77,937 tris) and `patrick-character` (65,208 tris) outputs remain for the
+ambient `characters` config. Method, and why Patrick's colour is baked onto vertices:
+`tools/asset-pipeline/README.md`.

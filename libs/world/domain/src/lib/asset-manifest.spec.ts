@@ -10,6 +10,8 @@ import {
   type AssetEntry,
 } from './asset-manifest.js';
 import { ATTRIBUTIONS, creditLine } from './attribution.js';
+import { shippedCredits } from './credits.js';
+import { assetsForTier } from './quality-assets.js';
 import { tierAllows } from './quality-tier.js';
 
 const MiB = 1024 * 1024;
@@ -96,5 +98,43 @@ describe('quality tiers', () => {
   it('withholds high-tier assets from low-tier devices', () => {
     expect(tierAllows('low', 'high')).toBe(false);
     expect(tierAllows('medium', 'high')).toBe(false);
+  });
+});
+
+describe('narrator LODs', () => {
+  const narrators = [
+    { id: 'spongebob-narrator', source: 'spongebob-character', kib: 250, tris: 12_500 },
+    { id: 'patrick-narrator', source: 'patrick-character', kib: 200, tris: 10_000 },
+  ] as const;
+
+  it.each(narrators)('$id is lazy, medium-tier and budgeted', ({ id, source, kib, tris }) => {
+    const asset = findAsset(id);
+    expect(asset?.sourceModel).toBe(source);
+    expect(asset?.lazy).toBe(true);
+    expect(asset?.minimumTier).toBe('medium');
+    expect(asset?.budgetBytes).toBeLessThanOrEqual(kib * 1024);
+    expect(asset?.triangleBudget).toBeLessThanOrEqual(tris);
+    expect(asset?.standingHeight).toBeGreaterThan(0);
+  });
+
+  it('stays out of the initial load and out of low-tier devices', () => {
+    const initial = WEB_ASSETS.filter((asset) => !asset.lazy).map((asset) => asset.id);
+    expect(initial).not.toContain('spongebob-narrator');
+    expect(initial).not.toContain('patrick-narrator');
+    const low = assetsForTier('low').map((asset) => asset.id);
+    expect(low).not.toContain('spongebob-narrator');
+    expect(low).not.toContain('patrick-narrator');
+    const medium = assetsForTier('medium').map((asset) => asset.id);
+    expect(medium).toContain('spongebob-narrator');
+    expect(medium).toContain('patrick-narrator');
+  });
+
+  it('keeps the source credit of the model it was derived from', () => {
+    const credits = shippedCredits(WEB_ASSETS.filter((asset) => asset.id.endsWith('-narrator')));
+    expect(credits.map((credit) => credit.sourceModel).sort()).toEqual([
+      'patrick-character',
+      'spongebob-character',
+    ]);
+    for (const credit of credits) expect(credit.line).toContain('NickBob');
   });
 });

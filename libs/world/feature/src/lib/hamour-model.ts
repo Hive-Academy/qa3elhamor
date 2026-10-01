@@ -276,6 +276,8 @@ export interface HamourMaterialOptions {
   readonly time: IUniform<number>;
   /** Swim effort 0..1+ (tail beat amplitude), written by the component per frame. */
   readonly swim: IUniform<number>;
+  /** Talk beat 0..1 (opens the jaw), written by a narrator per frame. Omitted: the jaw only breathes. */
+  readonly talk?: IUniform<number>;
 }
 
 /**
@@ -283,7 +285,7 @@ export interface HamourMaterialOptions {
  * travelling wave whose amplitude grows towards the tail, a slight counter-sway of the head,
  * and a slow jaw "breath".
  */
-export function createHamourMaterial({ time, swim }: HamourMaterialOptions): MeshStandardMaterial {
+export function createHamourMaterial({ time, swim, talk = { value: 0 } }: HamourMaterialOptions): MeshStandardMaterial {
   const material = new MeshStandardMaterial({
     vertexColors: true,
     flatShading: true,
@@ -295,15 +297,15 @@ export function createHamourMaterial({ time, swim }: HamourMaterialOptions): Mes
     emissiveIntensity: 0.45,
   });
   return applyVertexMotion(material, {
-    uniforms: { [AMBIENT_TIME_UNIFORM]: time, uHamourSwim: swim },
-    declarations: `uniform float ${AMBIENT_TIME_UNIFORM};\nuniform float uHamourSwim;`,
+    uniforms: { [AMBIENT_TIME_UNIFORM]: time, uHamourSwim: swim, uHamourTalk: talk },
+    declarations: `uniform float ${AMBIENT_TIME_UNIFORM};\nuniform float uHamourSwim;\nuniform float uHamourTalk;`,
     transform: /* glsl */ `
       float hamourTail = 1.0 - smoothstep( -0.5, 0.3, position.z );
       float hamourBeat = ${AMBIENT_TIME_UNIFORM} * 3.2;
       transformed.x += sin( hamourBeat - position.z * 6.5 ) * 0.07 * hamourTail * hamourTail * uHamourSwim;
       transformed.x += sin( hamourBeat + 1.4 ) * 0.01 * uHamourSwim;
       float hamourJaw = smoothstep( 0.38, 0.5, position.z ) * ( 1.0 - smoothstep( -0.05, -0.015, position.y ) );
-      transformed.y -= ( 0.5 + 0.5 * sin( ${AMBIENT_TIME_UNIFORM} * 1.2 ) ) * 0.012 * hamourJaw;
+      transformed.y -= ( ( 0.5 + 0.5 * sin( ${AMBIENT_TIME_UNIFORM} * 1.2 ) ) * 0.012 + uHamourTalk * 0.045 ) * hamourJaw;
     `,
     cacheKey: 'ambient-hamour',
   });

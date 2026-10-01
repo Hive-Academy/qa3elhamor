@@ -2,9 +2,12 @@ import {
   Document,
   NodeIO,
   PropertyType,
+  type mat4,
+  type Material,
   type Node,
   type Primitive,
   type Skin,
+  type Texture,
   type TextureInfo,
   type Transform,
 } from '@gltf-transform/core';
@@ -12,6 +15,7 @@ import { ALL_EXTENSIONS, EXTMeshoptCompression } from '@gltf-transform/extension
 import {
   clearNodeParent,
   clearNodeTransform,
+  compactPrimitive,
   dedup,
   getBounds,
   join,
@@ -19,9 +23,9 @@ import {
   QUANTIZE_DEFAULTS,
   reorder,
   quantize,
-  simplify,
   textureCompress,
   transformMesh,
+  unweld,
   weld,
 } from '@gltf-transform/functions';
 import { MeshoptDecoder, MeshoptEncoder, MeshoptSimplifier } from 'meshoptimizer';
@@ -44,6 +48,12 @@ export interface SimplifyConfig {
   readonly ratio: number;
   /** Maximum error relative to the mesh extent. */
   readonly error: number;
+  /** Keep topological borders (UV seams, open edges) fixed. Stops cracks along texture seams. */
+  readonly lockBorder?: boolean;
+  /** Allow collapses across UV/normal seams, charged as attribute error. For models with dense seams. */
+  readonly permissive?: boolean;
+  /** Per-material override of `ratio`, keyed by the source material name. */
+  readonly ratioByMaterial?: Readonly<Record<string, number>>;
 }
 
 /** Per-asset processing knobs on top of the common prune, dedup, textures and Meshopt steps. */
@@ -54,6 +64,24 @@ export interface AssetOptions {
   readonly weld?: boolean;
   /** Merge primitives that share a material, to cut the primitive, accessor and JSON count. */
   readonly join?: boolean;
+  /**
+   * Stand a whole character on the ground at the origin: bake every node transform, turn it `yaw`
+   * radians about +y, centre its bounding box on x/z and put its lowest point at y = 0. The
+   * resulting height is recorded as `height`. Units stay those of the source model.
+   */
+  readonly stand?: { readonly yaw: number };
+  /**
+   * Drop normal maps and the tangent stream they need. Invisible at narrator viewing distances, and
+   * the saving is a full texture plus 16 bytes per vertex.
+   */
+  readonly dropNormalMaps?: boolean;
+  /**
+   * Replace the base colour texture with per-vertex colour, sampled at each triangle's UV centroid.
+   * For models whose texture is a flat colour per quad (Patrick), where every quad is its own UV
+   * island: the islands stop the simplifier collapsing anything, and the texture is mostly
+   * gutter. Needs `simplify` to do the decimating; this only moves the colour onto the mesh.
+   */
+  readonly bakeVertexColours?: boolean;
   /** Textures larger than this many pixels on a side are resized down. Default 1024. */
   readonly maxTextureSize?: number;
   /** WebP quality, 1-100. Default 80. */
@@ -65,6 +93,8 @@ export interface BuiltAsset {
   /** Scene-world position of the asset's origin, or null when it is already in place. */
   readonly offset: Vec3 | null;
   readonly trianglesBefore: number;
+  /** Height of a `stand`ed character in source units, or null. */
+  readonly height: number | null;
 }
 
 export async function initCodecs(): Promise<void> {
@@ -235,6 +265,27 @@ export function extractLandmark(mapDoc: Document, spec: LandmarkSpec): { offset:
   return { offset: centre };
 }
 
+/** Bakes the scene into mesh-root nodes, then yaws, centres and grounds it. Returns its height. */
+export function standOnGround(doc: Document, yaw: number): number {
+  if (doc.getRoot().listSkins().length > 0) {
+    throw new Error('stand: skinned models are not supported (joint nodes would be discarded).');
+  }
+  const meshNodes = doc.getRoot().listNodes().filter((n) => n.getMesh());
+  for (const node of meshNodes) bakeWorldTransform(node);
+  for (const node of doc.getRoot().listNodes()) if (!node.getMesh()) node.dispose();
+  const c = Math.cos(yaw);
+  const s = Math.sin(yaw);
+  // Column-major: rotation about +y by `yaw`.
+  const rotate: mat4 = [c, 0, -s, 0, 0, 1, 0, 0, s, 0, c, 0, 0, 0, 0, 1];
+  for (const node of meshNodes) transformMesh(node.getMesh()!, rotate);
+  const { min, max } = unionBounds(meshNodes);
+  const shift = [-(min[0]! + max[0]!) / 2, -min[1]!, -(min[2]! + max[2]!) / 2];
+  for (const node of meshNodes) {
+    transformMesh(node.getMesh()!, [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, shift[0]!, shift[1]!, shift[2]!, 1]);
+  }
+  return max[1]! - min[1]!;
+}
+
 /** Removes every landmark node and bakes what is left into scene-world, in place. */
 export function extractEnvironment(mapDoc: Document): void {
   const nodes = mapDoc.getRoot().listNodes();
@@ -245,18 +296,20 @@ export function extractEnvironment(mapDoc: Document): void {
 
 /** The lossless steps, then geometry decimation (when configured), textures, and Meshopt. */
 export async function optimise(doc: Document, options: AssetOptions): Promise<void> {
-  await doc.transform(dedup(), prune());
+  // Materials are deduped after simplify, so `ratioByMaterial` sees the source's material names:
+  // dedup keeps one name per merged group and would make the other keys match nothing.
+  await doc.transform(
+    dedup({
+      propertyTypes: [PropertyType.ACCESSOR, PropertyType.MESH, PropertyType.TEXTURE, PropertyType.SKIN],
+    }),
+    prune(),
+  );
   dropOrphanedSkinAttributes(doc);
+  if (options.dropNormalMaps) dropNormalMaps(doc);
+  if (options.bakeVertexColours) await bakeVertexColours(doc);
   if (options.weld || options.simplify) await doc.transform(weld());
-  if (options.simplify) {
-    await doc.transform(
-      simplify({
-        simplifier: MeshoptSimplifier,
-        ratio: options.simplify.ratio,
-        error: options.simplify.error,
-      }),
-    );
-  }
+  if (options.simplify) simplifyAttributeAware(doc, options.simplify);
+  await doc.transform(dedup({ propertyTypes: [PropertyType.MATERIAL] }), prune());
   wrapTexcoordsIntoUnitRange(doc);
   if (options.join) await doc.transform(join({ keepMeshes: false, keepNamed: false }));
   const size = options.maxTextureSize ?? DEFAULT_MAX_TEXTURE_SIZE;
@@ -271,6 +324,195 @@ export async function optimise(doc: Document, options: AssetOptions): Promise<vo
   );
   stripNames(doc);
   await compressGeometry(doc);
+}
+
+const srgbToLinear = (c: number): number =>
+  c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+
+async function bakeVertexColours(doc: Document): Promise<void> {
+  await doc.transform(unweld());
+  const decoded = new Map<Texture, { data: Buffer; width: number; height: number }>();
+  for (const material of doc.getRoot().listMaterials()) {
+    const texture = material.getBaseColorTexture();
+    if (!texture || decoded.has(texture)) continue;
+    const { data, info } = await sharp(Buffer.from(texture.getImage()!))
+      .ensureAlpha()
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+    decoded.set(texture, { data, width: info.width, height: info.height });
+  }
+  const baked = new Set<Material>();
+  const lut = Array.from({ length: 256 }, (_, i) => srgbToLinear(i / 255));
+  for (const mesh of doc.getRoot().listMeshes()) {
+    for (const prim of mesh.listPrimitives()) {
+      const texture = prim.getMaterial()?.getBaseColorTexture();
+      const uv = prim.getAttribute('TEXCOORD_0');
+      if (!texture) continue;
+      if (!uv || prim.getIndices()) {
+        // `unweld` leaves no index buffer, so an indexed or UV-less textured primitive was not baked.
+        throw new Error(`bakeVertexColours: textured primitive of "${mesh.getName()}" has no UVs or is still indexed.`);
+      }
+      baked.add(prim.getMaterial()!);
+      const image = decoded.get(texture)!;
+      const colours = new Float32Array(uv.getCount() * 3);
+      const tri = [0, 0, 0];
+      const el = [0, 0];
+      for (let t = 0; t < uv.getCount(); t += 3) {
+        let u = 0;
+        let v = 0;
+        for (let k = 0; k < 3; k++) {
+          tri[k] = t + k;
+          uv.getElement(tri[k]!, el);
+          u += el[0]! / 3;
+          v += el[1]! / 3;
+        }
+        const x = Math.min(image.width - 1, Math.floor((u - Math.floor(u)) * image.width));
+        const y = Math.min(image.height - 1, Math.floor((v - Math.floor(v)) * image.height));
+        const at = (y * image.width + x) * 4;
+        for (const vertex of tri) {
+          for (let c = 0; c < 3; c++) colours[vertex! * 3 + c] = lut[image.data[at + c]!]!;
+        }
+      }
+      prim.setAttribute(
+        'COLOR_0',
+        doc.createAccessor().setType('VEC3').setArray(colours).setBuffer(doc.getRoot().listBuffers()[0]!),
+      );
+      prim.setAttribute('TEXCOORD_0', null);
+      smoothNormals(prim);
+    }
+  }
+  for (const material of baked) material.setBaseColorTexture(null);
+}
+
+/**
+ * Gives every vertex at one position the same normal (the average). The source splits its normals
+ * at quad borders; with the UV islands gone those splits are the only thing left stopping collapses.
+ */
+function smoothNormals(prim: Primitive): void {
+  const position = prim.getAttribute('POSITION');
+  const normal = prim.getAttribute('NORMAL');
+  if (!position || !normal) return;
+  const sums = new Map<string, number[]>();
+  // Positions are bucketed to 1e-4 source units (about 7e-6 of Patrick's height): finer than any
+  // real feature of these models, so distinct vertices never share a bucket in practice.
+  const keyOf = (i: number): string => {
+    const p = position.getElement(i, [0, 0, 0]);
+    return p.map((x) => Math.round(x * 1e4)).join();
+  };
+  const n = [0, 0, 0];
+  for (let i = 0; i < position.getCount(); i++) {
+    normal.getElement(i, n);
+    const key = keyOf(i);
+    const sum = sums.get(key) ?? sums.set(key, [0, 0, 0]).get(key)!;
+    for (let c = 0; c < 3; c++) sum[c]! += n[c]!;
+  }
+  for (let i = 0; i < position.getCount(); i++) {
+    const sum = sums.get(keyOf(i))!;
+    const len = Math.hypot(sum[0]!, sum[1]!, sum[2]!) || 1;
+    normal.setElement(i, [sum[0]! / len, sum[1]! / len, sum[2]! / len]);
+  }
+}
+
+function dropNormalMaps(doc: Document): void {
+  for (const material of doc.getRoot().listMaterials()) material.setNormalTexture(null);
+  for (const mesh of doc.getRoot().listMeshes()) {
+    for (const prim of mesh.listPrimitives()) prim.setAttribute('TANGENT', null);
+  }
+}
+
+/** How strongly a UV or normal change counts against a collapse, relative to a position change. */
+const UV_WEIGHT = 2;
+const NORMAL_WEIGHT = 0.5;
+const COLOUR_WEIGHT = 1;
+
+/**
+ * Decimates every triangle primitive with the Meshopt simplifier, weighing UV and normal error as
+ * well as position. glTF-Transform's own `simplify` looks at positions only, which lets a collapse
+ * drag a vertex across a UV island boundary and sample the atlas's empty (black) texels; this is
+ * what produced dark slits across SpongeBob's face. Callers must `weld` first.
+ */
+function simplifyAttributeAware(doc: Document, config: SimplifyConfig): void {
+  const matched = new Set<string>();
+  for (const mesh of doc.getRoot().listMeshes()) {
+    for (const prim of mesh.listPrimitives()) {
+      if (prim.getMode() !== 4 || !prim.getIndices()) {
+        console.warn(
+          `simplify: skipped a primitive of "${mesh.getName()}" (material "${prim.getMaterial()?.getName() ?? ''}"): ` +
+            'not an indexed triangle list, so it keeps full detail.',
+        );
+        continue;
+      }
+      const position = prim.getAttribute('POSITION');
+      const uv = prim.getAttribute('TEXCOORD_0');
+      const normal = prim.getAttribute('NORMAL');
+      const colour = prim.getAttribute('COLOR_0');
+      const indices = prim.getIndices();
+      if (!position) continue;
+      const count = position.getCount();
+      const positions = new Float32Array(count * 3);
+      const attributes = new Float32Array(count * 8);
+      const el = [0, 0, 0];
+      for (let i = 0; i < count; i++) {
+        position.getElement(i, el);
+        positions.set(el, i * 3);
+        if (uv) {
+          uv.getElement(i, el);
+          attributes[i * 8] = el[0]!;
+          attributes[i * 8 + 1] = el[1]!;
+        }
+        if (normal) {
+          normal.getElement(i, el);
+          attributes.set(el, i * 8 + 2);
+        }
+        if (colour) {
+          colour.getElement(i, el);
+          attributes.set(el.slice(0, 3), i * 8 + 5);
+        }
+      }
+      const src = new Uint32Array(indices!.getArray()!);
+      const materialName = prim.getMaterial()?.getName() ?? '';
+      if (config.ratioByMaterial && materialName in config.ratioByMaterial) matched.add(materialName);
+      const ratio = config.ratioByMaterial?.[materialName] ?? config.ratio;
+      const target = Math.floor((ratio * src.length) / 3) * 3;
+      const [dst] = MeshoptSimplifier.simplifyWithAttributes(
+        src,
+        positions,
+        3,
+        attributes,
+        8,
+        [
+          UV_WEIGHT,
+          UV_WEIGHT,
+          NORMAL_WEIGHT,
+          NORMAL_WEIGHT,
+          NORMAL_WEIGHT,
+          COLOUR_WEIGHT,
+          COLOUR_WEIGHT,
+          COLOUR_WEIGHT,
+        ],
+        null,
+        target,
+        config.error,
+        [...(config.lockBorder ? (['LockBorder'] as const) : []), ...(config.permissive ? (['Permissive'] as const) : [])],
+      );
+      if (dst.length === 0) {
+        throw new Error(`simplify: material "${materialName}" of "${mesh.getName()}" decimated to nothing.`);
+      }
+      indices!.setArray(new Uint32Array(dst));
+      compactPrimitive(prim);
+      const compacted = prim.getIndices()!;
+      if (prim.getAttribute('POSITION')!.getCount() <= 65534) {
+        compacted.setArray(new Uint16Array(compacted.getArray()!));
+      }
+    }
+  }
+  const dead = Object.keys(config.ratioByMaterial ?? {}).filter((key) => !matched.has(key));
+  if (dead.length) {
+    throw new Error(
+      `simplify: ratioByMaterial keys match no material: ${dead.join(', ')}. ` +
+        'The source was probably re-exported with different material names.',
+    );
+  }
 }
 
 /**
@@ -412,6 +654,7 @@ export async function buildAsset(
   else if (landmark) offset = extractLandmark(doc, landmark).offset;
   await doc.transform(prune());
   const trianglesBefore = countTriangles(doc);
+  const height = options.stand ? standOnGround(doc, options.stand.yaw) : null;
   await optimise(doc, options);
-  return { bytes: await io.writeBinary(doc), offset, trianglesBefore };
+  return { bytes: await io.writeBinary(doc), offset, trianglesBefore, height };
 }

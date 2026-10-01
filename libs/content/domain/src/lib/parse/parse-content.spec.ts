@@ -1,11 +1,28 @@
 import { describe, expect, it } from 'vitest';
 import type { ContentFiles } from '../content.js';
 import { localize } from '../localized-text.js';
+import { NARRATION_LANDMARKS } from '../narration.js';
 import { sortProjects } from '../project-item.js';
 import { SITE_COPY_KEYS } from '../site-profile.js';
 import { formatContentErrors, parseContent } from './parse-content.js';
 
 type Json = Record<string, unknown>;
+
+interface HintJson {
+  id: unknown;
+  text: unknown;
+}
+interface LandmarkJson {
+  lines: unknown[];
+  hints?: HintJson[];
+  farewell?: unknown;
+}
+interface NarrationJson {
+  landmarks: Partial<Record<string, LandmarkJson>> & {
+    pineapple: LandmarkJson & { hints: [HintJson, ...HintJson[]] };
+    tiki: LandmarkJson;
+  };
+}
 
 /** A fresh, valid set of content files. Each test mutates its own copy. */
 const validFiles = () => ({
@@ -76,6 +93,22 @@ const validFiles = () => ({
   credits: {
     items: [{ id: 'three', kind: 'library', title: 'three.js', license: 'MIT' }] as Json[],
   },
+  narration: {
+    landmarks: {
+      ...Object.fromEntries(
+        NARRATION_LANDMARKS.map((id): [string, LandmarkJson] => [
+          id,
+          { lines: [{ en: `Line one for ${id}.`, ar: 'السطر الأول.' }, `Line two for ${id}.`] },
+        ])
+      ),
+      tiki: { lines: [{ en: 'Line one for tiki.', ar: 'السطر الأول.' }, 'Line two for tiki.'] },
+      pineapple: {
+        lines: ['Welcome to the pineapple.', 'Have a look around.'],
+        hints: [{ id: 'frontend', text: { en: 'Pixels, underwater.', ar: 'بكسلات تحت الماء.' } }],
+        farewell: 'Swim safe.',
+      },
+    } as NarrationJson['landmarks'],
+  },
 });
 
 const errorsOf = (files: ContentFiles) => {
@@ -98,6 +131,16 @@ describe('parseContent', () => {
     expect(resume[1]?.highlights).toEqual([]);
     expect(services.map((s) => s.id)).toEqual(['kelp-shake', 'secret-formula']);
     expect(credits[0]?.kind).toBe('library');
+    const { landmarks } = result.value.narration;
+    expect(Object.keys(landmarks)).toEqual([...NARRATION_LANDMARKS]);
+    expect(landmarks.pineapple).toEqual({
+      lines: [{ en: 'Welcome to the pineapple.' }, { en: 'Have a look around.' }],
+      hints: { frontend: { en: 'Pixels, underwater.', ar: 'بكسلات تحت الماء.' } },
+      farewell: { en: 'Swim safe.' },
+    });
+    expect(landmarks.tiki).toEqual({
+      lines: [{ en: 'Line one for tiki.', ar: 'السطر الأول.' }, { en: 'Line two for tiki.' }],
+    });
   });
 
   it('parses projects with defaults, and sorts explicitly ordered ones first', () => {
@@ -301,6 +344,75 @@ describe('parseContent', () => {
       mutate: (f) => (f.site.profile['bio'] = []),
       path: 'site.profile.bio',
       message: /expected at least 1 item/,
+    },
+    {
+      name: 'a narration landmark with too many lines',
+      mutate: (f) =>
+        (f.narration.landmarks.pineapple.lines = Array.from({ length: 6 }, (
+          _,
+          i,
+        ) => ({ en: `Line ${i}` }))),
+      path: 'narration.landmarks.pineapple.lines',
+      message: /expected at most 5 item/,
+    },
+    {
+      name: 'a narration landmark with one line',
+      mutate: (f) => (f.narration.landmarks.tiki.lines = [{ en: 'Only one' }]),
+      path: 'narration.landmarks.tiki.lines',
+      message: /expected at least 2 item/,
+    },
+    {
+      name: 'a missing narration landmark',
+      mutate: (f) => delete f.narration.landmarks.bureau,
+      path: 'narration.landmarks.bureau',
+      message: /required field is missing/,
+    },
+    {
+      name: 'a duplicate narration hint id',
+      mutate: (f) =>
+        f.narration.landmarks.pineapple.hints.push({ id: 'frontend', text: 'Again' }),
+      path: 'narration.landmarks.pineapple.hints[1].id',
+      message: /duplicate id "frontend"/,
+    },
+    {
+      name: 'a narration hint id that is not a slug',
+      mutate: (f) => (f.narration.landmarks.pineapple.hints[0].id = 'Front End'),
+      path: 'narration.landmarks.pineapple.hints[0].id',
+      message: /lowercase slug/,
+    },
+    {
+      name: 'a narration hint too long in English',
+      mutate: (f) => (f.narration.landmarks.pineapple.hints[0].text = 'a'.repeat(141)),
+      path: 'narration.landmarks.pineapple.hints[0].text',
+      message: /at most 140 characters/,
+    },
+    {
+      name: 'a narration farewell with an empty English text',
+      mutate: (f) => (f.narration.landmarks.pineapple.farewell = { en: ' ', ar: 'مع السلامة' }),
+      path: 'narration.landmarks.pineapple.farewell.en',
+      message: /must not be empty/,
+    },
+    {
+      name: 'a narration farewell too long in English',
+      mutate: (f) => (f.narration.landmarks.pineapple.farewell = 'a'.repeat(141)),
+      path: 'narration.landmarks.pineapple.farewell',
+      message: /at most 140 characters/,
+    },
+    {
+      name: 'a narration line too long in English',
+      mutate: (f) =>
+        (f.narration.landmarks.pineapple.lines[0] = { en: 'a'.repeat(141) }),
+      path: 'narration.landmarks.pineapple.lines[0]',
+      message: /must be at most 140 characters/,
+    },
+    {
+      name: 'an unknown narration landmark key',
+      mutate: (f) =>
+        (f.narration.landmarks['chum-bucket'] = {
+          lines: [{ en: 'Line one' }, { en: 'Line two' }],
+        }),
+      path: 'narration.landmarks.chum-bucket',
+      message: /unknown field/,
     },
   ];
 

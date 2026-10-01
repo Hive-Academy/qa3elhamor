@@ -1,5 +1,6 @@
 export * from './lib/localized-text.js';
 export * from './lib/site-profile.js';
+export * from './lib/narration.js';
 export * from './lib/resume-entry.js';
 export * from './lib/service-item.js';
 export * from './lib/project-item.js';

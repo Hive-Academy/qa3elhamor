@@ -42,10 +42,45 @@ const OPTIONS: Readonly<Record<string, AssetOptions>> = {
   // 519,664 triangles cannot fit 2 MiB however well Meshopt packs them.
   'spongebob-character': { simplify: { ratio: 0.15, error: 0.01 } },
   'patrick-character': { weld: true },
+  // Narrator LODs: stood on the ground, facing +z (both sources already do), ~512 px textures.
+  // The face-bearing SpongeBob meshes keep more triangles: at the flat ~1% the body's skin opens
+  // dark slits where its UV seams collapse. Anything not listed gets `ratio`.
+  'spongebob-narrator': {
+    stand: { yaw: 0 },
+    join: true,
+    dropNormalMaps: true,
+    maxTextureSize: 512,
+    simplify: {
+      ratio: 0.009,
+      error: 0.05,
+      ratioByMaterial: {
+        'Base.002': 0.05,
+        'EyeWhites.002': 0.05,
+        'Pupils.002': 0.08,
+        'Teeth.002': 0.1,
+        'Cheeks.002': 0.05,
+        'Eyelashes.002': 0.04,
+      },
+    },
+  },
+  // Patrick's texture is one flat colour per quad, each quad its own UV island, which pins the
+  // simplifier at 16k triangles. The colour moves onto the vertices instead and the texture goes.
+  'patrick-narrator': {
+    stand: { yaw: 0 },
+    join: true,
+    bakeVertexColours: true,
+    simplify: { ratio: 0.15, error: 0.05 },
+  },
 };
 
 const landmarkIds = new Set(LANDMARKS.map((l) => l.id));
-const WHOLE_MODEL_IDS = ['pineapple-interior', 'spongebob-character', 'patrick-character'];
+const WHOLE_MODEL_IDS = [
+  'pineapple-interior',
+  'spongebob-character',
+  'patrick-character',
+  'spongebob-narrator',
+  'patrick-narrator',
+];
 const RECIPE_IDS = new Set(['environment', ...landmarkIds, ...WHOLE_MODEL_IDS]);
 
 function sourcePath(entry: AssetEntry): string {
@@ -74,6 +109,10 @@ function assertNoDrift(): void {
   }
   const environment = WEB_ASSETS.find((a) => a.id === 'environment');
   for (const asset of WEB_ASSETS) {
+    // A character stood on the ground must declare its height, and only such a character may.
+    if ((OPTIONS[asset.id]?.stand !== undefined) !== (asset.standingHeight !== undefined)) {
+      problems.push(`${asset.id}: \`stand\` in OPTIONS and \`standingHeight\` in WEB_ASSETS must go together.`);
+    }
     // Landmarks are cut from the same map as the environment; a different source would be a typo.
     if (landmarkIds.has(asset.id) && asset.sourceModel !== environment?.sourceModel) {
       problems.push(`${asset.id}: sourceModel "${asset.sourceModel}" differs from the environment's.`);
@@ -103,6 +142,8 @@ interface Placement {
   bytes: number;
   budgetBytes: number;
   triangles: number;
+  /** Set for a standing character; see `AssetEntry.standingHeight`. */
+  height: number | null;
 }
 
 async function main(): Promise<void> {
@@ -161,6 +202,7 @@ async function main(): Promise<void> {
       bytes: v.bytes,
       budgetBytes: entry.budgetBytes,
       triangles: v.triangles,
+      height: b.height === null ? null : Number(b.height.toFixed(3)),
     };
     const source = SOURCE_MODELS.find((m) => m.id === entry.sourceModel)!;
     rows.push({

@@ -2,6 +2,7 @@ import {
   sortProjects,
   type Content,
   type Credit,
+  type Narration,
   type ProjectItem,
   type ResumeEntry,
   type ServiceItem,
@@ -29,3 +30,5 @@ export const projectItems: readonly ProjectItem[] = Object.freeze(
   sortProjects(siteContent.projects)
 );
 export const credits: readonly Credit[] = siteContent.credits;
+/** Narration lines and hints for every underwater landmark. */
+export const narration: Narration = siteContent.narration;

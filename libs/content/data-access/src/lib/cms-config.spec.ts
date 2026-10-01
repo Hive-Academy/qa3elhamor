@@ -4,6 +4,8 @@ import {
   CREDIT_KINDS,
   LINK_KINDS,
   LOCALES,
+  NARRATION_LANDMARKS,
+  NARRATION_LIMITS,
   PROJECT_LINK_KINDS,
   SITE_COPY_KEYS,
   formatContentErrors,
@@ -33,6 +35,7 @@ interface Widget {
   readonly options?: readonly string[];
   readonly pattern?: readonly [string, string];
   readonly min?: number;
+  readonly max?: number;
   /** Optional in the CMS only because its parent object is optional; the parser needs it once the parent exists. */
   readonly parser_required?: boolean;
 }
@@ -308,6 +311,14 @@ describe('Decap CMS config (apps/web/public/admin/config.yml)', () => {
         if (widget.min !== undefined) {
           expect(errorsFor(at([]))).toBeDefined();
         }
+        if (widget.max !== undefined) {
+          const [item] = sample(widget, true, {}) as unknown[];
+          const tooMany = Array.from({ length: widget.max + 1 }, () =>
+            structuredClone(item),
+          );
+          expect(errorsFor(at(tooMany)), path.join('.')).toBeDefined();
+          expect(errorsFor(at(tooMany.slice(0, widget.max)))).toBeUndefined();
+        }
         if (widget.field !== undefined) {
           singleField += 1;
           expect(widget.field.widget, path.join('.')).toBe('string');
@@ -375,5 +386,26 @@ describe('Decap CMS config (apps/web/public/admin/config.yml)', () => {
     expect(
       (copy?.fields ?? []).every((f) => isLocalizedText(f) && isRequired(f)),
     ).toBe(true);
+  });
+
+  it('models every narration landmark the domain defines, each with the same fields', () => {
+    const narration = cmsFiles.find((f) => f.name === 'narration');
+    const landmarks = narration?.fields.find((f) => f.name === 'landmarks');
+    expect((landmarks?.fields ?? []).map((f) => f.name)).toEqual([
+      ...NARRATION_LANDMARKS,
+    ]);
+    for (const landmark of landmarks?.fields ?? []) {
+      expect(isRequired(landmark), landmark.name).toBe(true);
+      expect((landmark.fields ?? []).map((f) => f.name)).toEqual([
+        'lines',
+        'hints',
+        'farewell',
+      ]);
+      const lines = landmark.fields?.find((f) => f.name === 'lines');
+      expect(lines).toMatchObject({
+        min: NARRATION_LIMITS.minLines,
+        max: NARRATION_LIMITS.maxLines,
+      });
+    }
   });
 });

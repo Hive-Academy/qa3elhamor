@@ -1,9 +1,10 @@
-import { localize, SITE_COPY_KEYS } from '@qa3elhamor/content-domain';
+import { localize, NARRATION_LANDMARKS, SITE_COPY_KEYS } from '@qa3elhamor/content-domain';
 import { describe, expect, it } from 'vitest';
 import { contentFiles } from './content-files.js';
 import { ContentValidationFailure, resolveContent } from './resolve-content.js';
 import {
   credits,
+  narration,
   profile,
   projectItems,
   resumeEntries,
@@ -34,6 +35,21 @@ describe('site content (content/*.json)', () => {
     expect(Object.isFrozen(siteContent)).toBe(true);
     expect(Object.isFrozen(profile.bio)).toBe(true);
     expect(Object.isFrozen(resumeEntries[0]?.period)).toBe(true);
+  });
+});
+
+describe('narration (content/narration.json)', () => {
+  it('narrates every landmark', () => {
+    expect(Object.keys(narration.landmarks)).toEqual([...NARRATION_LANDMARKS]);
+    expect(Object.isFrozen(narration.landmarks.pineapple.lines)).toBe(true);
+  });
+
+  // The parser validates each file on its own (skill groups are optional, and hint ids are
+  // generic object ids), so the pairing of pineapple hints with the shipped skill groups is
+  // pinned here, against the real content.
+  it('has exactly one pineapple hint per skill group, keyed by the group id', () => {
+    const hintIds = Object.keys(narration.landmarks.pineapple.hints ?? {}).sort();
+    expect(hintIds).toEqual(profile.skills.map((group) => group.id).sort());
   });
 });
 

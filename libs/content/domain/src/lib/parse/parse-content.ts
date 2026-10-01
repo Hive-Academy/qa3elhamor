@@ -5,6 +5,7 @@ import {
   readResumeFile,
   readServicesFile,
 } from './parse-collections.js';
+import { readNarrationFile } from './parse-narration.js';
 import { readProjectsFile } from './parse-projects.js';
 import { readSiteFile } from './parse-site.js';
 import { ContentReader, type ContentValidationError } from './reader.js';
@@ -27,6 +28,7 @@ export function parseContent(
     services: readServicesFile(r, files.services, 'services'),
     projects: readProjectsFile(r, files.projects, 'projects'),
     credits: readCreditsFile(r, files.credits, 'credits'),
+    narration: readNarrationFile(r, files.narration, 'narration'),
   };
   return r.errors.length === 0 ? ok(content) : err(r.errors);
 }

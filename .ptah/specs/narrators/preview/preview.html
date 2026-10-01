@@ -1,0 +1,24 @@
+<!doctype html>
+<!-- Throwaway narrator preview (served by a web dev server via /@fs). See preview.tsx for the query parameters. -->
+<html>
+  <head>
+    <style>
+      html, body, #root { margin: 0; height: 100%; background: #0a1e3f; }
+      canvas { display: block; }
+      #label { position: fixed; left: 12px; top: 8px; color: #cfe6ff; font: 13px/1.3 system-ui, sans-serif; opacity: 0.8; }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <div id="label"></div>
+    <!-- /@fs pages skip the React plugin's index transform, so install its refresh preamble by hand. -->
+    <script type="module">
+      import RefreshRuntime from '/@react-refresh';
+      RefreshRuntime.injectIntoGlobalHook(window);
+      window.$RefreshReg$ = () => {};
+      window.$RefreshSig$ = () => (type) => type;
+      window.__vite_plugin_react_preamble_installed__ = true;
+    </script>
+    <script type="module" src="./preview.tsx"></script>
+  </body>
+</html>
