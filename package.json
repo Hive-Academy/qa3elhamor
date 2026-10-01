@@ -9,7 +9,10 @@
     "db:migrate": "nx run complaints-data-access:migrate-deploy",
     "api:dev": "nx run api:serve",
     "api:integration": "nx run api:integration",
-    "cms:local": "npx decap-server"
+    "cms:local": "npx decap-server",
+    "perf:budget": "tsx tools/perf-budget/check.ts",
+    "deploy:check-contact": "tsx tools/deploy/check-contact-env.ts",
+    "deploy:prepare": "tsx tools/deploy/prepare-artefact.ts"
   },
   "private": true,
   "devDependencies": {

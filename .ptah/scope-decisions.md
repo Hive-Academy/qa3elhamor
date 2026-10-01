@@ -173,6 +173,17 @@ the lowest-friction target for forkers. Revisit if the owner has a fixed target.
 > take Fetch-API `Request → Response` handlers, so `apps/api` stays host-agnostic and the
 > Netlify adapter is a thin wrapper. `deploy-static` may still revisit this.
 
+> **Amended (2026-10-02, owner; deploy-static): GitHub Pages user site.** The site is published
+> to https://abdallah-khalil.github.io/ (repository `Abdallah-khalil/Abdallah-khalil.github.io`,
+> branch `master`), pushed from `Hive-Academy/qa3elhamor` by `.github/workflows/deploy-pages.yml`
+> over an SSH deploy key (`PAGES_DEPLOY_KEY`). It is static only: the complaints wall stays off
+> (no `VITE_WALL_API_URL`), contact goes through a form service, and `moderation.html` and
+> `/admin` are excluded from the artefact. The workflow is manual (`workflow_dispatch`) until the
+> owner approves the first publish. Vite `base` is `/` and is overridable with `SITE_BASE` for
+> forkers on a project site. This supersedes the Netlify decision above for the owner's
+> deployment; `netlify.toml` is kept as an optional path (a Netlify-hosted fork, or the Decap
+> CMS's Netlify OAuth gateway) and says so. Details and owner steps: `docs/deploy.md`.
+
 ---
 
 ## Asset and licensing constraints

@@ -42,3 +42,8 @@ jobs:
       - run: npx nx affected -t lint typecheck test --parallel=3
 
       - run: npx nx affected -t build --parallel=3
+
+      # Performance budgets (tools/perf-budget/budgets.ts). `web:build` is a cache hit when the
+      # affected build above already ran it, and still produces dist when nothing affected it.
+      - run: npx nx run web:build
+      - run: npm run perf:budget

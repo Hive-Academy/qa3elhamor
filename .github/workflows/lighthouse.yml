@@ -1,0 +1,39 @@
+name: Lighthouse (manual)
+
+# Deferred until the first publish: there is no preview host to audit yet. Once the site is live,
+# run this by hand from the Actions tab with the live URL. It is never triggered automatically and
+# publishes nothing. See docs/perf-budget.md.
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: 'Deployed URL to audit, e.g. https://abdallah-khalil.github.io/'
+        type: string
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  lighthouse:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # Lighthouse is fetched on demand with npx; it is not a dependency of the repository.
+      - name: Run Lighthouse (mobile preset, headless Chrome)
+        env:
+          AUDIT_URL: ${{ inputs.url }}
+        run: |
+          npx --yes lighthouse@12 "$AUDIT_URL" \
+            --chrome-flags="--headless=new --no-sandbox --use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader" \
+            --output=html --output=json --output-path=./lighthouse-report \
+            --only-categories=performance,accessibility,best-practices,seo
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: lighthouse-report
+          path: lighthouse-report.*

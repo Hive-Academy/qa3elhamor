@@ -185,10 +185,12 @@ See `.ptah/scope-decisions.md` for the full discovery record and the asset/IP co
 ## Phase 7: Deployment & Hardening
 
 - [ ] deploy-static: Static hosting with serverless functions
+      **Outcome (built, NOT yet published — needs owner OK + deploy key).** GitHub Pages user site via `.github/workflows/deploy-pages.yml` (manual `workflow_dispatch`; pushes only with `publish` ticked; SHA-pinned peaceiris/actions-gh-pages, SSH `PAGES_DEPLOY_KEY`, repo/branch from variables), contact-config guard (`tools/deploy/check-contact-env.ts` reusing `contactConfigProblems`), artefact prep drops moderation.html + its chunks and /admin, adds 404.html/.nojekyll; `SITE_BASE` for forks on project sites. Owner steps incl. the `legacy-2019` backup: `docs/deploy.md`. agy APPROVED 8/10. Open: public/models aren't content-hashed (Pages max-age=600) — append a manifest hash in `assetUrl()`.
       **Charter.** Deploy `apps/web` as a static bundle with `apps/api` as co-located serverless functions on Vercel or Netlify, including long-lived immutable cache headers for compressed 3D assets and correct MIME handling for KTX2 and glTF binaries. Asset caching is disproportionately important here because the payload is dominated by a handful of large binary files. Success: a merge to `main` produces a live deployment and repeat visits serve assets from cache.
       **Depends on:** template-config
 
-- [ ] perf-budget: Enforced first-load budget in CI
+- [x] perf-budget: Enforced first-load budget in CI
+      **Outcome.** Vendor chunks (three / r3f / drei) via `advancedChunks`; `npm run perf:budget` (`tools/perf-budget/`, budgets in one file) gates initial JS/CSS gzip, largest chunk and initial-load models vs the manifest, wired after build in CI and deploy; failing-gate proof in `.ptah/specs/perf-budget/notes.md`. Today initial JS is 389/450 KiB gzip; next win: lazy-load the 3D shell in app.tsx (~250 KiB). Lighthouse is a manual stub until a live URL exists. agy APPROVED 8/10.
       **Charter.** Add CI gates that fail a pull request exceeding agreed JavaScript-bundle and total-asset budgets, plus a Lighthouse run on the deployed preview. A 3D site's payload creeps upward with every landmark, and without an enforced gate the mobile experience degrades invisibly across Stage B sessions. Success: an artificially oversized asset fails CI with a clear message.
       **Depends on:** asset-compression, deploy-static
 

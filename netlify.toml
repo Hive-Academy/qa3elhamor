@@ -1,5 +1,10 @@
-# Build section only (added by cms-integration so that a CMS commit to main rebuilds the site).
-# deploy-static owns everything else in this file: headers (CSP), redirects and functions.
+# OPTIONAL. The owner's site is published to GitHub Pages (.github/workflows/deploy-pages.yml,
+# docs/deploy.md), and that path does not read this file.
+#
+# Kept for the two Netlify-based routes docs/cms.md describes: (1) a forker who prefers Netlify as
+# the host, and (2) running the Decap CMS (/admin), which authenticates through a Netlify site's
+# OAuth gateway and so needs a Netlify site that builds this repo. The Pages artefact excludes
+# /admin, so the CMS is reachable only on a Netlify deploy. Delete the file if nobody uses either.
 #
 # `nx build web` runs content-data-access:validate first, so invalid CMS content fails the build
 # and the previous deploy stays live.

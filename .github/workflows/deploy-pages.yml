@@ -1,0 +1,126 @@
+name: Deploy to GitHub Pages
+
+# Builds apps/web and publishes it as static files to a GitHub Pages repository (for the owner:
+# Abdallah-khalil/Abdallah-khalil.github.io). Setup and rollback: docs/deploy.md.
+#
+# INERT BY DEFAULT. This workflow only runs when someone starts it by hand from the Actions tab
+# (workflow_dispatch). Nothing is published unless the `publish` input is ticked, and a publish
+# fails fast, before any build, if the deploy key is missing.
+#
+# To also deploy on every push to main, once the owner has approved the first publish, replace
+# the `on:` block below with:
+#
+#   on:
+#     push:
+#       branches: [main]
+#     workflow_dispatch:
+#       inputs: ...   (keep as is)
+#
+# and change the `if:` of the publish steps from `inputs.publish` to
+# `github.event_name == 'push' || inputs.publish`. Do that in a reviewed commit, not casually.
+on:
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: 'Publish to the Pages repository. Leave unticked for a build-only dry run.'
+        type: boolean
+        default: false
+
+# Only one deploy at a time; never cancel a publish half-way through a push.
+concurrency:
+  group: deploy-pages
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      # Repository variables (Settings > Secrets and variables > Actions > Variables).
+      PAGES_REPOSITORY: ${{ vars.PAGES_REPOSITORY }}
+      PAGES_BRANCH: ${{ vars.PAGES_BRANCH }}
+      # Empty means "/" (user site or custom domain). A project site needs "/<repo>/".
+      SITE_BASE: ${{ vars.SITE_BASE }}
+      # Contact form wiring, inlined into the bundle at build time (public by design).
+      VITE_CONTACT_PROVIDER: ${{ vars.VITE_CONTACT_PROVIDER }}
+      VITE_WEB3FORMS_ACCESS_KEY: ${{ secrets.VITE_WEB3FORMS_ACCESS_KEY }}
+      VITE_FORMSPREE_FORM_ID: ${{ vars.VITE_FORMSPREE_FORM_ID }}
+      # The wall stays off on a static host: VITE_WALL_API_URL is deliberately not set here.
+    steps:
+      # Fail fast and loudly, before spending minutes on a build that cannot be published.
+      - name: Check publish prerequisites
+        if: ${{ inputs.publish }}
+        env:
+          PAGES_DEPLOY_KEY: ${{ secrets.PAGES_DEPLOY_KEY }}
+        run: |
+          missing=0
+          if [ -z "$PAGES_DEPLOY_KEY" ]; then
+            echo "::error title=Missing secret PAGES_DEPLOY_KEY::Add the SSH deploy key (private half) as the PAGES_DEPLOY_KEY repository secret. See docs/deploy.md, step 2."
+            missing=1
+          fi
+          if [ -z "$PAGES_REPOSITORY" ]; then
+            echo "::error title=Missing variable PAGES_REPOSITORY::Set the PAGES_REPOSITORY repository variable to <owner>/<pages-repo>. See docs/deploy.md, step 3."
+            missing=1
+          fi
+          if [ -z "$PAGES_BRANCH" ]; then
+            echo "::error title=Missing variable PAGES_BRANCH::Set the PAGES_BRANCH repository variable to the Pages repository's publishing branch. See docs/deploy.md, step 3."
+            missing=1
+          fi
+          exit "$missing"
+
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      # The same gates CI applies, so a deploy never ships what CI would reject.
+      - run: npm run assets:verify
+      - run: npx nx sync:check
+      - run: npx nx run-many -t lint typecheck test --parallel=3
+
+      # A set-but-broken contact provider fails here instead of shipping a dead Bureau form.
+      - run: npm run deploy:check-contact
+
+      # --skip-nx-cache: the build inlines VITE_* values, which Nx does not hash.
+      - name: Build apps/web
+        run: npx nx run web:build --skip-nx-cache
+
+      - run: npm run perf:budget
+
+      # moderation.html and its chunks, /admin, 404.html, .nojekyll. See docs/deploy.md.
+      - run: npm run deploy:prepare
+
+      - name: Publish to the Pages repository
+        if: ${{ inputs.publish }}
+        # peaceiris/actions-gh-pages v4.1.0, pinned to its commit.
+        uses: peaceiris/actions-gh-pages@84c30a85c19949d7eee79c4ff27748b70285e453
+        with:
+          deploy_key: ${{ secrets.PAGES_DEPLOY_KEY }}
+          external_repository: ${{ vars.PAGES_REPOSITORY }}
+          publish_branch: ${{ vars.PAGES_BRANCH }}
+          publish_dir: apps/web/dist
+          # Replace the old site wholesale; the build output is the whole site.
+          force_orphan: false
+          keep_files: false
+          enable_jekyll: false
+          user_name: github-actions[bot]
+          user_email: 41898282+github-actions[bot]@users.noreply.github.com
+          commit_message: 'deploy: ${{ github.repository }}@${{ github.sha }}'
+
+      - name: Summary
+        run: |
+          {
+            echo "### Deploy"
+            if [ "${{ inputs.publish }}" = "true" ]; then
+              echo "Published \`${{ github.sha }}\` to \`$PAGES_REPOSITORY\` (\`$PAGES_BRANCH\`)."
+            else
+              echo "Dry run: built and checked \`${{ github.sha }}\`; nothing was published."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"

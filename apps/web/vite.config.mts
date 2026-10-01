@@ -3,8 +3,19 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { resolve } from 'node:path';
 
+/**
+ * Public base path. `/` suits a GitHub Pages user site (https://<user>.github.io/) and any
+ * custom domain; a forker deploying to a project site sets `SITE_BASE=/<repo>/` at build time.
+ * Always normalised to a leading and trailing slash. See docs/deploy.md.
+ */
+function siteBase(raw: string | undefined): string {
+  const trimmed = (raw ?? '').trim().replace(/^\/+|\/+$/g, '');
+  return trimmed === '' ? '/' : `/${trimmed}/`;
+}
+
 export default defineConfig(() => ({
   root: import.meta.dirname,
+  base: siteBase(process.env['SITE_BASE']),
   cacheDir: '../../node_modules/.vite/apps/web',
   server: {
     port: 4200,
@@ -35,6 +46,26 @@ export default defineConfig(() => ({
       input: {
         main: resolve(import.meta.dirname, 'index.html'),
         moderation: resolve(import.meta.dirname, 'moderation.html'),
+      },
+      output: {
+        // Vendor chunks: three and its React bindings change far less often than app code,
+        // so splitting them keeps them cached across deploys (file names are content-hashed).
+        // Budgets live in tools/perf-budget/budgets.ts.
+        advancedChunks: {
+          groups: [
+            { name: 'vendor-three', test: /node_modules[\\/]three[\\/]/, priority: 40 },
+            {
+              name: 'vendor-r3f',
+              test: /node_modules[\\/](?:@react-three[\\/](?:fiber|postprocessing)|postprocessing|its-fine|react-reconciler|scheduler|zustand|suspend-react|react-use-measure|use-sync-external-store)[\\/]/,
+              priority: 30,
+            },
+            {
+              name: 'vendor-drei',
+              test: /node_modules[\\/](?:@react-three[\\/]drei|three-stdlib|meshline|maath|camera-controls|detect-gpu|stats-gl|troika[^\\/]*|bidi-js|hls\.js|three-mesh-bvh|tunnel-rat)[\\/]/,
+              priority: 20,
+            },
+          ],
+        },
       },
     },
     commonjsOptions: {
