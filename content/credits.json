@@ -1,5 +1,4 @@
 {
-  "_sample": "SAMPLE CONTENT: list only what your site really uses. 3D model licence credits are NOT listed here; they live with the asset manifest (libs/world/domain).",
   "items": [
     {
       "id": "site-design",
@@ -8,7 +7,7 @@
         "en": "Concept and design",
         "ar": "الفكرة والتصميم"
       },
-      "author": "Your Name"
+      "author": "Abdallah Khalil"
     },
     {
       "id": "qaa-el-hamour-trend",

@@ -1,102 +1,150 @@
 {
-  "_sample": "SAMPLE CONTENT: fictional projects. Replace with work you can actually show; see content/README.md.",
   "items": [
     {
-      "id": "qaa-el-hamour-site",
+      "id": "pro-estate",
       "title": {
-        "en": "Qaa El-Hamour",
-        "ar": "قاع الهامور"
+        "en": "Pro-Estate",
+        "ar": "برو إستيت"
       },
       "summary": {
-        "en": "SAMPLE: this website. A scroll-driven dive to the sea floor where the portfolio lives inside landmarks.",
-        "ar": "نموذج: هذا الموقع. غطسة إلى قاع البحر حيث يسكن الملف الشخصي داخل المعالم."
+        "en": "AI operating system for real estate: a multi-agent B2B SaaS platform that runs property operations, CRM and marketing in Arabic-first bilingual mode.",
+        "ar": "نظام تشغيل بالذكاء الاصطناعي للعقارات: منصة B2B متعددة الوكلاء لتشغيل العمليات وإدارة علاقات العملاء والتسويق العقاري باللغة العربية أولًا."
       },
       "description": {
-        "en": "Built as a forkable template: every word comes from content files, and each landmark is a data entry plus an overlay."
+        "en": "Founder & Lead Architect of a ~400K-LOC, 146-project Nx monorepo: NestJS 11 backend with four Angular 21 SSR frontends, a 75-model PostgreSQL schema with ZenStack policy-based access control, Redis/Bull queues, MinIO storage and Socket.IO real-time inbox."
       },
       "highlights": [
         {
-          "en": "3D scene that stays interactive on mid-range phones."
+          "en": "Hierarchical multi-agent AI platform on LangGraph + deepagents: an orchestrator delegates to 12 specialised subagents across 23 tool suites."
         },
         {
-          "en": "Readable 2D fallback for visitors without WebGL."
+          "en": "Graph long-term memory (Neo4j/Memgraph), RAG with embeddings and RRF reranking, human-in-the-loop interrupts and SSE streaming."
+        },
+        {
+          "en": "Meta/Instagram Graph API, WhatsApp Business and Meta Ads integrations with resilient clients (circuit breaker, retry/backoff, rate limiting)."
+        },
+        {
+          "en": "AI visual website builder and Arabic-first bilingual RTL/LTR experience."
         }
       ],
       "role": {
-        "en": "Design and development"
+        "en": "Founder & Lead Architect",
+        "ar": "المؤسس والمهندس المعماري الرئيسي"
       },
-      "period": {
-        "start": "2026-06"
-      },
-      "tech": ["TypeScript", "React Three Fiber", "Nx", "Vite"],
+      "tech": [
+        "NestJS 11",
+        "Angular 21",
+        "Nx",
+        "LangGraph",
+        "deepagents",
+        "PostgreSQL",
+        "ZenStack",
+        "Neo4j",
+        "Redis",
+        "MinIO",
+        "Socket.IO"
+      ],
       "links": [
         {
-          "kind": "repo",
-          "url": "https://github.com/your-handle/qa3elhamor"
-        },
-        {
           "kind": "live",
-          "url": "https://example.com"
+          "url": "https://pro-estate.net"
         }
       ],
       "featured": true,
       "order": 1
     },
     {
-      "id": "tide-tables",
+      "id": "ptah",
       "title": {
-        "en": "Tide Tables (SAMPLE)"
+        "en": "Ptah",
+        "ar": "بتاح"
       },
       "summary": {
-        "en": "An offline-first tide forecast app for fishermen who have no signal at sea."
+        "en": "Provider-agnostic AI coding orchestration platform: one AI-orchestration core shipping as a VS Code extension, Electron desktop app and headless CLI.",
+        "ar": "منصة توجيه برمجة بالذكاء الاصطناعي مستقلة عن المزود: نواة واحدة تُشحن كإضافة VS Code وتطبيق Electron لسطح المكتب وأداة سطر أوامر (CLI)."
+      },
+      "description": {
+        "en": "Creator & Lead Architect of a 68-project Nx monorepo built with hexagonal ports-and-adapters design, unifying Claude, GitHub Copilot, OpenAI Codex, Cursor and local Ollama models."
       },
       "highlights": [
         {
-          "en": "Syncs a month of forecasts in under 200 KB."
+          "en": "Provider-agnostic harness with 5 provider families and 6 CLI adapters plus multi-strategy authentication."
         },
         {
-          "en": "Used daily by a (fictional) fleet of 300 boats."
+          "en": "Built-in MCP server (~40 tools, 14 namespaces): AST parsing, LSP navigation, dependency graphs, symbol indexing, sqlite-vec vector memory and CDP browser automation."
+        },
+        {
+          "en": "Parallel multi-agent orchestration (up to 9 concurrent agents), trajectory-based skill synthesis and SQLite cron scheduler."
+        },
+        {
+          "en": "Telegram/Discord/Slack bridges and a NestJS + Prisma licensing backend (Paddle, WorkOS)."
         }
       ],
       "role": {
-        "en": "Solo developer"
+        "en": "Creator & Lead Architect",
+        "ar": "المنشئ والمهندس المعماري الرئيسي"
       },
-      "period": {
-        "start": "2021-04",
-        "end": "2021-09"
-      },
-      "tech": ["TypeScript", "Service Workers", "IndexedDB"],
+      "tech": [
+        "NestJS",
+        "Prisma",
+        "TypeScript",
+        "Nx",
+        "Electron",
+        "VS Code Extension API",
+        "MCP",
+        "SQLite",
+        "Docker"
+      ],
       "links": [
         {
-          "kind": "repo",
-          "url": "https://github.com/your-handle/tide-tables"
-        },
-        {
-          "kind": "case-study",
-          "label": {
-            "en": "Read the write-up",
-            "ar": "اقرأ التفاصيل"
-          },
-          "url": "https://example.com/tide-tables"
+          "kind": "live",
+          "url": "https://ptah.live"
         }
       ],
-      "featured": false
+      "featured": true,
+      "order": 2
     },
     {
-      "id": "reef-kit",
+      "id": "anubis-mcp",
       "title": {
-        "en": "Reef Kit (SAMPLE)"
+        "en": "Anubis MCP",
+        "ar": "أنوبيس MCP"
       },
       "summary": {
-        "en": "An accessible React component library with a coral-themed design system."
+        "en": "Open-source MCP-compliant guidance system that steers AI agents (Cursor, Claude) to follow enforced architectural patterns."
       },
-      "tech": ["React", "Storybook", "CSS custom properties"],
+      "description": {
+        "en": "Creator & Lead Architect of a NestJS + Prisma backend with a structured anti-hallucination workflow that verifies agent output against codebase facts."
+      },
+      "highlights": [
+        {
+          "en": "MCP-compliant guidance layer for AI agents working in existing codebases."
+        },
+        {
+          "en": "Enforces architectural patterns and verifies generated output against project facts."
+        },
+        {
+          "en": "Anti-hallucination workflow built with NestJS and Prisma."
+        }
+      ],
+      "role": {
+        "en": "Creator & Lead Architect",
+        "ar": "المنشئ والمهندس المعماري الرئيسي"
+      },
+      "tech": [
+        "NestJS",
+        "Prisma",
+        "TypeScript",
+        "MCP"
+      ],
       "links": [
         {
           "kind": "repo",
-          "url": "https://github.com/your-handle/reef-kit"
+          "url": "https://github.com/Hive-Academy/Anubis-MCP"
         }
-      ]
+      ],
+      "featured": true,
+      "order": 3
     }
   ]
 }

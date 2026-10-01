@@ -1,55 +1,96 @@
 {
-  "_sample": "SAMPLE CONTENT: replace with the services you actually offer; see content/README.md.",
   "items": [
     {
-      "id": "kelp-shake",
+      "id": "agent-mcp-architecture",
+      "menuName": {
+        "en": "Sardine President's Brain",
+        "ar": "مخ الرئيس السرديني"
+      },
+      "title": {
+        "en": "AI agent & MCP architecture"
+      },
+      "description": {
+        "en": "Design and ship multi-agent systems, Model Context Protocol servers and provider-agnostic LLM harnesses that actually work in production."
+      },
+      "price": {
+        "en": "Three pearls and a whitepaper"
+      },
+      "tags": [
+        "LangChain",
+        "LangGraph",
+        "MCP",
+        "RAG",
+        "multi-agent orchestration"
+      ]
+    },
+    {
+      "id": "saas-platform-architecture",
       "menuName": {
         "en": "Kelp Shake",
         "ar": "ميلك شيك الطحالب"
       },
       "title": {
-        "en": "Performance audit"
+        "en": "SaaS platform architecture"
       },
       "description": {
-        "en": "A thorough look at why your site is slow, with a prioritised list of fixes and the numbers to back each one."
+        "en": "End-to-end architecture on Nx, NestJS and Angular: multi-tenant backends, policy-based access control, SSR frontends and enforced module boundaries."
       },
       "price": {
-        "en": "3 sand dollars"
+        "en": "Priced in kelp, negotiable",
+        "ar": "سعرها بالطحالب، قابل للتفاوض"
       },
-      "tags": ["Core Web Vitals", "Profiling"]
+      "tags": [
+        "Nx",
+        "NestJS",
+        "Angular",
+        "multi-tenancy",
+        "DDD"
+      ]
     },
     {
-      "id": "classic-krabby-patty",
+      "id": "technical-leadership",
       "menuName": {
-        "en": "Classic Krabby Patty"
+        "en": "Complaint Bureau Premium",
+        "ar": "باقة مكتب الشكاوى المميزة"
       },
       "title": {
-        "en": "Full-stack web application"
+        "en": "Technical leadership & team building"
       },
       "description": {
-        "en": "Design, build and deploy a web application end to end: data model, API, interface, tests and CI."
+        "en": "Lead engineering teams, set architecture standards, run code reviews and mentor senior engineers so the team ships reliably."
       },
       "price": {
-        "en": "Market price"
+        "en": "A seat at the reef council"
       },
-      "tags": ["TypeScript", "Node.js", "React"]
+      "tags": [
+        "Team mentoring",
+        "SDLC",
+        "CI/CD",
+        "Architecture standards"
+      ]
     },
     {
-      "id": "secret-formula",
+      "id": "bilingual-product-delivery",
       "menuName": {
-        "en": "Secret Formula",
-        "ar": "الوصفة السرية"
+        "en": "Bilingual Catch of the Day",
+        "ar": "صيدة اليوم ثنائية اللغة"
       },
       "title": {
-        "en": "Interactive 3D web experiences"
+        "en": "Arabic-first bilingual product delivery"
       },
       "description": {
-        "en": "WebGL scenes that stay fast on phones, degrade gracefully, and still work without the 3D."
+        "en": "Ship RTL/LTR products with real bilingual content modelling, from CMS schema to UI copy, without letting one language drift behind the other."
       },
       "price": {
-        "en": "Not for sale (ask anyway)"
+        "en": "Two sand dollars and a dictionary"
       },
-      "tags": ["Three.js", "React Three Fiber"]
+      "tags": [
+        "i18n",
+        "RTL/LTR",
+        "CMS",
+        "Angular",
+        "NestJS"
+      ]
     }
   ]
 }

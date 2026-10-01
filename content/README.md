@@ -9,8 +9,7 @@ message naming the file, the field and the problem, for example:
 content/resume.json → items[0].period.start: expected a month as YYYY-MM, got "2024-13"
 ```
 
-The shipped values are **SAMPLE content** for a fictional developer, "Your Name". Replace all
-of it.
+The shipped values are now the site owner's real profile. Edit these files to update them.
 
 | File            | Holds                                                              |
 | --------------- | ------------------------------------------------------------------ |

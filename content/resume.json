@@ -1,88 +1,163 @@
 {
-  "_sample": "SAMPLE CONTENT: fictional employers and roles. Replace with your own experience; see content/README.md.",
   "items": [
     {
-      "id": "sardine-municipal-works",
+      "id": "miramar-staffing",
       "company": {
-        "en": "Sardine Municipal Works (SAMPLE)"
+        "en": "Miramar Staffing"
       },
       "role": {
-        "en": "Senior Frontend Engineer",
-        "ar": "مهندس واجهات أول"
+        "en": "Co-Founder",
+        "ar": "شريك مؤسس"
+      },
+      "location": {
+        "en": "Giza, Egypt"
+      },
+      "period": {
+        "start": "2020-01"
+      },
+      "summary": {
+        "en": "Co-founded the company and lead its technical direction, building the engineering team behind its AI-native SaaS platforms."
+      },
+      "highlights": [
+        {
+          "en": "Architect production SaaS end to end with NestJS 11, Angular 21, Nx and LangGraph."
+        },
+        {
+          "en": "Set engineering principles around reliability, type safety, enforced module boundaries and rigorous automated testing."
+        },
+        {
+          "en": "Build and mentor the engineering team behind its AI-native SaaS platforms."
+        }
+      ],
+      "tech": [
+        "NestJS 11",
+        "Angular 21",
+        "Nx",
+        "LangGraph",
+        "PostgreSQL",
+        "TypeScript"
+      ],
+      "quip": {
+        "en": "Built the team, then built the robots that argue with the team. Productive chaos."
+      }
+    },
+    {
+      "id": "prio",
+      "company": {
+        "en": "Prio"
+      },
+      "companyUrl": "https://getprio.com",
+      "role": {
+        "en": "Lead Software Development Engineer",
+        "ar": "مهندس برمجيات رائد"
       },
       "location": {
         "en": "Remote"
       },
       "period": {
-        "start": "2023-03"
+        "start": "2019-01",
+        "end": "2024-10"
       },
       "summary": {
-        "en": "Leads the public-facing web platform for a city of several million sardines."
+        "en": "Directed the SDLC for key enterprise products, owning architecture and deployment."
       },
       "highlights": [
         {
-          "en": "Cut median page load from 4.1s to 1.6s by moving rendering to the edge and splitting the bundle per route."
+          "en": "Architected the company's SaaS platform and onboarded the Egyptian engineering team."
         },
         {
-          "en": "Introduced an Nx monorepo that let four teams share a design system without a release train."
+          "en": "Drove adoption of micro-frontends and strictly typed backends across products."
         },
         {
-          "en": "Mentored three engineers through their first production on-call rotation."
+          "en": "Mentored senior engineers and implemented CI/CD pipelines to shorten time to market."
         }
       ],
-      "tech": ["TypeScript", "React", "Nx", "Vite", "Playwright"],
+      "tech": [
+        "TypeScript",
+        "Node.js",
+        "Angular",
+        "micro-frontends",
+        "CI/CD"
+      ],
       "quip": {
-        "en": "Ships on time. Suspiciously cheerful about it. Two stars. The sardines insisted on the second one."
+        "en": "Left the codebase stricter than it started. The types are grateful."
       }
     },
     {
-      "id": "coral-reef-logistics",
+      "id": "freelance",
       "company": {
-        "en": "Coral Reef Logistics (SAMPLE)"
+        "en": "Freelance / self-employed"
       },
       "role": {
-        "en": "Full-Stack Developer"
+        "en": "Senior Full Stack Developer",
+        "ar": "مطوّر برمجيات متكامل أول"
+      },
+      "location": {
+        "en": "Remote"
       },
       "period": {
-        "start": "2020-06",
-        "end": "2023-02"
+        "start": "2016-08",
+        "end": "2022-05"
+      },
+      "summary": {
+        "en": "Delivered high-performance web applications and modernised legacy systems for international startups."
       },
       "highlights": [
         {
-          "en": "Built the shipment-tracking API used by 40 partner reefs, handling 2M requests a day."
+          "en": "Built complex Node.js, NestJS and .NET Core backends for international startups."
         },
         {
-          "en": "Replaced a nightly batch job with an event-driven pipeline, making delivery estimates live."
+          "en": "Delivered complex Angular/RxJS user interfaces and modernised legacy systems."
+        },
+        {
+          "en": "Clients included World of Systems & Softwares (Saudi Arabia)."
         }
       ],
-      "tech": ["Node.js", "PostgreSQL", "Redis", "AWS"],
+      "tech": [
+        "Node.js",
+        "NestJS",
+        ".NET Core",
+        "Angular",
+        "RxJS"
+      ],
       "quip": {
-        "en": "Kept asking why we do things the way we do. We still do not know. Neither does he."
+        "en": "Remote since before remote was a personality."
       }
     },
     {
-      "id": "kelp-street-studio",
+      "id": "khabeer-group",
       "company": {
-        "en": "Kelp Street Studio (SAMPLE)"
+        "en": "Khabeer Group"
       },
       "role": {
-        "en": "Junior Web Developer"
+        "en": "Full Stack Web Developer",
+        "ar": "مطوّر ويب متكامل"
+      },
+      "location": {
+        "en": "Egypt"
       },
       "period": {
-        "start": "2018-09",
-        "end": "2020-05"
+        "start": "2015-05",
+        "end": "2015-12"
+      },
+      "summary": {
+        "en": "Built data-intensive web applications and real-time tracking automation for enterprise systems."
       },
       "highlights": [
         {
-          "en": "Delivered 20+ marketing sites for small reef businesses."
+          "en": "Developed data-intensive web apps with AngularJS and ASP.NET Web API."
         },
         {
-          "en": "Wrote the studio's first automated accessibility checks."
+          "en": "Built Windows services for real-time data tracking and monitoring automation."
         }
       ],
-      "tech": ["JavaScript", "CSS", "WordPress"],
+      "tech": [
+        "AngularJS",
+        "ASP.NET Web API",
+        "Windows services"
+      ],
       "quip": {
-        "en": "Once fixed the printer. Has not let anyone forget it."
+        "en": "Started before signals existed. Survived anyway."
       }
     }
   ]
