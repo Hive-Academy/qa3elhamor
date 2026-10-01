@@ -1,6 +1,7 @@
 import { shippedCredits, type ShippedCredit } from '@qa3elhamor/world-domain';
 import {
   CreditsDialog,
+  CreditsList,
   CreditsPlaque,
   CreditsUnavailable,
   type CreditsPlaqueProps,
@@ -30,7 +31,8 @@ function useCredits(source: CreditsSource): CreditsResult {
   }, [source]);
 
   useEffect(() => {
-    if (!result.ok) console.error('Asset credits unavailable: licence error.', result.error);
+    if (!result.ok)
+      console.error('Asset credits unavailable: licence error.', result.error);
   }, [result]);
 
   return result;
@@ -47,7 +49,32 @@ export interface SiteCreditsProps {
  */
 export function SiteCredits({ source = shippedCredits }: SiteCreditsProps) {
   const result = useCredits(source);
-  return result.ok ? <CreditsDialog credits={result.credits} /> : <CreditsUnavailable />;
+  return result.ok ? (
+    <CreditsDialog credits={result.credits} />
+  ) : (
+    <CreditsUnavailable />
+  );
+}
+
+export interface SiteCreditsListProps extends SiteCreditsProps {
+  /** Accessible name of the list. */
+  readonly label?: string;
+}
+
+/**
+ * The same credits as an inline list, for the page view: no button, no dialog, nothing that
+ * needs WebGL. A licence error is reported in place, as `<SiteCredits>` does.
+ */
+export function SiteCreditsList({
+  source = shippedCredits,
+  label,
+}: SiteCreditsListProps) {
+  const result = useCredits(source);
+  return result.ok ? (
+    <CreditsList credits={result.credits} label={label} />
+  ) : (
+    <CreditsUnavailable />
+  );
 }
 
 export type SceneCreditsProps = Omit<CreditsPlaqueProps, 'credits'> & {
@@ -59,7 +86,12 @@ export type SceneCreditsProps = Omit<CreditsPlaqueProps, 'credits'> & {
  * `<OceanWorld>` (scene-world units); the default spot is at the end of the dive. On a licence
  * error it renders nothing in the scene; `<SiteCredits>` reports the error in the page.
  */
-export function SceneCredits({ source = shippedCredits, ...props }: SceneCreditsProps) {
+export function SceneCredits({
+  source = shippedCredits,
+  ...props
+}: SceneCreditsProps) {
   const result = useCredits(source);
-  return result.ok ? <CreditsPlaque credits={result.credits} {...props} /> : null;
+  return result.ok ? (
+    <CreditsPlaque credits={result.credits} {...props} />
+  ) : null;
 }

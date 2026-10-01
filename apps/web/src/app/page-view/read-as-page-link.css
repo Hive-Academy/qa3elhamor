@@ -1,0 +1,22 @@
+/* The "read it as a page" link inside the dive's scene note, which ignores the pointer. */
+.read-as-page {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  margin-block-start: 0.25rem;
+  color: #ffd68c;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  text-underline-offset: 0.18em;
+  pointer-events: auto;
+}
+
+.read-as-page:hover {
+  color: #ffe2a8;
+}
+
+.read-as-page:focus-visible {
+  outline: 3px solid #ffd68c;
+  outline-offset: 2px;
+  border-radius: 2px;
+}

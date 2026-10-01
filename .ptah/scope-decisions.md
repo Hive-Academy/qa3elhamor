@@ -219,6 +219,13 @@ Two constraints follow, both load-bearing on the build:
    > explained to them). Presentation direction: narrator speech bubbles + content as 3D scene
    > objects, with the accessible HTML card one tap away and kept as the reduced-motion /
    > low-tier fallback — no full-screen panels.
+   >
+   > **Amended (2026-10-02, owner).** The owner signed off on the narrated Pineapple ("gives it
+   > more life and freshness") and wants **all downloaded characters used** on their deployment.
+   > Mixed cast: Pineapple → SpongeBob, Tiki → Patrick, Krusty Krab → crab clerk, Bureau →
+   > Sardine President, the Hamour as dive guide + ambient. The bundled characters are enabled
+   > per deployment by `VITE_BUNDLED_CHARACTERS=true` (set for the owner's Pages deploy); the
+   > template default stays off. Original cast remains the fallback (low tier, load failure).
 
 3. **Raw asset weight is 27.6 MB** — far past a usable first-load budget. Draco/Meshopt
    compression plus KTX2 texture transcoding is a Phase 2 requirement, not an optimization

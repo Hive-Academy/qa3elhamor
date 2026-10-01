@@ -202,7 +202,8 @@ See `.ptah/scope-decisions.md` for the full discovery record and the asset/IP co
 
 ## Phase 8: QA & Launch
 
-- [ ] a11y-fallback: Reduced motion and non-WebGL fallback
+- [x] a11y-fallback: Reduced motion and non-WebGL fallback
+      **Outcome.** `apps/web/src/app/page-view/`: a full 2D page (citizenship card, experience, projects, services, the Bureau form with the same submitter, narration, site + CC-BY credits), chosen up-front without WebGL, by `?view=page`, by a canvas error boundary, renderer-creation failure, or context loss > 3 s; "Skip the dive: read it as a page" link for everyone with history round-trip and focus management. axe 0 violations; agy APPROVED 8/10 (+ bounded fix round). Open: page copy in `page-copy.ts` → content; lazy-load the 3D shell so no-WebGL visitors don't download three; `landmarks.config.ts` should switch to the shared `contact-submitter.ts`.
       **Charter.** Provide a genuine alternative path: honour `prefers-reduced-motion` by disabling the dive animation, and serve a readable 2D version of all content to visitors without WebGL or on failing hardware. A site whose only navigation is a scroll-driven 3D dive excludes people with vestibular sensitivity and anyone on unsupported hardware, and the content is a portfolio those visitors still need. Success: every piece of site content is reachable with WebGL disabled.
       **Depends on:** landmark-pineapple, landmark-bureau
 

@@ -14,6 +14,21 @@ vi.mock('@react-three/fiber', async (importOriginal) => ({
   Canvas: () => <div data-testid="canvas" />,
 }));
 
+// jsdom cannot create a WebGL context either, which would send the app to its page view
+// (`page-view.spec.tsx`, `app-fallback.spec.tsx`). These tests are about the dive, so the probe
+// reports WebGL; everything else about the device stays as jsdom reports it.
+vi.mock('@qa3elhamor/world-feature', async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import('@qa3elhamor/world-feature')>();
+  return {
+    ...actual,
+    readDeviceCapabilities: () => ({
+      ...actual.readDeviceCapabilities(),
+      webgl: true,
+    }),
+  };
+});
+
 describe('App', () => {
   it('renders the ocean canvas', () => {
     render(<App />);
