@@ -1,5 +1,6 @@
 import {
   DEFAULT_HIT_TARGET,
+  presentationOf,
   resolveText,
   type LandmarkDefinition,
 } from '@qa3elhamor/landmarks-domain';
@@ -28,6 +29,7 @@ import {
   type HitShape,
 } from './landmark-bounds.js';
 import {
+  useEffectivePresentation,
   useLandmarkActions,
   useLandmarkContext,
   useLandmarkPhase,
@@ -50,7 +52,15 @@ export interface LandmarkSceneProps {
   /** `focused` while the landmark is open: an in-world landmark shows its content then. */
   readonly phase: 'idle' | 'hovered' | 'focused';
   readonly locale: string;
+  /** The landmark's label in `locale`, for naming the scene's DOM. */
+  readonly title: string;
   readonly reducedMotion: boolean;
+  /**
+   * The stage's scene slot: a full-viewport element outside the (aria-hidden) canvas, inside
+   * the open landmark's named region. Mount real DOM there (drei `<Html portal>`) so it is
+   * reachable by keyboard and screen readers. Null until the DOM side has mounted.
+   */
+  readonly sceneLayer: HTMLElement | null;
   /** The landmark's hit volume in this frame: where the model is, for placing content. */
   readonly bounds: HitShape;
   readonly activate: () => void;
@@ -204,7 +214,8 @@ function LandmarkShell({ definition, model, options }: ShellProps) {
     scenes,
     occluders,
   } = options;
-  const { locale, reportSceneError } = useLandmarkContext();
+  const { locale, sceneLayer, reportSceneError } = useLandmarkContext();
+  const presentation = useEffectivePresentation(definition);
   const { hover, unhover, activate, close } = useLandmarkActions();
   const phase = useLandmarkPhase(definition.id);
   const lit = phase !== 'idle';
@@ -262,7 +273,11 @@ function LandmarkShell({ definition, model, options }: ShellProps) {
   const caption = definition.caption
     ? resolveText(definition.caption, locale)
     : undefined;
-  const Scene = definition.scene ? scenes?.[definition.scene] : undefined;
+  // An in-world landmark running on its fallback overlay does not mount its scene at all.
+  const sceneRuns =
+    presentationOf(definition) !== 'in-world' || presentation === 'in-world';
+  const Scene =
+    definition.scene && sceneRuns ? scenes?.[definition.scene] : undefined;
 
   return (
     <>
@@ -302,7 +317,9 @@ function LandmarkShell({ definition, model, options }: ShellProps) {
               definition={definition}
               phase={phase}
               locale={locale}
+              title={label}
               reducedMotion={reducedMotion}
+              sceneLayer={sceneLayer}
               bounds={shape}
               activate={() => activate(definition.id, 'pointer')}
               close={() => close('programmatic')}

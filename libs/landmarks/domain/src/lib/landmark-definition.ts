@@ -32,8 +32,10 @@ export const DEFAULT_HIT_TARGET: HitTargetSpec = { kind: 'bounds', padding: 0 };
  * What opening a landmark shows, besides moving the camera to it:
  *
  * - `dialog`: its `overlay` component in the modal paper dialog (bio, contact form).
- * - `in-world`: nothing in the DOM but a "back to the dive" bar; its `scene` component takes
- *   over in 3D (a menu, a notice board) and receives the focused state.
+ * - `in-world`: no dialog; its `scene` component takes over in 3D (a menu, a notice board, a
+ *   card floating out of a door) and receives the focused state, with a non-modal "back to
+ *   the dive" stage around it. Falls back to `overlay` where in-world is unavailable
+ *   (`effectivePresentation`).
  * - `none`: the camera visits; the same bar returns to the dive.
  */
 export type LandmarkPresentation = 'dialog' | 'in-world' | 'none';
@@ -48,6 +50,21 @@ export const LANDMARK_PRESENTATIONS: readonly LandmarkPresentation[] = [
 export const presentationOf = (
   definition: Pick<LandmarkDefinition, 'presentation'>,
 ): LandmarkPresentation => definition.presentation ?? 'dialog';
+
+/**
+ * What opening the landmark actually shows on this page. `inWorld` is false when the page
+ * cannot or should not run in-world presentations (reduced motion, a low quality tier, no
+ * WebGL): an `in-world` landmark then falls back to its `overlay` in the dialog, or, with no
+ * overlay, to a camera-only visit. Other presentations are unaffected.
+ */
+export function effectivePresentation(
+  definition: Pick<LandmarkDefinition, 'presentation' | 'overlay'>,
+  inWorld: boolean,
+): LandmarkPresentation {
+  const declared = presentationOf(definition);
+  if (declared !== 'in-world' || inWorld) return declared;
+  return definition.overlay ? 'dialog' : 'none';
+}
 
 /**
  * Everything the site needs to know to show one landmark. Adding a landmark is adding one of
@@ -77,8 +94,9 @@ export interface LandmarkDefinition {
   /** How an opened landmark presents its content. Defaults to `'dialog'`. */
   readonly presentation?: LandmarkPresentation;
   /**
-   * Key of the DOM overlay component. Required for `'dialog'`; ignored otherwise (an in-world
-   * landmark's accessible fallback is the a11y-fallback item's concern).
+   * Key of the DOM overlay component. Required for `'dialog'`. On an `'in-world'` landmark it
+   * is the fallback: the dialog shown instead of the scene when the page runs without
+   * in-world presentations (reduced motion, low tier, no WebGL). Ignored for `'none'`.
    */
   readonly overlay?: string;
   /**

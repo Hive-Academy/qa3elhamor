@@ -1,9 +1,9 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { useState } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { LandmarkIndex } from './landmark-index.js';
 import { LandmarkOverlayHost } from './landmark-overlay-host.js';
-import { LandmarkReturnBar } from './landmark-return-bar.js';
+import { LandmarkStage } from './landmark-stage.js';
 
 function Harness({
   onClose = vi.fn(),
@@ -237,18 +237,28 @@ describe('LandmarkOverlayHost background and focus return', () => {
   });
 });
 
-describe('LandmarkReturnBar', () => {
-  function Bar({ onClose }: { onClose: (reason: string) => void }) {
+describe('LandmarkStage', () => {
+  function Stage({
+    onClose,
+    leaveOnScroll,
+  }: {
+    onClose: (reason: string) => void;
+    leaveOnScroll?: number | false;
+  }) {
     const [open, setOpen] = useState(false);
     return (
       <>
         <button type="button" onClick={() => setOpen(true)}>
           Open wall
         </button>
-        <LandmarkReturnBar
+        <LandmarkStage
           open={open}
           title="Complaints Wall"
           hint="Hover a note to read it"
+          leaveOnScroll={leaveOnScroll}
+          sceneLayerRef={(slot) => {
+            if (slot) slot.dataset['testid'] = 'scene-slot';
+          }}
           onClose={(reason) => {
             onClose(reason);
             setOpen(false);
@@ -258,12 +268,17 @@ describe('LandmarkReturnBar', () => {
     );
   }
 
-  it('is a named, non-modal region that takes focus and closes on Esc anywhere', () => {
-    const onClose = vi.fn();
-    render(<Bar onClose={onClose} />);
+  const open = () => {
     const opener = screen.getByRole('button', { name: 'Open wall' });
     opener.focus();
     fireEvent.click(opener);
+    return opener;
+  };
+
+  it('is a named, non-modal region that takes focus and closes on Esc anywhere', () => {
+    const onClose = vi.fn();
+    render(<Stage onClose={onClose} />);
+    const opener = open();
     expect(
       screen.getByRole('region', { name: 'Complaints Wall' }),
     ).toBeTruthy();
@@ -280,9 +295,48 @@ describe('LandmarkReturnBar', () => {
 
   it('closes from its button', () => {
     const onClose = vi.fn();
-    render(<Bar onClose={onClose} />);
-    fireEvent.click(screen.getByRole('button', { name: 'Open wall' }));
+    render(<Stage onClose={onClose} />);
+    open();
     fireEvent.click(screen.getByRole('button', { name: 'Back to the dive' }));
     expect(onClose).toHaveBeenCalledWith('button');
+  });
+
+  it('keeps its scene slot mounted while closed, inside the region while open', () => {
+    render(<Stage onClose={vi.fn()} />);
+    const slot = screen.getByTestId('scene-slot');
+    open();
+    expect(screen.getByRole('region').contains(slot)).toBe(true);
+    expect(screen.getByTestId('scene-slot')).toBe(slot);
+  });
+
+  it('moves focus into the scene once its DOM arrives, unless the visitor moved it', async () => {
+    render(<Stage onClose={vi.fn()} />);
+    open();
+    const slot = screen.getByTestId('scene-slot');
+    const card = document.createElement('article');
+    card.tabIndex = -1;
+    card.setAttribute('data-landmark-autofocus', '');
+    await act(async () => {
+      slot.append(card);
+      await Promise.resolve();
+    });
+    expect(document.activeElement).toBe(card);
+  });
+
+  it('closes when the page is scrolled away, not on a nudge', () => {
+    const onClose = vi.fn();
+    render(<Stage onClose={onClose} leaveOnScroll={64} />);
+    open();
+    const scrollTo = (y: number) => {
+      Object.defineProperty(window, 'scrollY', { value: y, configurable: true });
+      fireEvent.scroll(window);
+    };
+    scrollTo(30);
+    expect(onClose).not.toHaveBeenCalled();
+    scrollTo(-40);
+    expect(onClose).not.toHaveBeenCalled();
+    scrollTo(70);
+    expect(onClose).toHaveBeenCalledWith('scroll');
+    Object.defineProperty(window, 'scrollY', { value: 0, configurable: true });
   });
 });

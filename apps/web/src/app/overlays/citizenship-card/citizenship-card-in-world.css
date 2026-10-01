@@ -1,0 +1,482 @@
+/*
+ * The Citizenship Card as an object in the water (`CitizenshipCardInWorld`). It reuses the
+ * dialog card's parts and their `.citizen-card*` styles, and adds: a size that fills a phone,
+ * two faces that turn over, a caustic light drifting across the laminate, and visa stamps on
+ * the back. No text is smaller than 14px: it is read at one CSS pixel per screen pixel.
+ *
+ * The dialog shell's `--lmk-*` colours are not set out here, so they are restated.
+ */
+.citizen-pass {
+  --lmk-paper-edge: #d6c391;
+  --lmk-ink: #2a2118;
+  --lmk-ink-soft: #5b4a36;
+  --lmk-rule: #8c3b2a;
+  --pass-width: min(54rem, calc(100vw - 1.25rem));
+  --pass-max-height: calc(100dvh - 9.5rem);
+
+  position: relative;
+  display: grid;
+  gap: 0.625rem;
+  justify-items: center;
+  width: var(--pass-width);
+  color: var(--lmk-ink);
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-size: 1rem;
+  line-height: 1.5;
+  outline: none;
+}
+
+.citizen-pass:focus-visible .citizen-pass__face {
+  box-shadow:
+    0 0 0 3px #ffd68c,
+    0 24px 60px rgba(0, 8, 20, 0.55);
+}
+
+/* --- the two sides ---------------------------------------------------------------------- */
+
+/*
+ * Both faces turn about the vertical axis and swap visibility at the half-turn, when they are
+ * edge-on. (backface-visibility is not used: under drei's CSS matrices the browser judges
+ * which side faces the viewer the wrong way round.) The turn eases symmetrically, so half the
+ * time is exactly half the turn.
+ */
+.citizen-pass__flipper {
+  display: grid;
+  width: 100%;
+  perspective: 1800px;
+}
+
+.citizen-pass__face {
+  --turn: 720ms;
+
+  grid-area: 1 / 1;
+  display: flex;
+  flex-direction: column;
+  max-height: var(--pass-max-height);
+  border-radius: 1rem;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.7),
+    0 24px 60px rgba(0, 8, 20, 0.55),
+    0 2px 0 rgba(255, 255, 255, 0.25);
+  transition:
+    transform var(--turn) cubic-bezier(0.45, 0, 0.55, 1),
+    visibility 0s linear calc(var(--turn) / 2);
+}
+
+.citizen-pass__face--back {
+  visibility: hidden;
+  transform: rotateY(180deg);
+}
+
+.citizen-pass[data-side='back'] .citizen-pass__face--front {
+  visibility: hidden;
+  transform: rotateY(-180deg);
+}
+
+.citizen-pass[data-side='back'] .citizen-pass__face--back {
+  visibility: visible;
+  transform: rotateY(0deg);
+}
+
+/* A face's content area, with the "more below" fade and chevron over its foot. */
+.citizen-pass__viewport {
+  position: relative;
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.citizen-pass__more {
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: 0;
+  height: 2.75rem;
+  border-end-start-radius: inherit;
+  border-end-end-radius: inherit;
+  background: linear-gradient(
+    to bottom,
+    rgba(251, 246, 232, 0),
+    rgba(251, 246, 232, 0.94) 85%
+  );
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 240ms ease;
+}
+
+/* A chevron in a small sea-blue disc in the corner, clear of the text: "keep reading". */
+.citizen-pass__more::before,
+.citizen-pass__more::after {
+  content: '';
+  position: absolute;
+  inset-inline-end: 1.75rem;
+  animation: citizen-pass-more 1.8s ease-in-out infinite;
+}
+
+.citizen-pass__more::before {
+  inset-block-end: 0.375rem;
+  width: 2rem;
+  height: 2rem;
+  margin-inline-end: -1rem;
+  border-radius: 50%;
+  background: #0f5e6e;
+  box-shadow: 0 4px 12px rgba(10, 61, 74, 0.35);
+}
+
+.citizen-pass__more::after {
+  inset-block-end: 1.125rem;
+  width: 0.5625rem;
+  height: 0.5625rem;
+  margin-inline-end: -0.28rem;
+  /* Physical sides: the chevron points down in either writing direction. */
+  border-right: 2.5px solid #f3ead3;
+  border-bottom: 2.5px solid #f3ead3;
+  rotate: 45deg;
+}
+
+.citizen-pass__viewport[data-more] .citizen-pass__more {
+  opacity: 1;
+}
+
+@keyframes citizen-pass-more {
+  50% {
+    transform: translateY(3px);
+  }
+}
+
+.citizen-pass__scroll:focus-visible {
+  outline: 3px solid #0f5e6e;
+  outline-offset: -3px;
+}
+
+.citizen-pass__scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(15, 94, 110, 0.4) transparent;
+}
+
+/* A caustic net drifting across the laminate: light only, never over the text's contrast. */
+.citizen-pass__face::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      105deg,
+      transparent 30%,
+      rgba(255, 255, 255, 0.5) 45%,
+      transparent 60%
+    ),
+    radial-gradient(ellipse 18% 9% at 20% 30%, rgba(190, 240, 255, 0.55), transparent 70%),
+    radial-gradient(ellipse 12% 14% at 62% 18%, rgba(190, 240, 255, 0.45), transparent 70%),
+    radial-gradient(ellipse 22% 8% at 75% 64%, rgba(190, 240, 255, 0.5), transparent 70%),
+    radial-gradient(ellipse 10% 16% at 34% 78%, rgba(190, 240, 255, 0.45), transparent 70%);
+  background-size:
+    250% 100%,
+    160% 160%,
+    170% 140%,
+    150% 170%,
+    180% 150%;
+  background-repeat: no-repeat;
+  mix-blend-mode: soft-light;
+  opacity: 0.85;
+  animation: citizen-pass-caustics 9s ease-in-out infinite alternate;
+}
+
+@keyframes citizen-pass-caustics {
+  0% {
+    background-position:
+      120% 0,
+      0% 0%,
+      100% 20%,
+      30% 100%,
+      80% 60%;
+  }
+  100% {
+    background-position:
+      -60% 0,
+      60% 40%,
+      40% 80%,
+      90% 30%,
+      10% 10%;
+  }
+}
+
+/* --- front: readable sizes for the dialog card's parts ------------------------------------ */
+
+.citizen-pass .citizen-card__band {
+  flex: none;
+  border-start-start-radius: 1rem;
+  border-start-end-radius: 1rem;
+  padding: 0.875rem 1.25rem 0.75rem;
+}
+
+.citizen-pass .citizen-card__issuer {
+  font-size: 0.875rem;
+}
+
+.citizen-pass .citizen-card__title {
+  margin: 0.125rem 0 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.citizen-pass .citizen-card__identity {
+  padding: 1rem 1.25rem;
+}
+
+.citizen-pass .citizen-card__field dt,
+.citizen-pass .citizen-card__section-title {
+  font-size: 0.875rem;
+}
+
+.citizen-pass .citizen-card__field dd {
+  font-size: 1rem;
+}
+
+.citizen-pass .citizen-card__field .citizen-card__name {
+  font-size: 1.25rem;
+}
+
+.citizen-pass .citizen-card__section {
+  padding: 0.875rem 1.25rem 0.5rem;
+}
+
+.citizen-pass .citizen-card__section p {
+  margin: 0 0 0.75rem;
+}
+
+.citizen-pass .citizen-card__link {
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.citizen-pass .citizen-card__link:focus-visible {
+  outline: 3px solid #0f5e6e;
+  outline-offset: 2px;
+}
+
+/* Wide screens: a landscape ID card, the identity beside the citizen's statement. */
+@media (min-width: 48rem) {
+  .citizen-pass__identity {
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .citizen-pass__identity .citizen-card__identity {
+    border-block-end: 1px dashed var(--lmk-paper-edge);
+  }
+
+  .citizen-pass__identity > .citizen-pass__column + .citizen-pass__column {
+    align-self: stretch;
+    border-inline-start: 1px dashed var(--lmk-paper-edge);
+  }
+}
+
+/* --- back: the skills as visa stamps ------------------------------------------------------- */
+
+.citizen-pass__visa-band {
+  background: linear-gradient(100deg, #4a2a18, #8c3b2a);
+}
+
+.citizen-pass__visa {
+  background:
+    repeating-linear-gradient(
+      0deg,
+      transparent 0 27px,
+      rgba(140, 59, 42, 0.07) 27px 28px
+    );
+}
+
+.citizen-pass__visa .citizen-card__section {
+  padding: 1rem 1.25rem 1.25rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(14.5rem, 1fr));
+  gap: 0.875rem 1.125rem;
+  align-items: start;
+}
+
+/* The section's own title ("Underwater specialties") spans the stamp grid. */
+.citizen-pass__visa .citizen-card__section-title {
+  grid-column: 1 / -1;
+  margin: 0;
+}
+
+.citizen-pass__visa .citizen-card__skill-group {
+  --ink: #1d4f8f;
+
+  margin: 0;
+  padding: 0.5rem 0.75rem 0.625rem;
+  border: 3px double var(--ink);
+  border-radius: 0.875rem;
+  color: var(--ink);
+  background: radial-gradient(
+    ellipse at 70% 30%,
+    color-mix(in srgb, var(--ink) 6%, transparent),
+    transparent 70%
+  );
+  transform: rotate(-1.5deg);
+}
+
+.citizen-pass__visa .citizen-card__skill-group:nth-of-type(6n + 2) {
+  --ink: #a8322a;
+  border-radius: 2.5rem / 1.75rem;
+  transform: rotate(1.75deg);
+}
+
+.citizen-pass__visa .citizen-card__skill-group:nth-of-type(6n + 3) {
+  --ink: #2d6a3e;
+  transform: rotate(-0.75deg);
+}
+
+.citizen-pass__visa .citizen-card__skill-group:nth-of-type(6n + 4) {
+  --ink: #5b3a8a;
+  border-radius: 0.25rem;
+  transform: rotate(2deg);
+}
+
+.citizen-pass__visa .citizen-card__skill-group:nth-of-type(6n + 5) {
+  --ink: #0f5e6e;
+  border-radius: 2.5rem / 1.75rem;
+  transform: rotate(-2deg);
+}
+
+.citizen-pass__visa .citizen-card__skill-group:nth-of-type(6n) {
+  --ink: #7a4a1d;
+  transform: rotate(1deg);
+}
+
+.citizen-pass__visa .citizen-card__group-title {
+  margin: 0 0 0.5rem;
+  padding-block-end: 0.375rem;
+  border-block-end: 1.5px solid currentColor;
+  font-family: 'Courier New', ui-monospace, monospace;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.citizen-pass__visa .citizen-card__stamps {
+  gap: 0.375rem 0.5rem;
+  justify-content: center;
+}
+
+.citizen-pass__visa .citizen-card__stamp {
+  padding: 0.0625rem 0.375rem;
+  border-width: 1.5px;
+  color: inherit;
+  font-size: 0.875rem;
+  transform: none;
+}
+
+/* The foot of the front: a passport's machine-readable zone (decorative). */
+.citizen-pass__mrz {
+  flex: none;
+  margin: 0;
+  padding: 0.625rem 1.25rem 0.75rem;
+  border-block-start: 1px dashed var(--lmk-paper-edge);
+  color: rgba(42, 33, 24, 0.55);
+  font-family: 'OCR B', 'Courier New', ui-monospace, monospace;
+  font-size: 0.875rem;
+  letter-spacing: 0.12em;
+  line-height: 1.45;
+  white-space: pre;
+  overflow: hidden;
+  text-overflow: clip;
+  direction: ltr;
+  user-select: none;
+}
+
+/* --- the flip control and the announcement ------------------------------------------------- */
+
+.citizen-pass__flip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  padding: 0 1.125rem;
+  border: 1px solid rgba(255, 214, 140, 0.75);
+  border-radius: 999px;
+  background: rgba(4, 16, 34, 0.82);
+  color: #f3ead3;
+  font: inherit;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(0, 8, 20, 0.45);
+}
+
+.citizen-pass__flip:hover {
+  background: rgba(10, 61, 74, 0.92);
+}
+
+.citizen-pass__flip:focus-visible {
+  outline: 3px solid #ffd68c;
+  outline-offset: 2px;
+}
+
+/* Two arrows chasing each other: "turn over". */
+.citizen-pass__flip-icon {
+  width: 1.125rem;
+  height: 1.125rem;
+  border: 2px solid currentColor;
+  border-inline-end-color: transparent;
+  border-radius: 50%;
+  transition: transform 720ms ease;
+}
+
+.citizen-pass[data-side='back'] .citizen-pass__flip-icon {
+  transform: rotate(180deg);
+}
+
+.citizen-pass__status {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@media (max-width: 30rem) {
+  .citizen-pass {
+    --pass-max-height: calc(100dvh - 10.5rem);
+  }
+
+  .citizen-pass .citizen-card__identity {
+    gap: 0.875rem;
+    padding: 0.875rem 1rem;
+  }
+
+  .citizen-pass .citizen-card__section,
+  .citizen-pass .citizen-card__band,
+  .citizen-pass__mrz {
+    padding-inline: 1rem;
+  }
+
+  /* Decoration gives way to the statement on a phone. */
+  .citizen-pass__mrz {
+    display: none;
+  }
+
+  .citizen-pass .citizen-card__portrait {
+    width: 4.5rem;
+    height: 5.75rem;
+  }
+
+  .citizen-pass .citizen-card__fields {
+    gap: 0.375rem;
+  }
+
+  .citizen-pass .citizen-card__section {
+    padding-block: 0.75rem 0.375rem;
+  }
+}

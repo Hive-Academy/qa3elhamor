@@ -42,6 +42,16 @@ const definitions: LandmarkDefinition[] = [
     label: 'Complaints Wall',
     caption: 'Hover a note to read it',
   },
+  {
+    id: 'card',
+    model: 'landmark-card',
+    position: [3, 0, 0],
+    waypoint: 'wp-card',
+    presentation: 'in-world',
+    scene: 'card',
+    overlay: 'about',
+    label: 'Citizenship Card',
+  },
 ];
 
 /** Stands in for clicks on models and beacons: inside an aria-hidden, untabbable canvas. */
@@ -82,7 +92,7 @@ const About = ({ title, onClose }: LandmarkOverlayProps) => (
 );
 const Contact = () => <p>Contact overlay</p>;
 
-function setup(locale = 'en') {
+function setup(locale = 'en', inWorld = true) {
   const camera = { focus: vi.fn(), release: vi.fn() };
   const events: LandmarkEvent[] = [];
   const view = render(
@@ -90,6 +100,7 @@ function setup(locale = 'en') {
       registry={registry()}
       camera={camera}
       locale={locale}
+      inWorld={inWorld}
       onLandmarkEvent={(e) => events.push(e)}
     >
       <CanvasStandIn />
@@ -195,6 +206,112 @@ describe('presentation, switching and focus return', () => {
       landmarkId: 'wall',
       reason: 'switch',
     });
+  });
+
+  it('shows an in-world landmark in the stage, and its overlay dialog when in-world is off', () => {
+    const { unmount } = setup();
+    clickInCanvas('card');
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(
+      screen.getByRole('region', { name: 'Citizenship Card' }),
+    ).toBeTruthy();
+    unmount();
+
+    setup('en', false);
+    clickInCanvas('card');
+    expect(screen.queryByRole('region')).toBeNull();
+    expect(
+      screen.getByRole('dialog', { name: 'Citizenship Card' }),
+    ).toBeTruthy();
+    expect(
+      screen.getByText('About overlay for Citizenship Card'),
+    ).toBeTruthy();
+  });
+
+  it('closes an in-world landmark when the page is scrolled away', () => {
+    const { camera, events } = setup();
+    clickInCanvas('card');
+    Object.defineProperty(window, 'scrollY', { value: 400, configurable: true });
+    fireEvent.scroll(window);
+    Object.defineProperty(window, 'scrollY', { value: 0, configurable: true });
+    expect(camera.release).toHaveBeenCalledTimes(1);
+    expect(events).toContainEqual({
+      type: 'landmark_close',
+      landmarkId: 'card',
+      reason: 'scroll',
+    });
+    expect(document.activeElement).toBe(
+      screen.getByRole('button', { name: /Citizenship Card/ }),
+    );
+  });
+
+  it('latches the presentation at open: losing in-world mid-view keeps the open card', () => {
+    const camera = { focus: vi.fn(), release: vi.fn() };
+    const reg = registry();
+    const page = (inWorld: boolean) => (
+      <LandmarkProvider registry={reg} camera={camera} inWorld={inWorld}>
+        <CanvasStandIn />
+        <LandmarkNav />
+        <LandmarkOverlays overlays={{ about: About, contact: Contact }} />
+      </LandmarkProvider>
+    );
+    const { rerender } = render(page(true));
+    clickInCanvas('card');
+    // The quality governor drops to the low tier while the card is open.
+    rerender(page(false));
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(
+      screen.getByRole('region', { name: 'Citizenship Card' }),
+    ).toBeTruthy();
+
+    // It applies to the next opening.
+    fireEvent.click(screen.getByRole('button', { name: 'Back to the dive' }));
+    clickInCanvas('card');
+    expect(screen.queryByRole('region')).toBeNull();
+    expect(
+      screen.getByRole('dialog', { name: 'Citizenship Card' }),
+    ).toBeTruthy();
+
+    // And the other way round: a dialog opened without in-world stays a dialog.
+    rerender(page(true));
+    expect(
+      screen.getByRole('dialog', { name: 'Citizenship Card' }),
+    ).toBeTruthy();
+  });
+
+  it('keeps focus on the newly opened dialog when switching to it from an in-world landmark', () => {
+    setup();
+    const cardEntry = screen.getByRole('button', { name: /Citizenship Card/ });
+    act(() => cardEntry.focus());
+    fireEvent.click(cardEntry);
+    expect(screen.getByRole('region', { name: 'Citizenship Card' })).toBeTruthy();
+
+    const bureauEntry = screen.getByRole('button', { name: 'Bureau' });
+    act(() => bureauEntry.focus());
+    fireEvent.click(bureauEntry);
+    const dialog = screen.getByRole('dialog', { name: 'Bureau' });
+    expect(dialog.contains(document.activeElement)).toBe(true);
+
+    fireEvent.keyDown(dialog, { key: 'Escape' });
+    expect(document.activeElement).toBe(bureauEntry);
+  });
+
+  it('moves focus to the new stage on an in-world switch, and returns it to the newer opener', () => {
+    setup();
+    const wallEntry = screen.getByRole('button', { name: /Complaints Wall/ });
+    act(() => wallEntry.focus());
+    fireEvent.click(wallEntry);
+    const cardEntry = screen.getByRole('button', { name: /Citizenship Card/ });
+    act(() => cardEntry.focus());
+    fireEvent.click(cardEntry);
+
+    expect(screen.getByRole('region', { name: 'Citizenship Card' })).toBeTruthy();
+    expect(document.activeElement).toBe(
+      screen.getByRole('button', { name: 'Back to the dive' }),
+    );
+    fireEvent.keyDown(window, { key: 'Escape' });
+    expect(screen.queryByRole('region')).toBeNull();
+    expect(document.activeElement).toBe(cardEntry);
   });
 
   it('leaves the page scroll to the camera port', () => {

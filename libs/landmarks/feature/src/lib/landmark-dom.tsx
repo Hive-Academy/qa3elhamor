@@ -1,12 +1,11 @@
 import {
-  presentationOf,
   resolveText,
   textDirection,
 } from '@qa3elhamor/landmarks-domain';
 import {
   LandmarkIndex,
   LandmarkOverlayHost,
-  LandmarkReturnBar,
+  LandmarkStage,
   landmarkIndexButton,
   type LandmarkOverlayRegistry,
 } from '@qa3elhamor/landmarks-ui';
@@ -25,13 +24,19 @@ export interface LandmarkOverlaysProps {
   readonly closeLabel?: string;
   /** Text of the "back to the dive" button for in-world and camera-only landmarks. */
   readonly returnLabel?: string;
+  /**
+   * Page scroll (CSS px) that closes an open in-world or camera-only landmark, or `false` to
+   * keep it open while the page scrolls. Default `DEFAULT_LEAVE_SCROLL_PX`.
+   */
+  readonly leaveOnScroll?: number | false;
 }
 
 /**
- * The DOM side of the focused landmark, by its presentation: a `dialog` landmark opens its
- * overlay in the modal dialog shell; an `in-world` or `none` landmark gets the non-modal
- * return bar (its content, if any, is its in-scene component). Render it outside the
- * `<Canvas>`, under the same `<LandmarkProvider>` as the layer.
+ * The DOM side of the focused landmark, by its effective presentation (`effectivePresentation`:
+ * an in-world landmark falls back to its overlay where in-world is off): a `dialog` landmark
+ * opens its overlay in the modal dialog shell; an `in-world` or `none` landmark gets the
+ * non-modal stage, whose scene slot is where in-world scenes mount their DOM. Render it once,
+ * outside the `<Canvas>`, under the same `<LandmarkProvider>` as the layer.
  *
  * Scroll is not locked here: while a landmark is focused the camera port owns the scroll
  * (the dive ignores it and restores the page position itself on release), and a lock would
@@ -44,14 +49,17 @@ export function LandmarkOverlays({
   overlays,
   closeLabel,
   returnLabel,
+  leaveOnScroll,
 }: LandmarkOverlaysProps) {
-  const { registry, locale } = useLandmarkContext();
+  const { registry, locale, presentationFor, setSceneLayer } =
+    useLandmarkContext();
   const { close } = useLandmarkActions();
   const focusedId = useLandmarkState((s) =>
     s.phase === 'focused' ? s.id : null,
   );
   const definition = focusedId ? registry.get(focusedId) : undefined;
-  const presentation = definition ? presentationOf(definition) : null;
+  // Latched at open: a tier drop while it is open applies to the next opening.
+  const presentation = definition ? presentationFor(definition) : null;
   const Overlay = definition?.overlay
     ? overlays[definition.overlay]
     : undefined;
@@ -90,8 +98,9 @@ export function LandmarkOverlays({
           />
         )}
       </LandmarkOverlayHost>
-      <LandmarkReturnBar
+      <LandmarkStage
         open={presentation === 'in-world' || presentation === 'none'}
+        openId={focusedId ?? undefined}
         title={title}
         hint={
           definition?.caption
@@ -102,6 +111,8 @@ export function LandmarkOverlays({
         dir={dir}
         lang={locale}
         returnFocus={returnFocus}
+        sceneLayerRef={setSceneLayer}
+        leaveOnScroll={leaveOnScroll}
         onClose={close}
       />
     </>

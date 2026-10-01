@@ -3,10 +3,11 @@ export type InputSource = 'pointer' | 'keyboard';
 
 /**
  * Why a landmark closed. `switch` means another landmark was opened straight from this one;
- * the camera goes on to the next stop instead of returning to the scroll.
+ * the camera goes on to the next stop instead of returning to the scroll. `scroll` means the
+ * visitor scrolled the page away from a non-modal (in-world or camera-only) landmark.
  */
 export type CloseReason =
-  'escape' | 'button' | 'backdrop' | 'programmatic' | 'switch';
+  'escape' | 'button' | 'backdrop' | 'programmatic' | 'switch' | 'scroll';
 
 /**
  * The page's landmark interaction, one landmark at a time:

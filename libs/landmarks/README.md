@@ -7,7 +7,7 @@ one never touches `libs/dive`, `libs/world` or the scene graph.
 | Library                         | What it holds                                                                                                                                                           |
 | ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `@qa3elhamor/landmarks-domain`  | `LandmarkDefinition`, `validateLandmark`, `createLandmarkRegistry` (returns a `Result`), the interaction state machine (`transition`, `LandmarkInteraction`). No React. |
-| `@qa3elhamor/landmarks-ui`      | React DOM only: `LandmarkOverlayHost` (accessible dialog shell), `LandmarkIndex` (landmark buttons), `LandmarkOverlayProps`.                                            |
+| `@qa3elhamor/landmarks-ui`      | React DOM only: `LandmarkOverlayHost` (accessible dialog shell), `LandmarkStage` (non-modal in-world stage), `LandmarkIndex` (landmark buttons), `LandmarkOverlayProps`. |
 | `@qa3elhamor/landmarks-feature` | `LandmarkProvider`, `<LandmarkLayer>` (R3F, in the canvas), `<LandmarkOverlays>` and `<LandmarkNav>` (DOM, outside the canvas).                                         |
 
 The landmark libraries may import only each other and `scope:shared`. Everything they need
@@ -30,6 +30,7 @@ from the rest of the site is injected by the composition root (`apps/web`):
     registry={registry}
     camera={camera}
     locale="en"
+    inWorld={!reducedMotion && tier !== 'low' && webgl} // else in-world falls back to its dialog
     onLandmarkEvent={track}
   >
     <Canvas aria-hidden="true">
@@ -67,14 +68,33 @@ the others, and a failed one keeps a clickable target and its beacon (and is rep
 | `presentation`     | Needs     | Opening it shows                                                                                 |
 | ------------------ | --------- | ------------------------------------------------------------------------------------------------ |
 | `dialog` (default) | `overlay` | The overlay component in the modal paper dialog.                                                 |
-| `in-world`         | `scene`   | Nothing modal: the scene component gets `phase: 'focused'`, plus a small "Back to the dive" bar. |
-| `none`             | nothing   | The camera visits; the same bar returns to the dive.                                             |
+| `in-world`         | `scene`   | Nothing modal: the scene component gets `phase: 'focused'`, inside the non-modal stage.          |
+| `none`             | nothing   | The camera visits; the same stage's "Back to the dive" bar returns to the dive.                  |
+
+**Fallback.** `LandmarkProvider inWorld={false}` (the site passes false for reduced motion, the
+low quality tier and no WebGL) turns every `in-world` landmark into its `overlay` in the dialog
+(`effectivePresentation`), or a camera-only visit when it has none, and does not mount its
+scene. So an in-world landmark should keep an `overlay` carrying the same content: the
+Pineapple's is the Citizenship Card dialog.
+
+**The stage.** For `in-world` and `none`, `<LandmarkOverlays>` renders `LandmarkStage`: a
+full-viewport layer above the canvas, a named region (the landmark's label) while open,
+holding a **scene slot** and a sonar-ping "Back to the dive" bar. The slot lives outside the
+`aria-hidden` canvas, so DOM a scene mounts there is real, crisp, selectable and reachable by
+keyboard and screen readers. A scene receives it as `LandmarkSceneProps.sceneLayer` (for drei
+`<Html portal>`); it stays mounted while closed, so a scene can animate its exit. Focus moves
+to the bar's button on open, then onto the element marked `data-landmark-autofocus`
+(`LANDMARK_AUTOFOCUS_ATTRIBUTE`) once the scene's DOM arrives, unless the visitor has moved it.
+Esc anywhere, the button, or scrolling the page `leaveOnScroll` pixels (default 64, close
+reason `scroll`) closes it; focus then returns to the opener, or the landmark's list button.
+The page chrome can react to it with `useFocusedLandmark()` (the site dims the town and plays
+a bubble curtain).
 
 A `scene` component (registered in `LandmarkLayer scenes={...}`, typed `LandmarkSceneProps`)
 renders R3F children in the landmark's own frame (its position, rotation and scale, in
 model units), so a 3D menu or notice board is placed relative to the model with no world
-maths. It receives `phase`, `bounds` (the model's hit volume), `locale`, `reducedMotion`,
-`activate` and `close`, and handles its own pointer events on its own meshes. While its
+maths. It receives `phase`, `bounds` (the model's hit volume), `locale`, `title`, `reducedMotion`,
+`sceneLayer` (above), `activate` and `close`, and handles its own pointer events on its own meshes. While its
 landmark is focused, the landmark's hit target stops ray-casting so the scene's meshes get
 the pointer. Any landmark may have a scene, dialog ones included (decoration). A scene that
 throws is contained to itself and reported as `landmark_scene_error`.

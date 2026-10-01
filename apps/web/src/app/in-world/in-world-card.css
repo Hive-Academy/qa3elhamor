@@ -1,0 +1,8 @@
+/* The in-world card's DOM root. Its opacity is driven per frame with the flight. */
+.in-world-surface {
+  opacity: 0;
+}
+
+.in-world-surface[data-phase='leaving'] {
+  pointer-events: none;
+}

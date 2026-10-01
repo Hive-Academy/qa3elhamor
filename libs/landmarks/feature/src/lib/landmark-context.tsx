@@ -1,9 +1,12 @@
 import {
   LandmarkInteraction,
+  effectivePresentation,
   type CloseReason,
   type InputSource,
   type LandmarkEffect,
+  type LandmarkDefinition,
   type LandmarkInteractionState,
+  type LandmarkPresentation,
   type LandmarkRegistry,
 } from '@qa3elhamor/landmarks-domain';
 import {
@@ -13,6 +16,7 @@ import {
   useLayoutEffect,
   useMemo,
   useRef,
+  useState,
   useSyncExternalStore,
   type ReactNode,
 } from 'react';
@@ -83,6 +87,16 @@ interface LandmarkContextValue {
   readonly registry: LandmarkRegistry;
   readonly interaction: LandmarkInteraction;
   readonly locale: string;
+  /**
+   * What opening `definition` shows: `effectivePresentation` against the live `inWorld` flag,
+   * except for the open landmark, whose presentation is latched when it opened.
+   */
+  readonly presentationFor: (
+    definition: Pick<LandmarkDefinition, 'id' | 'presentation' | 'overlay'>,
+  ) => LandmarkPresentation;
+  /** The stage's scene slot (outside the canvas), once `<LandmarkOverlays>` has mounted it. */
+  readonly sceneLayer: HTMLElement | null;
+  readonly setSceneLayer: (element: HTMLElement | null) => void;
   readonly reportModelError: (landmarkId: string, error: unknown) => void;
   readonly reportSceneError: (landmarkId: string, error: unknown) => void;
 }
@@ -95,6 +109,16 @@ export interface LandmarkProviderProps {
   readonly camera: LandmarkCamera;
   /** `en` or `ar`; picks label text and the overlays' direction. Default `en`. */
   readonly locale?: string;
+  /**
+   * Whether in-world presentations may run. Pass false where they should not (reduced motion,
+   * a low quality tier, no WebGL): `in-world` landmarks then open their `overlay` in the
+   * dialog instead, and their scene components are not mounted. Default true.
+   *
+   * The choice is latched when a landmark opens: a change while it is open (the quality
+   * governor dropping to the low tier) applies to the next opening, never swapping the open
+   * landmark's card for a dialog mid-view.
+   */
+  readonly inWorld?: boolean;
   /** Hover, open, close, and model or scene failure events, for telemetry. */
   readonly onLandmarkEvent?: (event: LandmarkEvent) => void;
   readonly children?: ReactNode;
@@ -109,14 +133,23 @@ export function LandmarkProvider({
   registry,
   camera,
   locale = 'en',
+  inWorld = true,
   onLandmarkEvent,
   children,
 }: LandmarkProviderProps) {
+  const [sceneLayer, setSceneLayer] = useState<HTMLElement | null>(null);
   const cameraRef = useRef(camera);
   const eventRef = useRef(onLandmarkEvent);
+  const inWorldRef = useRef(inWorld);
+  /** The open landmark's presentation, fixed at the moment it opened. */
+  const latched = useRef<{
+    readonly id: string;
+    readonly presentation: LandmarkPresentation;
+  } | null>(null);
   useLayoutEffect(() => {
     cameraRef.current = camera;
     eventRef.current = onLandmarkEvent;
+    inWorldRef.current = inWorld;
   });
 
   const interaction = useMemo(
@@ -125,8 +158,18 @@ export function LandmarkProvider({
         (id) => registry.has(id),
         (effect) => {
           const definition = registry.get(effect.id);
-          if (effect.type === 'open' && definition)
+          if (effect.type === 'open' && definition) {
+            latched.current = {
+              id: effect.id,
+              presentation: effectivePresentation(
+                definition,
+                inWorldRef.current,
+              ),
+            };
             cameraRef.current.focus(definition.waypoint);
+          }
+          if (effect.type === 'close' && latched.current?.id === effect.id)
+            latched.current = null;
           // A switch goes straight on to the next focus: the dive keeps the scroll position it
           // held before the first one, so releasing in between would only jolt the page.
           if (effect.type === 'close' && effect.reason !== 'switch')
@@ -151,12 +194,18 @@ export function LandmarkProvider({
       registry,
       interaction,
       locale,
+      presentationFor: (definition) =>
+        latched.current?.id === definition.id
+          ? latched.current.presentation
+          : effectivePresentation(definition, inWorld),
+      sceneLayer,
+      setSceneLayer,
       reportModelError: (landmarkId, error) =>
         eventRef.current?.({ type: 'landmark_model_error', landmarkId, error }),
       reportSceneError: (landmarkId, error) =>
         eventRef.current?.({ type: 'landmark_scene_error', landmarkId, error }),
     }),
-    [registry, interaction, locale],
+    [registry, interaction, locale, inWorld, sceneLayer],
   );
 
   return (
@@ -216,3 +265,36 @@ export const useLandmarkPhase = (id: string): 'idle' | 'hovered' | 'focused' =>
 /** The hovered or focused landmark id, or null. */
 export const useActiveLandmarkId = (): string | null =>
   useLandmarkState((s) => (s.phase === 'idle' ? null : s.id));
+
+/**
+ * What opening `definition` shows on this page, with the in-world fallback applied (latched
+ * while it is open).
+ */
+export function useEffectivePresentation(
+  definition: Pick<LandmarkDefinition, 'id' | 'presentation' | 'overlay'>,
+): LandmarkPresentation {
+  const { presentationFor } = useLandmarkContext();
+  // Re-evaluated when this landmark opens or closes, which moves the latch.
+  useLandmarkState((s) => (s.phase === 'focused' ? s.id : null));
+  return presentationFor(definition);
+}
+
+/**
+ * The open landmark and how it presents, or null when none is open. For page chrome that
+ * reacts to an in-world landmark opening (dimming the world, a transition), outside the canvas.
+ */
+export function useFocusedLandmark(): {
+  readonly definition: LandmarkDefinition;
+  readonly presentation: LandmarkPresentation;
+} | null {
+  const { registry, presentationFor } = useLandmarkContext();
+  const id = useLandmarkState((s) => (s.phase === 'focused' ? s.id : null));
+  const definition = id ? registry.get(id) : undefined;
+  return useMemo(
+    () =>
+      definition
+        ? { definition, presentation: presentationFor(definition) }
+        : null,
+    [definition, presentationFor],
+  );
+}

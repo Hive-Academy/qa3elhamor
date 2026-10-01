@@ -9,10 +9,13 @@ import type { LandmarkOverlayRegistry } from '@qa3elhamor/landmarks-ui';
 import { profile, siteCopy } from '@qa3elhamor/content-data-access';
 import { ComingSoonOverlay } from './coming-soon-overlay';
 import { LANDMARK_PLACEMENTS, buildDiveSpec } from './dive.config';
-import { createCitizenshipCardOverlay } from './overlays/citizenship-card';
+import {
+  createCitizenshipCardOverlay,
+  createCitizenshipCardScene,
+} from './overlays/citizenship-card';
 import {
   createComplaintScrollOverlay,
-  pendingSubmitter,
+  createContactSubmitter,
 } from './overlays/complaint-scroll';
 
 /**
@@ -30,6 +33,9 @@ export const LANDMARKS: readonly LandmarkDefinition[] = [
     model: 'landmark-pineapple',
     position: LANDMARK_PLACEMENTS['landmark-pineapple'],
     waypoint: 'landmark-pineapple',
+    // The card floats out of the door; the dialog card is the fallback where in-world is off.
+    presentation: 'in-world',
+    scene: 'pineapple-card',
     overlay: 'pineapple',
     label: { en: 'The Pineapple', ar: 'بيت الأناناس' },
     caption: { en: 'About', ar: 'نبذة' },
@@ -65,10 +71,12 @@ export const LANDMARKS: readonly LandmarkDefinition[] = [
 
 /**
  * Overlay components by key, with their content bound here (the landmark libraries never import
- * content). Tiki and Krusty Krab stay placeholders until their landmark items land.
+ * content). Tiki and Krusty Krab stay placeholders until their landmark items land. The
+ * pineapple's is the fallback for its in-world card (reduced motion, low tier, no WebGL).
  *
- * The bureau's `pendingSubmitter` sends nothing anywhere and says so to the visitor;
- * `complaints-contact-adapter` replaces it with the real delivery.
+ * The bureau's complaints are delivered through the contact provider chosen by
+ * `VITE_CONTACT_PROVIDER` (`createContactSubmitter`); unset (or `none`), it falls back to the
+ * pending submitter, which sends nothing anywhere and says so to the visitor.
  */
 export const LANDMARK_OVERLAYS: LandmarkOverlayRegistry = {
   pineapple: createCitizenshipCardOverlay({ profile, copy: siteCopy }),
@@ -76,7 +84,7 @@ export const LANDMARK_OVERLAYS: LandmarkOverlayRegistry = {
   'krusty-krab': ComingSoonOverlay,
   bureau: createComplaintScrollOverlay({
     copy: siteCopy,
-    submitter: pendingSubmitter,
+    submitter: createContactSubmitter(import.meta.env),
   }),
 };
 
@@ -85,10 +93,13 @@ export const diveWaypointIds = (): string[] =>
   (buildDiveSpec().waypoints ?? []).map((w) => w.id);
 
 /**
- * In-scene components by key, for landmarks with 3D content (`scene`): krusty-krab's menu and
- * the complaints wall register theirs here. Each renders R3F children in its landmark's frame.
+ * In-scene components by key, for landmarks with 3D content (`scene`). Each renders R3F
+ * children in its landmark's frame; `in-world/in-world-card.tsx` is the shared rig for real
+ * DOM floating out of a landmark (the pineapple's Citizenship Card).
  */
-export const LANDMARK_SCENES: LandmarkSceneRegistry = {};
+export const LANDMARK_SCENES: LandmarkSceneRegistry = {
+  'pineapple-card': createCitizenshipCardScene({ profile, copy: siteCopy }),
+};
 
 /**
  * Validates the landmarks against the dive, the overlays and the scenes, once per page load. A broken

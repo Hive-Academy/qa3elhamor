@@ -20,12 +20,16 @@ import {
   QualityProvider,
   QualityReadout,
   assetUrl,
+  readDeviceCapabilities,
   usePrefersReducedMotion,
   useQuality,
 } from '@qa3elhamor/world-feature';
+import { buildAmbientLife } from './ambient.config';
 import { SceneCredits, SiteCredits } from './credits';
 import { DepthGauge } from './depth-gauge';
 import { DIVE_CONFIG, buildDivePath } from './dive.config';
+import { InWorldAtmosphere } from './in-world/in-world-atmosphere';
+import { inWorldAvailable } from './in-world/in-world-mode';
 import {
   evictLandmarkModel,
   reportLandmarkEvent,
@@ -46,16 +50,29 @@ const ENVIRONMENT_URL = assetUrl('environment', import.meta.env.BASE_URL);
 const DIVE_PATH = buildDivePath();
 const CAMERA_START = DIVE_PATH.pointAt(0);
 
+/** Fish, the Hamour and kelp, fitted to the dive once per page load (`ambient.config.ts`). */
+const AMBIENT_LIFE = buildAmbientLife(DIVE_PATH);
+
 /** Built and validated once per page load from `landmarks.config.ts`, against the dive. */
 const LANDMARK_REGISTRY = buildLandmarkRegistry();
 
-/** Joins the landmark kernel to the dive camera. Must sit inside `<DiveProvider>`. */
-function Landmarks({ children }: { readonly children: ReactNode }) {
+/**
+ * Joins the landmark kernel to the dive camera. Must sit inside `<DiveProvider>`. `inWorld`
+ * off (reduced motion, low tier, no WebGL) opens in-world landmarks in their dialog instead.
+ */
+function Landmarks({
+  inWorld,
+  children,
+}: {
+  readonly inWorld: boolean;
+  readonly children: ReactNode;
+}) {
   const camera = useDiveLandmarkCamera();
   return (
     <LandmarkProvider
       registry={LANDMARK_REGISTRY}
       camera={camera}
+      inWorld={inWorld}
       onLandmarkEvent={reportLandmarkEvent}
     >
       {children}
@@ -82,7 +99,8 @@ export function App() {
 
 /**
  * The page under `<QualityProvider>`. The tier's profile gates the pixel ratio, particles,
- * caustics, texture filtering and beacon occlusion; `?quality=low|medium|high` pins it.
+ * caustics, texture filtering, beacon occlusion and ambient life; `?quality=low|medium|high`
+ * pins it.
  */
 function Site() {
   const budgetMb = (initialLoadBudgetBytes() / (1024 * 1024)).toFixed(1);
@@ -92,7 +110,13 @@ function Site() {
   return (
     <DiveProvider path={DIVE_PATH} reducedMotion={reducedMotion}>
       <SiteTelemetry />
-      <Landmarks>
+      <Landmarks
+        inWorld={inWorldAvailable({
+          reducedMotion,
+          tier: quality.tier,
+          webgl: readDeviceCapabilities().webgl,
+        })}
+      >
         <div
           className="stage"
           data-quality-tier={quality.tier}
@@ -122,6 +146,8 @@ function Site() {
               environmentUrl={ENVIRONMENT_URL}
               controls={false}
               quality={quality.profile}
+              ambientLife={AMBIENT_LIFE}
+              assetBaseUrl={import.meta.env.BASE_URL}
             >
               <LandmarkLayer
                 useModel={useLandmarkModel}
@@ -152,6 +178,7 @@ function Site() {
         <SiteCredits />
         <LandmarkNav />
         <DiveScroll screens={DIVE_CONFIG.screens} />
+        <InWorldAtmosphere />
         <LandmarkOverlays overlays={LANDMARK_OVERLAYS} />
         {import.meta.env.DEV && <QualityReadout />}
       </Landmarks>

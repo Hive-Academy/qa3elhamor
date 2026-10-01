@@ -201,6 +201,14 @@ Two constraints follow, both load-bearing on the build:
    President, the complaints bureau, "we reached the bottom") rather than SpongeBob branding.
    The no-monetization answer materially reduces this exposure.
 
+   > **Amended (2026-10-01, owner).** Landmarks get talking **narrators**. Default cast is
+   > original and authored in code (the Hamour as guide, the Sardine President, a crab clerk —
+   > IP-clean); the bundled SpongeBob/Patrick models become a **config switch** (off by default
+   > in the template; the owner may enable them on their own deployment, accepting the IP risk
+   > explained to them). Presentation direction: narrator speech bubbles + content as 3D scene
+   > objects, with the accessible HTML card one tap away and kept as the reduced-motion /
+   > low-tier fallback — no full-screen panels.
+
 3. **Raw asset weight is 27.6 MB** — far past a usable first-load budget. Draco/Meshopt
    compression plus KTX2 texture transcoding is a Phase 2 requirement, not an optimization
    afterthought. The 17 MB SpongeBob model alone exceeds any reasonable budget untouched.
