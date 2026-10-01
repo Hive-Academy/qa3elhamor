@@ -1,16 +1,12 @@
 import { localize } from '@qa3elhamor/content-domain';
-import { textDirection } from '@qa3elhamor/landmarks-domain';
-import type { LandmarkSceneProps } from '@qa3elhamor/landmarks-feature';
 import {
   useEffect,
   useId,
   useRef,
   useState,
-  type ComponentType,
   type KeyboardEvent,
   type ReactNode,
 } from 'react';
-import { InWorldCard } from '../../in-world/in-world-card';
 import { copyReader, toContentLocale } from '../overlay-copy';
 import {
   CitizenBio,
@@ -269,38 +265,4 @@ function ScrollingFace({
       <span className="citizen-pass__more" aria-hidden="true" />
     </div>
   );
-}
-
-/**
- * The Pineapple's in-world scene (`LANDMARK_SCENES`): while the landmark is open, the card
- * floats out of the door and settles in front of the camera (`InWorldCard`). Content is bound
- * here, as for the dialog overlay, which remains the fallback (`landmarks.config.ts`).
- */
-export function createCitizenshipCardScene(
-  content: CitizenshipCardContent,
-): ComponentType<LandmarkSceneProps> {
-  function PineappleCitizenshipCardScene({
-    phase,
-    sceneLayer,
-    bounds,
-    locale,
-  }: LandmarkSceneProps) {
-    return (
-      <InWorldCard
-        open={phase === 'focused'}
-        sceneLayer={sceneLayer}
-        bounds={bounds}
-        doorHeight={0.16}
-      >
-        {() => (
-          <CitizenshipCardInWorld
-            {...content}
-            locale={locale}
-            dir={textDirection(locale)}
-          />
-        )}
-      </InWorldCard>
-    );
-  }
-  return PineappleCitizenshipCardScene;
 }

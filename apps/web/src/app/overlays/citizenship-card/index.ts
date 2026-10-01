@@ -7,6 +7,5 @@ export {
 } from './citizenship-card';
 export {
   CitizenshipCardInWorld,
-  createCitizenshipCardScene,
   type CitizenshipCardInWorldProps,
 } from './citizenship-card-in-world';

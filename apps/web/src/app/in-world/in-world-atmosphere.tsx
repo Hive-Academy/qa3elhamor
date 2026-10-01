@@ -1,5 +1,5 @@
 import { useFocusedLandmark } from '@qa3elhamor/landmarks-feature';
-import { useState, type CSSProperties } from 'react';
+import { useEffect, useState, type CSSProperties } from 'react';
 import './in-world-atmosphere.css';
 
 /** One bubble of the curtain, laid out once per page. */
@@ -29,11 +29,16 @@ function curtain(count: number): Bubble[] {
 
 const BUBBLES = curtain(44);
 
+/** Set on `<html>` while an in-world landmark is open, so the page chrome can step back. */
+export const IN_WORLD_ATTRIBUTE = 'data-in-world';
+
 /**
  * The shared atmosphere of every in-world presentation, rendered once in the page chrome
  * (outside the canvas): while an in-world landmark is open the rest of the town dims into the
- * fog behind a veil, and opening one sends a curtain of bubbles up the screen. Decorative only
- * (`aria-hidden`, no pointer events). Landmarks that fall back to their dialog (reduced motion,
+ * fog behind a veil, and opening one sends a curtain of bubbles up the screen. The page chrome
+ * (landmark list, depth gauge, credits, title note) fades back and the landmark beacons give
+ * way to the scene (`data-in-world` on `<html>`); pointing at or focusing the chrome brings it
+ * back. Decorative only (`aria-hidden`, no pointer events). Landmarks that fall back to their dialog (reduced motion,
  * low tier, no WebGL) never present in-world, so they never see it.
  */
 export function InWorldAtmosphere() {
@@ -51,6 +56,12 @@ export function InWorldAtmosphere() {
       count: activeId ? opening.count + 1 : opening.count,
     });
   }
+
+  useEffect(() => {
+    const root = document.documentElement;
+    root.toggleAttribute(IN_WORLD_ATTRIBUTE, activeId !== null);
+    return () => root.removeAttribute(IN_WORLD_ATTRIBUTE);
+  }, [activeId]);
 
   return (
     <div className="in-world-atmosphere" aria-hidden="true">

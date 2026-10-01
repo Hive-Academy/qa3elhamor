@@ -6,17 +6,17 @@ import {
 } from '@qa3elhamor/landmarks-domain';
 import type { LandmarkSceneRegistry } from '@qa3elhamor/landmarks-feature';
 import type { LandmarkOverlayRegistry } from '@qa3elhamor/landmarks-ui';
-import { profile, siteCopy } from '@qa3elhamor/content-data-access';
+import { narration, profile, siteCopy } from '@qa3elhamor/content-data-access';
 import { ComingSoonOverlay } from './coming-soon-overlay';
 import { LANDMARK_PLACEMENTS, buildDiveSpec } from './dive.config';
-import {
-  createCitizenshipCardOverlay,
-  createCitizenshipCardScene,
-} from './overlays/citizenship-card';
+import { stopView } from './narrators/stop-view';
+import { narratorFor, narratorsConfigFor } from './narrators.config';
+import { createCitizenshipCardOverlay } from './overlays/citizenship-card';
 import {
   createComplaintScrollOverlay,
   createContactSubmitter,
 } from './overlays/complaint-scroll';
+import { createPineappleScene } from './pineapple/pineapple-scene';
 
 /**
  * The landmarks on the page, in the order the dive meets them. Adding one is an entry here,
@@ -33,9 +33,9 @@ export const LANDMARKS: readonly LandmarkDefinition[] = [
     model: 'landmark-pineapple',
     position: LANDMARK_PLACEMENTS['landmark-pineapple'],
     waypoint: 'landmark-pineapple',
-    // The card floats out of the door; the dialog card is the fallback where in-world is off.
+    // A narrator and the skills as bubbles; the dialog card is the fallback where in-world is off.
     presentation: 'in-world',
-    scene: 'pineapple-card',
+    scene: 'pineapple',
     overlay: 'pineapple',
     label: { en: 'The Pineapple', ar: 'بيت الأناناس' },
     caption: { en: 'About', ar: 'نبذة' },
@@ -92,13 +92,26 @@ export const LANDMARK_OVERLAYS: LandmarkOverlayRegistry = {
 export const diveWaypointIds = (): string[] =>
   (buildDiveSpec().waypoints ?? []).map((w) => w.id);
 
+/** Who narrates (`narrators.config.ts`); in development `?narrators=bundled` previews the switch. */
+const NARRATORS = narratorsConfigFor(
+  typeof window === 'undefined' ? '' : window.location.search,
+  import.meta.env.DEV,
+);
+
 /**
  * In-scene components by key, for landmarks with 3D content (`scene`). Each renders R3F
- * children in its landmark's frame; `in-world/in-world-card.tsx` is the shared rig for real
- * DOM floating out of a landmark (the pineapple's Citizenship Card).
+ * children in its landmark's frame. The Pineapple's is a narrated visit (`pineapple/`): a
+ * narrator, the skills as bubbles, and the full Citizenship Card one tap away
+ * (`in-world/in-world-card.tsx` is the shared rig for real DOM floating out of a landmark).
  */
 export const LANDMARK_SCENES: LandmarkSceneRegistry = {
-  'pineapple-card': createCitizenshipCardScene({ profile, copy: siteCopy }),
+  pineapple: createPineappleScene({
+    profile,
+    copy: siteCopy,
+    narration: narration.landmarks.pineapple,
+    narrator: narratorFor('pineapple', NARRATORS),
+    stop: stopView('landmark-pineapple'),
+  }),
 };
 
 /**

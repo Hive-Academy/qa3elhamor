@@ -9,15 +9,19 @@
   z-index: 36;
   pointer-events: none;
   opacity: 0;
-  /* The town sinks into the same murk as the world's fog, darkest at the edges. */
-  background:
-    radial-gradient(
-      ellipse 70% 60% at 50% 46%,
-      rgba(10, 30, 63, 0.38),
-      rgba(6, 20, 44, 0.82) 100%
-    ),
-    rgba(10, 30, 63, 0.2);
-  backdrop-filter: blur(3px) saturate(0.7);
+  /*
+   * The town sinks into the same murk as the world's fog towards the edges, while the middle,
+   * where the landmark, its narrator and its objects are, stays clear and sharp: the blur is
+   * masked to the rim.
+   */
+  background: radial-gradient(
+    ellipse 62% 58% at 50% 50%,
+    rgba(10, 30, 63, 0) 45%,
+    rgba(10, 30, 63, 0.35) 75%,
+    rgba(6, 20, 44, 0.7) 100%
+  );
+  backdrop-filter: blur(2.5px) saturate(0.75);
+  mask-image: radial-gradient(ellipse 62% 58% at 50% 50%, transparent 52%, #000 88%);
   transition: opacity 700ms ease 120ms;
 }
 
@@ -68,6 +72,33 @@
     opacity: 0;
     transform: translate(var(--drift), calc(-100vh - 6rem)) scale(1.05);
   }
+}
+
+/* While a landmark is open in the world, the page chrome steps back and beacons give way. */
+.lmk-beacon-anchor,
+.lmk-index,
+.depth-gauge,
+.scene-note,
+.world-credits__trigger {
+  transition: opacity 500ms ease;
+}
+
+:root[data-in-world] .lmk-beacon-anchor {
+  opacity: 0;
+}
+
+:root[data-in-world] .lmk-index,
+:root[data-in-world] .depth-gauge,
+:root[data-in-world] .scene-note,
+:root[data-in-world] .world-credits__trigger {
+  opacity: 0.16;
+}
+
+:root[data-in-world] .lmk-index:hover,
+:root[data-in-world] .lmk-index:focus-within,
+:root[data-in-world] .world-credits__trigger:hover,
+:root[data-in-world] .world-credits__trigger:focus-visible {
+  opacity: 1;
 }
 
 @media (prefers-reduced-motion: reduce) {
