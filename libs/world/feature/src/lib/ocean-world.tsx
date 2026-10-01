@@ -2,7 +2,9 @@ import { QUALITY_PROFILES, type QualityProfile } from '@qa3elhamor/world-domain'
 import { OrbitControls } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import { useEffect, useLayoutEffect, useMemo, useState, type ReactNode } from 'react';
-import type { IUniform } from 'three';
+import type { IUniform, Object3D } from 'three';
+import { AMBIENT_LIFE_DEFAULTS, type AmbientLifeConfig } from './ambient-config.js';
+import { AmbientLife } from './ambient-life.js';
 import {
   CAUSTICS_TIME_PERIOD,
   createCausticsTexture,
@@ -55,6 +57,13 @@ export interface OceanWorldProps {
    * it. Defaults to a console error.
    */
   readonly onEnvironmentError?: (error: unknown, url: string) => void;
+  /**
+   * Fish schools, the Hamour and kelp (`AMBIENT_LIFE_DEFAULTS` when omitted; null for none).
+   * How much of it renders is `quality.ambientLife`'s call.
+   */
+  readonly ambientLife?: AmbientLifeConfig | null;
+  /** Deploy base URL (Vite's `BASE_URL`) for models `ambientLife.characters` places. */
+  readonly assetBaseUrl?: string;
   /** Scene-world content (landmarks), mounted inside the same `<WorldSpace>` as the map. */
   readonly children?: ReactNode;
 }
@@ -86,7 +95,8 @@ function WaterClock({ time, causticsTime, config }: WaterClockProps) {
 
 /**
  * The deep-ocean atmosphere: exponential fog, the seabed map with projected caustics, drifting
- * plankton and bubbles, and the ambient light rig. Render inside an R3F `<Canvas>`.
+ * plankton and bubbles, ambient life (fish schools, the Hamour, kelp rooted on the loaded
+ * seabed; see `AmbientLife`), and the ambient light rig. Render inside an R3F `<Canvas>`.
  *
  * GPU resources created here (caustics texture, particle geometry and materials) are built
  * in `useMemo` and disposed by an effect keyed to the same object. React's StrictMode may
@@ -101,8 +111,13 @@ export function OceanWorld({
   worldScale = WORLD_SCALE,
   controls = true,
   onEnvironmentError,
+  ambientLife = AMBIENT_LIFE_DEFAULTS,
+  assetBaseUrl,
   children,
 }: OceanWorldProps) {
+  // The loaded seabed, for ambient life to root on.
+  const [ground, setGround] = useState<Object3D | null>(null);
+
   const { plankton, bubbles } = quality.particles;
   const config = useMemo(() => {
     const particleCount = plankton + bubbles;
@@ -150,11 +165,21 @@ export function OceanWorld({
           caustics={causticsEnabled ? causticsUniforms : null}
           anisotropy={quality.anisotropy}
           onError={onEnvironmentError}
+          onLoad={setGround}
         />
         {children}
       </WorldSpace>
 
       <OceanParticles config={config.particles} time={particleTime} />
+      {ambientLife && (
+        <AmbientLife
+          config={ambientLife}
+          budget={quality.ambientLife}
+          tier={quality.tier}
+          ground={ground}
+          assetBaseUrl={assetBaseUrl}
+        />
+      )}
 
       {controls && (
         <OrbitControls

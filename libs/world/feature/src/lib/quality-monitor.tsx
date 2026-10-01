@@ -8,7 +8,9 @@ const RING_CAPACITY = 480;
 /**
  * A frame at least this long is reported to the governor on its own, as a one-frame window,
  * instead of being folded into the current window: a device stalling for seconds per frame
- * must still step down and settle. Tab switches are excluded by `visibilitychange`.
+ * must still step down and settle. Tab switches are excluded by `visibilitychange`. Keep it
+ * at or above `GovernorPolicy.stallFrameMs`: the governor counts such windows as stalls and
+ * needs `downgradeAfterStalls` of them, so one isolated long frame never downgrades.
  */
 const STALL_FRAME_MS = 2000;
 

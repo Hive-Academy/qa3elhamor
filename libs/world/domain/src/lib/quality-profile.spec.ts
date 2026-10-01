@@ -34,7 +34,25 @@ describe('QUALITY_PROFILES', () => {
       expect(Number(a.caustics.enabled)).toBeLessThanOrEqual(Number(b.caustics.enabled));
       expect(Number(a.antialias)).toBeLessThanOrEqual(Number(b.antialias));
       expect(Number(a.beaconOcclusion)).toBeLessThanOrEqual(Number(b.beaconOcclusion));
+      expect(a.ambientLife.schools).toBeLessThanOrEqual(b.ambientLife.schools);
+      expect(a.ambientLife.fishPerSchool).toBeLessThanOrEqual(b.ambientLife.fishPerSchool);
+      expect(a.ambientLife.neighbourSamples).toBeLessThanOrEqual(b.ambientLife.neighbourSamples);
+      expect(a.ambientLife.kelp).toBeLessThan(b.ambientLife.kelp);
+      expect(Number(a.ambientLife.hamour)).toBeLessThanOrEqual(Number(b.ambientLife.hamour));
     }
+  });
+
+  it('keeps some ambient life at every tier, and the low tier cheap', () => {
+    for (const tier of QUALITY_TIERS) {
+      const life = QUALITY_PROFILES[tier].ambientLife;
+      expect(life.hamour).toBe(true);
+      expect(life.schools * life.fishPerSchool).toBeGreaterThan(0);
+      expect(life.kelp).toBeGreaterThan(0);
+      expect(life.neighbourSamples).toBeLessThan(life.fishPerSchool);
+    }
+    const low = QUALITY_PROFILES.low.ambientLife;
+    expect(low.schools * low.fishPerSchool).toBeLessThanOrEqual(32);
+    expect(low.schools * low.fishPerSchool * low.neighbourSamples).toBeLessThanOrEqual(100);
   });
 
   it('keeps shadows and post-processing off at every tier for now', () => {

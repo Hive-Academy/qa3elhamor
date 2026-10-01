@@ -28,6 +28,25 @@ export interface QualityProfile {
   readonly shadows: boolean;
   /** Post-processing chain. None ships yet; the field is where one would be gated. */
   readonly postprocessing: 'none';
+  /** Budgets of the ambient life (fish, the Hamour, kelp). See `AmbientLifeBudget`. */
+  readonly ambientLife: AmbientLifeBudget;
+}
+
+/**
+ * How much ambient life a tier renders. Each fish school and the kelp bed are one instanced
+ * draw call; the Hamour is one. The CPU cost is the fish: `schools x fishPerSchool` boids,
+ * each reading `neighbourSamples` others per frame (O(n), never O(n^2)).
+ */
+export interface AmbientLifeBudget {
+  /** Fish schools rendered, at most: the first `schools` of the configured list. */
+  readonly schools: number;
+  readonly fishPerSchool: number;
+  /** School-mates each fish looks at per frame for cohesion, alignment and separation. */
+  readonly neighbourSamples: number;
+  /** Kelp stalks in the whole bed. */
+  readonly kelp: number;
+  /** The patrolling grouper: one draw call of a few hundred triangles. */
+  readonly hamour: boolean;
 }
 
 export const QUALITY_PROFILES: Readonly<Record<QualityTier, QualityProfile>> = {
@@ -41,6 +60,8 @@ export const QUALITY_PROFILES: Readonly<Record<QualityTier, QualityProfile>> = {
     beaconOcclusion: false,
     shadows: false,
     postprocessing: 'none',
+    // The hero creature stays even here: it is one cheap draw call and the site's namesake.
+    ambientLife: { schools: 2, fishPerSchool: 12, neighbourSamples: 3, kelp: 36, hamour: true },
   },
   medium: {
     tier: 'medium',
@@ -54,6 +75,7 @@ export const QUALITY_PROFILES: Readonly<Record<QualityTier, QualityProfile>> = {
     beaconOcclusion: false,
     shadows: false,
     postprocessing: 'none',
+    ambientLife: { schools: 4, fishPerSchool: 22, neighbourSamples: 4, kelp: 96, hamour: true },
   },
   high: {
     tier: 'high',
@@ -65,6 +87,7 @@ export const QUALITY_PROFILES: Readonly<Record<QualityTier, QualityProfile>> = {
     beaconOcclusion: true,
     shadows: false,
     postprocessing: 'none',
+    ambientLife: { schools: 6, fishPerSchool: 36, neighbourSamples: 6, kelp: 180, hamour: true },
   },
 };
 

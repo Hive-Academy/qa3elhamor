@@ -22,6 +22,18 @@ export interface GovernorPolicy {
   readonly downgradeP90Ms: number;
   /** Consecutive slow time before stepping one tier down. */
   readonly downgradeAfterMs: number;
+  /**
+   * A window whose median frame is at least this long is a stall: one frame frozen for
+   * seconds (GC, a shader compile, a decode, a missed visibility event). `QualityMonitor`
+   * reports such a frame as a window of its own. A stall neither adds to nor resets the slow
+   * time; it is counted instead (see `downgradeAfterStalls`).
+   */
+  readonly stallFrameMs: number;
+  /**
+   * Stalls, after warm-up at the current tier, before stepping one tier down. At 2 an
+   * isolated stall never downgrades on its own; a device that keeps stalling still does.
+   */
+  readonly downgradeAfterStalls: number;
   /** A window is fast when its 90th-percentile frame time is at or below this. */
   readonly upgradeP90Ms: number;
   /** Consecutive fast time before the one permitted step up. */
@@ -37,6 +49,8 @@ export const DEFAULT_GOVERNOR_POLICY: GovernorPolicy = {
   downgradeFps: 45,
   downgradeP90Ms: 50,
   downgradeAfterMs: 3000,
+  stallFrameMs: 2000,
+  downgradeAfterStalls: 2,
   upgradeP90Ms: 18,
   upgradeAfterMs: 6000,
   settleAfterMs: 8000,
@@ -57,6 +71,8 @@ export interface GovernorState {
   readonly slowMs: number;
   /** Consecutive fast time, after warm-up. */
   readonly fastMs: number;
+  /** Stall windows counted at the current tier, after its warm-up. */
+  readonly stalls: number;
   /** Once any change has happened in a direction, the governor never reverses it. */
   readonly upgraded: boolean;
   readonly downgraded: boolean;
@@ -75,6 +91,7 @@ export const createGovernorState = (
   sinceChangeMs: 0,
   slowMs: 0,
   fastMs: 0,
+  stalls: 0,
   upgraded: false,
   downgraded: false,
 });
@@ -98,6 +115,7 @@ const changeTo = (state: GovernorState, tier: QualityTier, direction: 'up' | 'do
   sinceChangeMs: 0,
   slowMs: 0,
   fastMs: 0,
+  stalls: 0,
   upgraded: state.upgraded || direction === 'up',
   downgraded: state.downgraded || direction === 'down',
 });
@@ -110,15 +128,19 @@ const changeTo = (state: GovernorState, tier: QualityTier, direction: 'up' | 'do
  * - windows inside the warm-up after start or after a change do not count;
  * - one tier down after `downgradeAfterMs` of consecutive slow windows (median below
  *   `downgradeFps` or p90 above `downgradeP90Ms`), repeatable down to `low`;
+ * - one tier down after `downgradeAfterStalls` stall windows (median frame of at least
+ *   `stallFrameMs`) at the current tier. A stall is not slow time: one multi-second frame
+ *   would otherwise fill `downgradeAfterMs` by itself and downgrade for good on a single GC
+ *   pause or shader compile. A stall that began inside the warm-up is not counted;
  * - one tier up after `upgradeAfterMs` of consecutive fast windows, at most once per visit,
  *   never above `ceiling`, and never after a downgrade;
  * - settled (final, stops adapting) after `settleAfterMs` at one tier past its warm-up, or at
  *   `maxDurationMs` regardless.
  *
  * Empty or non-finite windows (a hidden tab renders nothing) leave the state unchanged, so
- * time in the background neither settles nor downgrades the tier. A window may hold a single
- * very long frame (a device stalling for seconds per frame): it counts as slow like any other,
- * so a persistent stall still steps down and settles by `maxDurationMs`.
+ * time in the background neither settles nor downgrades the tier. A device stalling for
+ * seconds on every frame still steps down (two stalls per tier) and settles by
+ * `maxDurationMs`.
  */
 export function adaptTier(
   state: GovernorState,
@@ -132,19 +154,28 @@ export function adaptTier(
   let next: GovernorState = { ...state, elapsedMs, sinceChangeMs };
 
   if (sinceChangeMs > policy.warmupMs) {
-    const slow = 1000 / stats.p50Ms < policy.downgradeFps || stats.p90Ms > policy.downgradeP90Ms;
-    const fast = !slow && stats.p90Ms <= policy.upgradeP90Ms;
-    // A window straddling the end of warm-up counts only for its part after it.
-    const counted = Math.min(stats.durationMs, sinceChangeMs - policy.warmupMs);
-    next = {
-      ...next,
-      slowMs: slow ? state.slowMs + counted : 0,
-      fastMs: fast ? state.fastMs + counted : 0,
-    };
+    if (stats.p50Ms >= policy.stallFrameMs) {
+      // Counted only when the stall started after warm-up; it breaks a fast streak but leaves
+      // the slow streak as it was.
+      const counted = state.sinceChangeMs >= policy.warmupMs;
+      next = { ...next, fastMs: 0, stalls: counted ? state.stalls + 1 : state.stalls };
+    } else {
+      const slow = 1000 / stats.p50Ms < policy.downgradeFps || stats.p90Ms > policy.downgradeP90Ms;
+      const fast = !slow && stats.p90Ms <= policy.upgradeP90Ms;
+      // A window straddling the end of warm-up counts only for its part after it.
+      const counted = Math.min(stats.durationMs, sinceChangeMs - policy.warmupMs);
+      next = {
+        ...next,
+        slowMs: slow ? state.slowMs + counted : 0,
+        fastMs: fast ? state.fastMs + counted : 0,
+      };
+    }
 
     const down = lowerTier(next.tier);
     const up = higherTier(next.tier);
-    if (next.slowMs >= policy.downgradeAfterMs && down) {
+    const slowEnough =
+      next.slowMs >= policy.downgradeAfterMs || next.stalls >= policy.downgradeAfterStalls;
+    if (slowEnough && down) {
       next = changeTo(next, down, 'down');
     } else if (
       next.fastMs >= policy.upgradeAfterMs &&

@@ -3,6 +3,7 @@ import {
   Component,
   Suspense,
   useLayoutEffect,
+  useRef,
   type ErrorInfo,
   type ReactNode,
 } from 'react';
@@ -62,6 +63,7 @@ interface OceanFloorModelProps {
   readonly url: string;
   readonly caustics: CausticsUniforms | null;
   readonly anisotropy: number;
+  readonly onLoad?: (root: Object3D | null) => void;
 }
 
 const TEXTURE_SLOTS = ['map', 'normalMap', 'roughnessMap', 'metalnessMap', 'emissiveMap', 'aoMap'] as const;
@@ -108,9 +110,19 @@ export function retainModel(root: Object3D, release: () => void): () => void {
  * `OceanFloor` using it unmounts it is disposed and evicted from the loader cache, so
  * swapping `url` or tearing the scene down does not pin ~65k triangles and their textures.
  */
-function OceanFloorModel({ url, caustics, anisotropy }: OceanFloorModelProps) {
+function OceanFloorModel({ url, caustics, anisotropy, onLoad }: OceanFloorModelProps) {
   const gltf = useLoader(GLTFLoader, url, withMeshopt);
   const maxAnisotropy = useThree((three) => three.gl.capabilities.getMaxAnisotropy());
+  const onLoadRef = useRef(onLoad);
+  useLayoutEffect(() => {
+    onLoadRef.current = onLoad;
+  }, [onLoad]);
+
+  // After mount the scene is attached, so its world matrices can be brought up to date.
+  useLayoutEffect(() => {
+    onLoadRef.current?.(gltf.scene);
+    return () => onLoadRef.current?.(null);
+  }, [gltf]);
 
   useLayoutEffect(() => {
     gltf.scene.traverse((object) => {
@@ -203,6 +215,11 @@ export interface OceanFloorProps {
   readonly anisotropy?: number;
   /** Called when the model cannot be loaded. Defaults to a console error. */
   readonly onError?: (error: unknown, url: string) => void;
+  /**
+   * Called with the mounted model's root once it is in the scene, and with null when it
+   * leaves; other scene parts use it as the ground (kelp roots on it).
+   */
+  readonly onLoad?: (root: Object3D | null) => void;
 }
 
 /**
@@ -215,11 +232,12 @@ export function OceanFloor({
   caustics,
   anisotropy = 1,
   onError = reportModelError,
+  onLoad,
 }: OceanFloorProps) {
   return (
     <ModelErrorBoundary url={url} onError={onError}>
       <Suspense fallback={null}>
-        <OceanFloorModel url={url} caustics={caustics} anisotropy={anisotropy} />
+        <OceanFloorModel url={url} caustics={caustics} anisotropy={anisotropy} onLoad={onLoad} />
       </Suspense>
     </ModelErrorBoundary>
   );

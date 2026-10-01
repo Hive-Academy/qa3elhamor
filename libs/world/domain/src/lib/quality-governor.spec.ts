@@ -71,12 +71,77 @@ describe('adaptTier', () => {
   });
 
   it('steps down and settles on a persistent stall of multi-second single frames', () => {
+    // Two counted stalls per tier: high -> medium at 9 s, medium -> low at 18 s.
     const stall: FrameStats = { durationMs: 3000, frames: 1, p50Ms: 3000, p90Ms: 3000 };
     let state = createGovernorState('high');
     for (let i = 0; i < 10 && !state.settled; i++) state = adaptTier(state, stall);
     expect(state.tier).toBe('low');
     expect(state.settled).toBe(true);
     expect(state.elapsedMs).toBeLessThanOrEqual(DEFAULT_GOVERNOR_POLICY.maxDurationMs);
+  });
+
+  describe('stalls (one multi-second frame, reported as its own window)', () => {
+    const STALL: FrameStats = { durationMs: 3000, frames: 1, p50Ms: 3000, p90Ms: 3000 };
+
+    it('does not downgrade on a single isolated stall', () => {
+      // Past warm-up, then a GC pause / shader compile, then smooth again until settled.
+      let state = run(createGovernorState('high'), repeat(SMOOTH, 4));
+      state = adaptTier(state, STALL);
+      expect(state.tier).toBe('high');
+      expect(state.stalls).toBe(1);
+      state = run(state, repeat(NEUTRAL, 12));
+      expect(state.tier).toBe('high');
+      expect(state.downgraded).toBe(false);
+      expect(state.settled).toBe(true);
+    });
+
+    it('does not let a single stall complete a slow streak on its own', () => {
+      // Without stall handling, 1 s of slow time plus a 3 s stall would pass the 3 s mark.
+      let state = run(createGovernorState('high'), repeat(SLOW, 4));
+      expect(state.slowMs).toBe(1500);
+      state = adaptTier(state, STALL);
+      expect(state.tier).toBe('high');
+      expect(state.slowMs).toBe(1500);
+      state = adaptTier(state, NEUTRAL);
+      expect(state.slowMs).toBe(0);
+      expect(state.tier).toBe('high');
+    });
+
+    it('downgrades on repeated stalls at one tier, consecutive or not', () => {
+      const back = run(createGovernorState('high'), [...repeat(SMOOTH, 4), STALL, STALL]);
+      expect(back.tier).toBe('medium');
+      expect(back.downgraded).toBe(true);
+      expect(back.stalls).toBe(0);
+
+      const spread = run(createGovernorState('high'), [
+        ...repeat(SMOOTH, 4),
+        STALL,
+        ...repeat(NEUTRAL, 2),
+        STALL,
+      ]);
+      expect(spread.tier).toBe('medium');
+    });
+
+    it('ignores a stall that began during warm-up', () => {
+      const state = run(createGovernorState('high'), [STALL, STALL]);
+      expect(state.stalls).toBe(1);
+      expect(state.tier).toBe('high');
+    });
+
+    it('breaks an upgrade streak', () => {
+      // 3.5 s of fast time, the stall, then 2 s more: never 6 s in a row.
+      const state = run(createGovernorState('medium'), [...repeat(SMOOTH, 6), STALL, ...repeat(SMOOTH, 2)]);
+      expect(state.tier).toBe('medium');
+      expect(state.fastMs).toBe(2000);
+    });
+
+    it('starts counting stalls afresh after a tier change', () => {
+      let state = run(createGovernorState('high'), [...repeat(SMOOTH, 4), STALL, STALL]);
+      expect(state.tier).toBe('medium');
+      state = run(state, [...repeat(NEUTRAL, 3), STALL]);
+      expect(state.tier).toBe('medium');
+      expect(state.stalls).toBe(1);
+    });
   });
 
   it('never goes below low', () => {
