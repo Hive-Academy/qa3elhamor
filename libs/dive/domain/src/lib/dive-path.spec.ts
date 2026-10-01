@@ -231,10 +231,210 @@ describe('DivePath depth', () => {
     expect(path.depthRatioOfY((34 + 1.4) / 2)).toBeCloseTo(0.5, 12);
   });
 
-  it('follows the camera height along the dive', () => {
+  it('follows the deepest camera height reached so far', () => {
     expect(path.depthAt(0)).toBeCloseTo(path.depthOfY(30), 9);
-    expect(path.depthAt(1)).toBeCloseTo(path.depthOfY(2), 9);
+    expect(path.depthAt(1)).toBeCloseTo(path.depthOfY(path.lowestY), 9);
     expect(path.depthAt(1)).toBeGreaterThan(path.depthAt(0));
-    expect(path.depthAt(0.5)).toBeCloseTo(path.depthOfY(path.pointAt(0.5)[1]), 9);
+    let deepest = Infinity;
+    for (let i = 0; i <= 400; i++) {
+      deepest = Math.min(deepest, path.pointAt(i / 400)[1]);
+      expect(path.depthAt(i / 400)).toBeCloseTo(path.depthOfY(deepest), 0);
+    }
+  });
+
+  it('never reads shallower as the dive goes on, even over a hill', () => {
+    // Down to 2, up over a 12-unit rise, down to 6: the rise must not wind the gauge back.
+    const hilly = DivePath.create({
+      controlPoints: [
+        [0, 30, 0],
+        [10, 2, 0],
+        [20, 12, 0],
+        [30, 6, 0],
+      ],
+      depth: { surfaceY: 34, floorY: 2, floorMeters: 180 },
+    });
+    let previous = hilly.depthAt(0);
+    for (let i = 1; i <= 5000; i++) {
+      const depth = hilly.depthAt(i / 5000);
+      expect(depth).toBeGreaterThanOrEqual(previous - 1e-9);
+      previous = depth;
+    }
+    expect(hilly.depthAt(1)).toBeCloseTo(hilly.depthOfY(hilly.lowestY), 9);
+    // The raw height does climb: that is what the gauge is ignoring.
+    const bottom = 0.535; // [10, 2, 0] is ~29.7 of ~55.5 units in
+    const crest = 0.79; // [20, 12, 0] is ~43.8 units in
+    expect(hilly.pointAt(crest)[1] - hilly.pointAt(bottom)[1]).toBeGreaterThan(5);
+    expect(hilly.depthAt(crest)).toBeCloseTo(hilly.depthAt(bottom), 0);
+  });
+
+  it('samples the lowest point exactly as a built path does', () => {
+    expect(DivePath.lowestYOf(SPEC.controlPoints)).toBe(path.lowestY);
+    expect(path.lowestY).toBeLessThanOrEqual(2);
+  });
+});
+
+/** SPEC with authored scroll positions, holds and an end subject. */
+const PACED: DivePathSpec = {
+  ...SPEC,
+  waypoints: [
+    { id: 'landmark-pineapple', at: 2, focus: [15.8, 2.7, -2], scroll: 0.25 },
+    { id: 'landmark-tiki', at: 3, scroll: 0.4 },
+    { id: 'landmark-bureau', at: 5, focus: [-12, 4.7, -0.2], scroll: 0.75 },
+  ],
+  pacing: { dwell: 0.08, creep: 1 },
+  endFocus: [-24, 4, 12],
+};
+
+describe('DivePath pacing', () => {
+  it('maps scroll straight to progress without pacing', () => {
+    const path = DivePath.create(SPEC);
+    for (const s of [0, 0.1, 0.5, 0.99, 1]) {
+      expect(path.progressAtScroll(s)).toBe(s);
+      expect(path.scrollAtProgress(s)).toBe(s);
+    }
+    expect(path.waypoints.map((w) => w.scroll)).toEqual(path.waypoints.map((w) => w.progress));
+  });
+
+  const path = DivePath.create(PACED);
+
+  it('reaches each stop at its authored scroll position', () => {
+    for (const w of path.waypoints) {
+      expect(path.progressAtScroll(w.scroll)).toBeCloseTo(w.progress, 12);
+      expect(path.scrollOf(w.id)).toBe(w.scroll);
+    }
+    expect(path.scrollOf('landmark-tiki')).toBe(0.4);
+    expect(() => path.scrollOf('nope')).toThrow(RangeError);
+  });
+
+  it('starts at the surface and ends at the floor', () => {
+    expect(path.progressAtScroll(0)).toBe(0);
+    expect(path.progressAtScroll(1)).toBe(1);
+    expect(path.progressAtScroll(-1)).toBe(0);
+    expect(path.progressAtScroll(Number.NaN)).toBe(0);
+  });
+
+  it('only creeps across a stop’s hold', () => {
+    const w = path.waypoint('landmark-bureau') as NonNullable<ReturnType<typeof path.waypoint>>;
+    const travelled = (path.progressAtScroll(w.scroll + 0.04) - path.progressAtScroll(w.scroll - 0.04)) * path.length;
+    expect(travelled).toBeCloseTo(1, 9);
+    // The same scroll elsewhere covers far more of the dive.
+    const elsewhere = (path.progressAtScroll(0.6) - path.progressAtScroll(0.52)) * path.length;
+    expect(elsewhere).toBeGreaterThan(5 * travelled);
+  });
+
+  it('never moves backwards, and inverts', () => {
+    let previous = 0;
+    for (let i = 0; i <= 1000; i++) {
+      const p = path.progressAtScroll(i / 1000);
+      expect(p).toBeGreaterThanOrEqual(previous);
+      previous = p;
+      expect(path.scrollAtProgress(p)).toBeCloseTo(i / 1000, 6);
+    }
+  });
+
+  it('shrinks holds that would overlap a neighbouring stop', () => {
+    const crowded = DivePath.create({ ...PACED, pacing: { dwell: 0.6, creep: 500 } });
+    let previous = 0;
+    for (let i = 0; i <= 500; i++) {
+      const p = crowded.progressAtScroll(i / 500);
+      expect(p).toBeGreaterThanOrEqual(previous);
+      previous = p;
+    }
+    for (const w of crowded.waypoints) expect(crowded.progressAtScroll(w.scroll)).toBeCloseTo(w.progress, 12);
+  });
+
+  it('copes with stops at the very start and end of the path', () => {
+    const edges = DivePath.create({
+      ...SPEC,
+      waypoints: [
+        { id: 'first', at: 0 },
+        { id: 'last', at: 6 },
+      ],
+      pacing: { dwell: 0.1, creep: 1 },
+    });
+    expect(edges.progressAtScroll(0.5)).toBeGreaterThan(0);
+    expect(edges.progressAtScroll(1)).toBe(1);
+  });
+
+  it('validates scroll positions, pacing and the end focus', () => {
+    const issues = DivePath.validate({
+      ...SPEC,
+      waypoints: [
+        { id: 'a', at: 1, scroll: 0.5 },
+        { id: 'b', at: 2, scroll: 0.4 },
+        { id: 'c', at: 3, scroll: 1 },
+        { id: 'd', at: 4 },
+      ],
+      pacing: { dwell: 1, creep: -1 },
+      endFocus: [0, Number.NaN, 0],
+    });
+    expect(issues.some((i) => i.includes('all set scroll'))).toBe(true);
+    expect(issues.some((i) => i.includes('"b" scroll must be after'))).toBe(true);
+    expect(issues.some((i) => i.includes('"c" scroll must be in (0, 1)'))).toBe(true);
+    expect(issues.some((i) => i.includes('pacing.dwell'))).toBe(true);
+    expect(issues.some((i) => i.includes('pacing.creep'))).toBe(true);
+    expect(issues.some((i) => i.includes('endFocus'))).toBe(true);
+    expect(DivePath.validate(PACED)).toEqual([]);
+  });
+});
+
+describe('DivePath attention', () => {
+  const path = DivePath.create(PACED);
+  const range = { inner: 2, outer: 10 };
+  const out: MutableVec3 = [0, 0, 0];
+
+  it('is fully on a stop’s focus at the stop and within the inner range', () => {
+    const p = path.progressOf('landmark-pineapple');
+    expect(path.attentionInto(p, range, out)).toBe(1);
+    expect(out).toEqual([15.8, 2.7, -2]);
+    expect(path.attentionInto(p + 1.5 / path.length, range, out)).toBe(1);
+  });
+
+  it('fades out beyond the outer range and leaves the buffer alone at 0', () => {
+    const sentinel: MutableVec3 = [7, 7, 7];
+    expect(path.attentionInto(0, range, sentinel)).toBe(0);
+    expect(sentinel).toEqual([7, 7, 7]);
+    const p = path.progressOf('landmark-pineapple') - 6 / path.length;
+    const w = path.attentionInto(p, range, out);
+    expect(w).toBeGreaterThan(0);
+    expect(w).toBeLessThan(1);
+  });
+
+  it('ignores stops without a focus and ends on the end focus', () => {
+    expect(path.attentionInto(1, range, out)).toBe(1);
+    expect(out).toEqual([-24, 4, 12]);
+  });
+
+  it('moves continuously along the whole dive, across every stop', () => {
+    const previous: MutableVec3 = [0, 0, 0];
+    let previousWeight = path.attentionInto(0, range, previous);
+    for (let i = 1; i <= 4000; i++) {
+      const current: MutableVec3 = [...previous];
+      const weight = path.attentionInto(i / 4000, range, current);
+      expect(Math.abs(weight - previousWeight)).toBeLessThan(0.05);
+      if (weight > 0 && previousWeight > 0) {
+        expect(distance(current, previous)).toBeLessThan(0.5);
+      }
+      previous[0] = current[0];
+      previous[1] = current[1];
+      previous[2] = current[2];
+      previousWeight = weight;
+    }
+  });
+
+  it('pans between two stops whose pulls overlap', () => {
+    const close = DivePath.create({ ...PACED, endFocus: undefined });
+    const wide = { inner: 1, outer: 200 };
+    const a = close.progressOf('landmark-pineapple');
+    const b = close.progressOf('landmark-bureau');
+    const mid: MutableVec3 = [0, 0, 0];
+    close.attentionInto((a + b) / 2, wide, mid);
+    expect(mid[0]).toBeLessThan(15.8);
+    expect(mid[0]).toBeGreaterThan(-12);
+  });
+
+  it('has nothing to look at on a path without foci', () => {
+    const bare = DivePath.create({ controlPoints: SPEC.controlPoints, depth: SPEC.depth });
+    expect(bare.attentionInto(0.5, range, out)).toBe(0);
   });
 });

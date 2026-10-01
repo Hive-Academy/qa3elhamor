@@ -17,9 +17,12 @@ export function scrollTopForProgress(progress: number, maxScroll: number): numbe
  * bars, touch and assistive technology all work without any code here.
  */
 export interface ScrollSource {
-  /** Current dive progress implied by the scroll position. */
+  /**
+   * How far down the scroll track the page is, in [0, 1]. The dive turns this into path
+   * progress with `DivePath.progressAtScroll`, which slows the camera near stops.
+   */
   read(): number;
-  /** Scrolls the page to the offset for `progress`, animated or instant. */
+  /** Scrolls the page to the scroll fraction `progress`, animated or instant. */
   scrollTo(progress: number, smooth: boolean): void;
   /** Calls `onChange` whenever the scroll position or the scrollable range changes. */
   subscribe(onChange: () => void): () => void;

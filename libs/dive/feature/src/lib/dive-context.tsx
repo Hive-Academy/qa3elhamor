@@ -1,6 +1,7 @@
-import type { DivePath } from '@qa3elhamor/dive-domain';
+import type { DiveAttentionRange, DivePath } from '@qa3elhamor/dive-domain';
 import { createContext, useContext, useEffect, useMemo, useSyncExternalStore, type ReactNode } from 'react';
 import { DiveController, type DiveState } from './dive-controller.js';
+import type { DiveFramingOptions } from './framing.js';
 
 const DiveContext = createContext<DiveController | null>(null);
 
@@ -15,6 +16,10 @@ export interface DiveProviderProps {
   readonly lookAhead?: number;
   /** Idle sway amplitude in world units; 0 disables it. */
   readonly sway?: number;
+  /** When the scrolling camera turns to a stop (`DIVE_CONTROLLER_DEFAULTS.attention`). */
+  readonly attention?: DiveAttentionRange;
+  /** Pull-back near stops on portrait viewports (`DIVE_FRAMING_DEFAULTS`). */
+  readonly framing?: DiveFramingOptions;
   readonly children?: ReactNode;
 }
 
@@ -29,13 +34,35 @@ export function DiveProvider({
   responsiveness,
   lookAhead,
   sway,
+  attention,
+  framing,
   children,
 }: DiveProviderProps) {
+  // `attention` and `framing` are compared by value, so passing them as inline objects does
+  // not rebuild the controller (and lose the visitor's place) on every render.
+  const attentionInner = attention?.inner;
+  const attentionOuter = attention?.outer;
+  const referenceAspect = framing?.referenceAspect;
+  const framingStrength = framing?.strength;
+  const maxScale = framing?.maxScale;
   // Reduced motion is applied by the effect below, not baked in here, so toggling the OS
   // setting does not rebuild the controller and lose the visitor's place.
   const controller = useMemo(
-    () => new DiveController(path, { responsiveness, lookAhead, sway }),
-    [path, responsiveness, lookAhead, sway]
+    () =>
+      new DiveController(path, {
+        responsiveness,
+        lookAhead,
+        sway,
+        attention:
+          attentionInner === undefined || attentionOuter === undefined
+            ? undefined
+            : { inner: attentionInner, outer: attentionOuter },
+        framing:
+          referenceAspect === undefined || framingStrength === undefined || maxScale === undefined
+            ? undefined
+            : { referenceAspect, strength: framingStrength, maxScale },
+      }),
+    [path, responsiveness, lookAhead, sway, attentionInner, attentionOuter, referenceAspect, framingStrength, maxScale]
   );
   useEffect(() => controller.setReducedMotion(reducedMotion), [controller, reducedMotion]);
 

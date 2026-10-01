@@ -9,9 +9,8 @@ export type PlaqueVec3 = readonly [number, number, number];
 
 /**
  * Default spot, in scene-world units (mount inside `<OceanWorld>`/`<WorldSpace>`): on the
- * seabed just past the dive's last control point (world [-22, 2.8, 14], i.e. scene-world
- * [-1.1, 0.14, 0.7]), a little further along the camera's final heading, so the notice is the
- * last thing the dive swims up to. Tune with `position` and `facing` if the route changes.
+ * seabed at the end of the dive. The app derives the dive's final camera pose from this board
+ * (`finalePose` in `apps/web/src/app/dive.config.ts`), so moving the board moves the finale.
  */
 export const DEFAULT_PLAQUE_POSITION: PlaqueVec3 = [-1.27, 0.05, 0.9];
 /** Default point the notice turns to face: the dive's final camera position. */

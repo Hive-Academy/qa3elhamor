@@ -1,4 +1,5 @@
 export * from './lib/spring.js';
+export * from './lib/framing.js';
 export * from './lib/scroll-source.js';
 export * from './lib/dive-controller.js';
 export * from './lib/dive-context.js';

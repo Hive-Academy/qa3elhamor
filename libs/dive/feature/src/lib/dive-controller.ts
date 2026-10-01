@@ -1,4 +1,5 @@
-import type { DivePath, DiveWaypoint, MutableVec3, Vec3 } from '@qa3elhamor/dive-domain';
+import type { DiveAttentionRange, DivePath, DiveWaypoint, MutableVec3, Vec3 } from '@qa3elhamor/dive-domain';
+import { DIVE_FRAMING_DEFAULTS, framingScale, type DiveFramingOptions } from './framing.js';
 import type { ScrollSource } from './scroll-source.js';
 import { settleSpring, snapSpring, stepCriticalSpring, type SpringState } from './spring.js';
 
@@ -42,14 +43,30 @@ export interface DiveControllerOptions {
   readonly lookAhead?: number;
   /** Amplitude of the idle sway in world units; 0 disables it. */
   readonly sway?: number;
+  /**
+   * Arc distances over which the scrolling camera turns from the path ahead to a stop's
+   * focus (`DivePath.attentionInto`). An `outer` of 0 disables it.
+   */
+  readonly attention?: DiveAttentionRange;
+  /** Pull-back near stops on narrow (portrait) viewports; see `framingScale`. */
+  readonly framing?: DiveFramingOptions;
   /** Jump instead of animating, and no sway (`prefers-reduced-motion`). */
   readonly reducedMotion?: boolean;
 }
 
+/**
+ * Tuned on the four-landmark route (dive-tuning): a 90% follow of a scroll step in about a
+ * second, a look-ahead long enough that the heading does not twitch on bends, a sway small
+ * enough not to shake a landmark seen from ten units away, and a gaze that starts turning to
+ * a stop 22 units out, so the short hops between landmarks pan from one to the next instead
+ * of staring at open seabed, and is locked on for the last 3.
+ */
 export const DIVE_CONTROLLER_DEFAULTS = {
-  responsiveness: 3.2,
-  lookAhead: 9,
-  sway: 0.22,
+  responsiveness: 3.8,
+  lookAhead: 12,
+  sway: 0.16,
+  attention: { inner: 3, outer: 22 },
+  framing: DIVE_FRAMING_DEFAULTS,
 } as const;
 
 /** Frames longer than this (tab switch, GC pause) are clamped so the camera does not leap. */
@@ -80,13 +97,36 @@ export class DiveController {
   private readonly responsiveness: number;
   private readonly lookAhead: number;
   private readonly swayAmplitude: number;
+  private readonly attention: DiveAttentionRange;
+  private readonly framing: DiveFramingOptions;
   private reducedMotion: boolean;
+  /**
+   * Distance multiplier near stops (1 on wide screens), eased towards `framingTarget` so a
+   * rotated phone or a resized window glides rather than jumps. The first aspect is applied
+   * as is: the page does not open with a pull-back animation.
+   */
+  private readonly framingDistance: SpringState = { value: 1, velocity: 0 };
+  private framingTarget = 1;
+  private aspectKnown = false;
 
   private readonly progress: SpringState = { value: 0, velocity: 0 };
   private readonly focusBlend: SpringState = { value: 0, velocity: 0 };
   private target = 0;
   private focusBlendTarget = 0;
+  /** The focus the camera is turning to (landmark-kernel); kept while the blend fades out. */
   private focusPoint: Vec3 | null = null;
+  /**
+   * Where the explicit focus actually is this frame, per axis. It follows `focusPoint` on a
+   * spring, so switching straight from one focused landmark to another pans the gaze across
+   * instead of cutting to the new one.
+   */
+  private readonly focusLook: readonly [SpringState, SpringState, SpringState] = [
+    { value: 0, velocity: 0 },
+    { value: 0, velocity: 0 },
+    { value: 0, velocity: 0 },
+  ];
+  private readonly scratchFocus: MutableVec3 = [0, 0, 0];
+  /** Scroll fraction (not progress) to restore on `release()`. */
   private heldScroll = 0;
   private source: ScrollSource | null = null;
   private snapNextStep = true;
@@ -95,12 +135,15 @@ export class DiveController {
   private readonly state: DiveState;
   private readonly listeners = new Set<() => void>();
   private readonly scratchTangent: MutableVec3 = [0, 0, 0];
+  private readonly scratchAttention: MutableVec3 = [0, 0, 0];
 
   constructor(path: DivePath, options: DiveControllerOptions = {}) {
     this.path = path;
     this.responsiveness = options.responsiveness ?? DIVE_CONTROLLER_DEFAULTS.responsiveness;
     this.lookAhead = options.lookAhead ?? DIVE_CONTROLLER_DEFAULTS.lookAhead;
     this.swayAmplitude = options.sway ?? DIVE_CONTROLLER_DEFAULTS.sway;
+    this.attention = options.attention ?? DIVE_CONTROLLER_DEFAULTS.attention;
+    this.framing = options.framing ?? DIVE_CONTROLLER_DEFAULTS.framing;
     this.reducedMotion = options.reducedMotion ?? false;
     const depth = path.depthAt(0);
     this.state = {
@@ -143,7 +186,7 @@ export class DiveController {
   connect(source: ScrollSource): () => void {
     this.source = source;
     const onScroll = (): void => {
-      if (this.state.mode === 'scroll') this.target = source.read();
+      if (this.state.mode === 'scroll') this.target = this.path.progressAtScroll(source.read());
     };
     onScroll();
     this.snapNextStep = true;
@@ -158,12 +201,26 @@ export class DiveController {
     this.reducedMotion = reduced;
   }
 
+  /**
+   * Tells the dive the viewport's aspect (width / height) so it can frame stops for it: on a
+   * portrait phone the camera stands further back from a landmark. The first call applies at
+   * once; later ones (rotation, resize) ease in over the next frames.
+   */
+  setViewAspect(aspect: number): void {
+    this.framingTarget = framingScale(aspect, this.framing);
+    if (!this.aspectKnown) {
+      this.aspectKnown = true;
+      snapSpring(this.framingDistance, this.framingTarget);
+    }
+  }
+
   // --- imperative API (landmark-kernel, overlays, navigation) ----------------------------
 
   /**
    * Swims to the waypoint `id` and turns to face its focus point, ignoring scroll until
-   * `release()`. Calling it again while focused moves to the other waypoint; the return
-   * position stays the one from before the first focus. Throws for an unknown id.
+   * `release()`. Calling it again while focused moves to the other waypoint, panning the gaze
+   * from the old focus to the new one; the return position stays the one from before the
+   * first focus. Throws for an unknown id.
    */
   focusWaypoint(id: string): void {
     const waypoint = this.requireWaypoint(id);
@@ -171,8 +228,18 @@ export class DiveController {
     this.state.mode = 'focus';
     this.state.focusedWaypointId = waypoint.id;
     this.target = waypoint.progress;
-    this.focusPoint = waypoint.focus;
-    this.focusBlendTarget = waypoint.focus ? 1 : 0;
+    if (waypoint.focus) {
+      // Nothing explicit in view yet: start the look on the new focus and let the blend ease
+      // it in. Otherwise keep the current look and let it travel (see `focusLook`).
+      if (!this.focusPoint || this.focusBlend.value <= 0) {
+        this.focusLook.forEach((axis, i) => snapSpring(axis, (waypoint.focus as Vec3)[i]));
+      }
+      this.focusPoint = waypoint.focus;
+      this.focusBlendTarget = 1;
+    } else {
+      // A stop with nothing to face: fade the old focus out rather than dropping it.
+      this.focusBlendTarget = 0;
+    }
     this.notify();
   }
 
@@ -200,7 +267,7 @@ export class DiveController {
     if (source && Math.abs(source.read() - this.heldScroll) > PUBLISH_EPSILON) {
       source.scrollTo(this.heldScroll, false);
     }
-    this.target = this.heldScroll;
+    this.target = this.path.progressAtScroll(this.heldScroll);
     this.notify();
   }
 
@@ -214,10 +281,10 @@ export class DiveController {
     const waypoint = this.requireWaypoint(id);
     if (this.state.mode !== 'scroll') {
       this.returnToScroll();
-      if (this.source) this.target = this.source.read();
+      if (this.source) this.target = this.path.progressAtScroll(this.source.read());
       this.notify();
     }
-    if (this.source) this.source.scrollTo(waypoint.progress, !this.reducedMotion);
+    if (this.source) this.source.scrollTo(waypoint.scroll, !this.reducedMotion);
     else this.target = waypoint.progress;
   }
 
@@ -235,17 +302,29 @@ export class DiveController {
     const dt = delta > 0 ? Math.min(delta, MAX_FRAME_SECONDS) : 0; // NaN and negatives: no time
     this.elapsed += dt;
 
+    const focus = this.focusPoint;
     if (this.reducedMotion || this.snapNextStep) {
       snapSpring(this.progress, this.target);
       snapSpring(this.focusBlend, this.focusBlendTarget);
+      snapSpring(this.framingDistance, this.framingTarget);
+      if (focus) this.focusLook.forEach((axis, i) => snapSpring(axis, focus[i]));
       this.snapNextStep = false;
     } else {
+      const lookRate = this.responsiveness * FOCUS_BLEND_RATE;
       stepCriticalSpring(this.progress, this.target, this.responsiveness, dt);
-      stepCriticalSpring(this.focusBlend, this.focusBlendTarget, this.responsiveness * FOCUS_BLEND_RATE, dt);
+      stepCriticalSpring(this.focusBlend, this.focusBlendTarget, lookRate, dt);
+      stepCriticalSpring(this.framingDistance, this.framingTarget, this.responsiveness, dt);
       // 1e-5 of the dive is about a millimetre of camera travel: invisible, and it lets the
       // controller stop publishing once the camera is at rest.
       settleSpring(this.progress, this.target, 1e-5);
       settleSpring(this.focusBlend, this.focusBlendTarget, 1e-4);
+      settleSpring(this.framingDistance, this.framingTarget, 1e-5);
+      if (focus) {
+        this.focusLook.forEach((axis, i) => {
+          stepCriticalSpring(axis, focus[i], lookRate, dt);
+          settleSpring(axis, focus[i], 1e-5);
+        });
+      }
     }
     if (this.focusBlendTarget === 0 && this.focusBlend.value === 0) this.focusPoint = null;
 
@@ -256,14 +335,14 @@ export class DiveController {
 
   // --- internals --------------------------------------------------------------------------
 
-  /** Writes the pose for `progress` and returns the depth at the unswayed camera height. */
+  /** Writes the pose for `progress` and returns the narrative depth there (`DivePath.depthAt`). */
   private writePose(progress: number): number {
     const { position, lookAt } = this.pose;
     const path = this.path;
     const tangent = this.scratchTangent;
 
     path.sampleInto(progress, position, tangent);
-    const depth = path.depthOfY(position[1]);
+    const depth = path.depthAt(progress);
 
     // Look a fixed distance ahead along the curve; past the end, continue along the final
     // tangent so the view never collapses onto the camera position.
@@ -278,12 +357,30 @@ export class DiveController {
       lookAt[2] += tangent[2] * overshoot;
     }
 
+    // Near a stop the scrolling camera turns from the path ahead to the stop's subject, so a
+    // visitor who stops scrolling there is looking at the landmark, not past it.
+    const attentionPoint = this.scratchAttention;
+    const attention = this.attention.outer > 0 ? path.attentionInto(progress, this.attention, attentionPoint) : 0;
+    if (attention > 0) mixInto(lookAt, attentionPoint, attention);
+
+    // An explicit focus (landmark-kernel) wins over both.
     const blend = clamp01(this.focusBlend.value);
-    const focus = this.focusPoint;
+    const focus = this.focusPoint !== null;
     if (focus && blend > 0) {
-      lookAt[0] += (focus[0] - lookAt[0]) * blend;
-      lookAt[1] += (focus[1] - lookAt[1]) * blend;
-      lookAt[2] += (focus[2] - lookAt[2]) * blend;
+      const look = this.scratchFocus;
+      look[0] = this.focusLook[0].value;
+      look[1] = this.focusLook[1].value;
+      look[2] = this.focusLook[2].value;
+      mixInto(lookAt, look, blend);
+    }
+
+    // On a narrow viewport, stand further back from whatever the camera is framing, along
+    // the line of sight, so the subject is not cropped at the sides.
+    const framing = (this.framingDistance.value - 1) * Math.max(attention, focus ? blend : 0);
+    if (framing > 0) {
+      position[0] += (position[0] - lookAt[0]) * framing;
+      position[1] += (position[1] - lookAt[1]) * framing;
+      position[2] += (position[2] - lookAt[2]) * framing;
     }
 
     // A slow, incommensurate drift: the diver is floating, not on rails. Only the position
@@ -323,7 +420,9 @@ export class DiveController {
 
   /** Remembers the scroll position to return to, unless control is already held. */
   private hold(): void {
-    if (this.state.mode === 'scroll') this.heldScroll = this.source?.read() ?? this.target;
+    if (this.state.mode === 'scroll') {
+      this.heldScroll = this.source?.read() ?? this.path.scrollAtProgress(this.target);
+    }
   }
 
   private requireWaypoint(id: string): DiveWaypoint {
@@ -335,4 +434,11 @@ export class DiveController {
   private notify(): void {
     for (const listener of this.listeners) listener();
   }
+}
+
+/** Moves `out` the fraction `t` of the way to `to`, in place. */
+function mixInto(out: MutableVec3, to: Vec3, t: number): void {
+  out[0] += (to[0] - out[0]) * t;
+  out[1] += (to[1] - out[1]) * t;
+  out[2] += (to[2] - out[2]) * t;
 }
