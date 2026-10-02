@@ -8,6 +8,7 @@ export const CREDIT_KINDS = [
   'inspiration',
   'font',
   'library',
+  'music',
   'other',
 ] as const;
 
@@ -15,7 +16,8 @@ export type CreditKind = (typeof CREDIT_KINDS)[number];
 
 /**
  * A content-level credit: who designed the site, what inspired it, which fonts or libraries
- * it ships with.
+ * it ships with, and the music it plays (`music`: the track's source in `url`, its licence in
+ * `license`; the site's config names the ambient bed's credit by id).
  *
  * Distinct from `Attribution` in `@qa3elhamor/world-domain`, which is the licence-mandated
  * CC-BY credit of each bundled 3D model. Those are tied to assets and live next to the asset

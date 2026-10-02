@@ -23,6 +23,7 @@ import {
   useQuality,
 } from '@qa3elhamor/world-feature';
 import { buildAmbientLife } from './ambient.config';
+import { DiveAudioMix } from './audio/dive-audio-mix';
 import { SiteCredits } from './credits';
 import { SceneCredits } from './scene-credits';
 import { DepthGauge } from './depth-gauge';
@@ -125,6 +126,8 @@ function Dive({ onDiveFailure }: DiveShellProps) {
   return (
     <DiveProvider path={DIVE_PATH} reducedMotion={reducedMotion}>
       <SiteTelemetry />
+      {/* The ambient sound follows the depth (`audio/`); narrators duck it while they talk. */}
+      <DiveAudioMix />
       <Landmarks
         inWorld={inWorldAvailable({
           reducedMotion,

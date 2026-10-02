@@ -13,6 +13,8 @@ Budgets live in one file: `tools/perf-budget/budgets.ts`.
 | Largest single chunk | raw size of every `.js` file in `dist` | `BUDGETS.maxChunkBytes` |
 | Initial-load models | on-disk size of every non-lazy model in `dist` | the asset manifest's `initialLoadBudgetBytes()` (`libs/world/domain`), not duplicated here |
 | Model present | every model the manifest lists exists in `dist` | the manifest |
+| Audio file size | on-disk size of every audio file in `dist` (`.opus`, `.m4a`, ...) | `BUDGETS.maxAudioFileBytes` (1.6 MiB) |
+| No audio up front | `index.html` and `moderation.html` neither reference nor preload audio, and no page's up-front load contains it | `tools/perf-budget/audio-budget.ts` |
 
 Failure output is one line per violation, naming the file, the measured size and the budget.
 
@@ -20,7 +22,12 @@ Failure output is one line per violation, naming the file, the measured size and
 npx nx run web:build
 npm run perf:budget                          # default: apps/web/dist, base "/"
 npx tsx tools/perf-budget/check.ts --dist some/dir --base /repo/
+npx vitest run --config tools/perf-budget/vitest.config.mts   # the gate's own specs
 ```
+
+Audio is never in the initial load: the music downloads only once the visitor turns sound on, and
+the sound code itself (`@qa3elhamor/world-audio`) is small enough to ride in the entry chunk, since it
+imports no three.js. See `docs/audio.md`.
 
 ## Changing a budget
 

@@ -31,6 +31,8 @@ describe('buildSiteCsp', () => {
     expect(d.get('style-src')).toEqual(["'self'"]);
     expect(d.get('connect-src')).toEqual(["'self'", 'blob:', 'data:']);
     expect(d.get('worker-src')).toEqual(["'self'", 'blob:']);
+    // The ambient music bed is a same-origin file (docs/audio.md); nothing wider.
+    expect(d.get('media-src')).toEqual(["'self'", 'blob:']);
     expect(d.get('object-src')).toEqual(["'none'"]);
     expect(d.get('frame-src')).toEqual(["'none'"]);
     expect(d.get('base-uri')).toEqual(["'self'"]);

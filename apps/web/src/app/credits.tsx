@@ -1,3 +1,5 @@
+import { credits as editorialCredits } from '@qa3elhamor/content-data-access';
+import type { Credit } from '@qa3elhamor/content-domain';
 import { shippedCredits, type ShippedCredit } from '@qa3elhamor/world-domain';
 import {
   CreditsDialog,
@@ -7,6 +9,10 @@ import {
 import { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import { useLocale } from './i18n/locale-context';
 import { CHROME_COPY } from './i18n/ui-strings';
+import { musicCredit } from './audio/audio-config';
+import { pageText } from './page-view/page-copy';
+import { CreditItem } from './page-view/page-parts';
+import { AUDIO } from '../site.config';
 
 /** Where the credits come from. Tests inject a failing source; the site uses the manifest. */
 export type CreditsSource = () => readonly ShippedCredit[];
@@ -43,6 +49,21 @@ export function useCredits(source: CreditsSource): CreditsResult {
 
 export interface SiteCreditsProps {
   readonly source?: CreditsSource;
+  /** The ambient music's credit (`AUDIO.music.creditId`); the configured one by default. */
+  readonly music?: Credit | null;
+}
+
+/** The music the site plays, credited under the model credits with its source and licence. */
+function MusicCredit({ credit }: { readonly credit: Credit }) {
+  const { locale } = useLocale();
+  return (
+    <section className="site-credits__music">
+      <h3 className="site-credits__subtitle">{CHROME_COPY[locale].creditsMusic}</h3>
+      <ul className="site-credits__music-list">
+        <CreditItem credit={credit} t={pageText(locale)} lang={locale} />
+      </ul>
+    </section>
+  );
 }
 
 /**
@@ -51,7 +72,10 @@ export interface SiteCreditsProps {
  * credits are reachable on every device. Its words follow the site's language; the licence
  * lines themselves stay in English (`lang="en"` on each), as the licences word them.
  */
-export function SiteCredits({ source = shippedCredits }: SiteCreditsProps) {
+export function SiteCredits({
+  source = shippedCredits,
+  music = musicCredit(AUDIO, editorialCredits),
+}: SiteCreditsProps) {
   const result = useCredits(source);
   const { locale, dir } = useLocale();
   const words = CHROME_COPY[locale];
@@ -75,7 +99,9 @@ export function SiteCredits({ source = shippedCredits }: SiteCreditsProps) {
           title={words.creditsTitle}
           intro={words.creditsIntro}
           closeLabel={words.creditsClose}
-        />
+        >
+          {music && <MusicCredit credit={music} />}
+        </CreditsDialog>
       ) : (
         <CreditsUnavailable message={words.creditsUnavailable} />
       )}

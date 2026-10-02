@@ -24,6 +24,13 @@ export const BUDGETS = {
 
   /** Gzipped size of the CSS the first view downloads. */
   initialCssGzipBytes: 20 * KiB,
+
+  /**
+   * On-disk size of any single audio file in the build (the ambient music bed, `dist/audio`).
+   * Audio is never part of the initial load: it downloads only once the visitor turns sound on
+   * (docs/audio.md), and no page may reference or preload it.
+   */
+  maxAudioFileBytes: 1.6 * 1024 * KiB,
 } as const;
 
 /**

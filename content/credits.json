@@ -22,6 +22,21 @@
       }
     },
     {
+      "id": "ambient-music",
+      "kind": "music",
+      "title": {
+        "en": "Underwater Theme II (background music)",
+        "ar": "Underwater Theme II (موسيقى الخلفية)"
+      },
+      "author": "Cleyton Kauffman",
+      "url": "https://opengameart.org/content/underwater-theme-ii",
+      "license": "CC0 1.0",
+      "note": {
+        "en": "Music by Cleyton Kauffman - https://soundcloud.com/cleytonkauffman",
+        "ar": "موسيقى: Cleyton Kauffman"
+      }
+    },
+    {
       "id": "three-js",
       "kind": "library",
       "title": {

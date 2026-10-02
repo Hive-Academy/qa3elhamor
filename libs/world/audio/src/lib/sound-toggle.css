@@ -1,0 +1,84 @@
+/*
+ * The sound switch. In the dive it sits under the depth gauge at the inline end (top right in
+ * English, top left in Arabic), on the chrome's layer (35) with the credits and the language
+ * switch: under the landmark stage (40), over the canvas. On the page view it floats in the
+ * bottom inline-end corner, over the sticky section nav (10).
+ */
+.sound-toggle {
+  position: fixed;
+  z-index: 35;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  padding: 0 0.75rem;
+  border: 1px solid rgba(230, 242, 255, 0.14);
+  border-radius: 999px;
+  background: rgba(4, 16, 34, 0.55);
+  backdrop-filter: blur(6px);
+  color: #e6f2ff;
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.sound-toggle[data-placement='dive'] {
+  inset-block-start: 5.5rem;
+  inset-inline-end: 1.5rem;
+}
+
+.sound-toggle[data-placement='page'] {
+  inset-block-end: 1.5rem;
+  inset-inline-end: 1.5rem;
+  z-index: 20;
+}
+
+.sound-toggle:hover {
+  background: rgba(4, 16, 34, 0.8);
+}
+
+.sound-toggle:focus-visible {
+  outline: 3px solid #ffd68c;
+  outline-offset: 2px;
+}
+
+.sound-toggle[aria-pressed='true'] {
+  border-color: rgba(127, 211, 240, 0.6);
+  color: #7fd3f0;
+}
+
+/* The invitation: the accent border and its words, so it reads as a question, not a state. */
+.sound-toggle[data-prompt] {
+  border-color: rgba(127, 211, 240, 0.45);
+}
+
+.sound-toggle__icon {
+  flex: none;
+}
+
+/* The name without a visible label: read by assistive technology, not shown. */
+.sound-toggle__label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.sound-toggle:not([data-prompt]) {
+  padding: 0;
+  width: 2.75rem;
+}
+
+@media (max-width: 40rem) {
+  .sound-toggle[data-placement='page'] {
+    inset-block-end: 1rem;
+    inset-inline-end: 1rem;
+  }
+}

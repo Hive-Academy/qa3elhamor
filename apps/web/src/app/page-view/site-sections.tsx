@@ -21,7 +21,7 @@ import { copyReader, textProps } from '../overlays/overlay-copy';
 import type { WallCopy } from '../wall/wall-copy';
 import type { WallPort } from '../wall/wall-port';
 import type { NarrationStop } from './page-content';
-import { OutboundLink, PageSection, type PagePartProps } from './page-parts';
+import { CreditItem, PageSection, type PagePartProps } from './page-parts';
 
 /** About: the Citizenship Card itself, the same parts the dive's card is built from. */
 export function AboutSection({
@@ -209,35 +209,7 @@ export function CreditsSection({
           <h3 className="page-subtitle">{t('siteCredits')}</h3>
           <ul className="page-credits" data-testid="page-site-credits">
             {credits.map((credit) => (
-              <li key={credit.id}>
-                {credit.url ? (
-                  <OutboundLink href={credit.url} t={t}>
-                    {localize(credit.title, lang)}
-                  </OutboundLink>
-                ) : (
-                  <span {...textProps(credit.title, lang)}>{localize(credit.title, lang)}</span>
-                )}
-                {credit.author && (
-                  <>
-                    {' '}
-                    <span dir="auto">{t('by', { author: credit.author })}</span>
-                  </>
-                )}
-                {credit.license && (
-                  <>
-                    {'. '}
-                    <span dir="auto">
-                      {t('licence', { licence: credit.license })}
-                    </span>
-                  </>
-                )}
-                {credit.note && (
-                  <>
-                    {'. '}
-                    <span {...textProps(credit.note, lang)}>{localize(credit.note, lang)}</span>
-                  </>
-                )}
-              </li>
+              <CreditItem key={credit.id} credit={credit} t={t} lang={lang} />
             ))}
           </ul>
         </>

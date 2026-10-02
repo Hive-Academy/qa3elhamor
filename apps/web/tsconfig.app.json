@@ -76,6 +76,9 @@
       "path": "../../libs/world/feature/tsconfig.lib.json"
     },
     {
+      "path": "../../libs/world/audio/tsconfig.lib.json"
+    },
+    {
       "path": "../../libs/shared/util/tsconfig.lib.json"
     },
     {

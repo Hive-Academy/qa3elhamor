@@ -284,7 +284,7 @@ collections:
               - name: kind
                 label: Kind
                 widget: select
-                options: [design, inspiration, font, library, other]
+                options: [design, inspiration, font, library, music, other]
               - { name: title, label: Title, widget: object, fields: *l10n }
               - { name: author, label: Author, widget: string, required: false }
               - name: url

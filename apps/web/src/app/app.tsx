@@ -1,6 +1,7 @@
 import { Suspense, useEffect } from 'react';
 import { siteCopy } from '@qa3elhamor/content-data-access';
 import { localize } from '@qa3elhamor/content-domain';
+import { AudioProvider, SoundToggle } from '@qa3elhamor/world-audio';
 import { WEB_ASSETS, initialLoadBudgetBytes } from '@qa3elhamor/world-domain';
 import {
   DiveLoadBoundary,
@@ -19,7 +20,11 @@ import { directionOf, formatNumber } from './i18n/locale';
 import { LocaleProvider, useLocale } from './i18n/locale-context';
 import { CHROME_COPY } from './i18n/ui-strings';
 import { fillCopy } from './overlays/overlay-copy';
-import { SITE } from '../site.config';
+import { musicSources, soundConfigured } from './audio/audio-config';
+import { AUDIO, SITE } from '../site.config';
+
+/** Resolved once: the config owns the paths, Vite owns the deploy base. */
+const MUSIC = musicSources(AUDIO, import.meta.env.BASE_URL);
 
 /** The page view's content, from the same content module; built on first use, once. */
 let cachedPageContent: ReturnType<typeof buildPageContent> | undefined;
@@ -30,8 +35,9 @@ const pageContent = () => (cachedPageContent ??= buildPageContent());
  * libraries, which keeps a fork's changes confined to data.
  *
  * This module and what it imports are the first download: the language, the dive-or-page
- * decision, the page view and the dive's chrome (scene note, skip link, language switch). The
- * 3D dive itself (`dive-shell.tsx`) is a separate chunk, loaded only when the visitor dives.
+ * decision, the page view, the sound switch and the dive's chrome (scene note, skip link,
+ * language switch). The 3D dive itself (`dive-shell.tsx`) is a separate chunk, loaded only when
+ * the visitor dives. The music bed downloads only once the visitor wants sound (docs/audio.md).
  */
 export function App() {
   return (
@@ -41,10 +47,15 @@ export function App() {
   );
 }
 
-/** Dive or page (`page-view/presentation.ts`), both in the site's language. */
+/**
+ * Dive or page (`page-view/presentation.ts`), both in the site's language, under one sound
+ * provider so switching between them keeps the sound. The dive may start sound at the first
+ * click, tap or key press; the page view only from its sound button.
+ */
 function Views() {
   const view = usePresentation(hasWebgl);
   const { locale } = useLocale();
+  const presentation = view.presentation.kind;
 
   // The build writes the title in the default language (`site-build.ts`); this keeps it in the
   // visitor's.
@@ -52,21 +63,36 @@ function Views() {
     document.title = localize(siteCopy.siteTitle, locale);
   }, [locale]);
 
-  // No WebGL, `?view=page`, the "read it as a page" link, or a dive that broke: the same
-  // content as a readable 2D page (`page-view/`).
-  if (view.presentation.kind === 'page') {
-    return (
-      <PageView
-        content={pageContent()}
-        reason={view.presentation.reason}
-        diveHref={hrefFor(window.location, 'dive')}
-        onReturnToDive={view.returnToDive}
-        focusOnMount={view.switched}
-        locale={locale}
-      />
-    );
-  }
+  return (
+    <AudioProvider music={MUSIC} ambience={AUDIO.ambience} presentation={presentation}>
+      {/* No WebGL, `?view=page`, the "read it as a page" link, or a dive that broke: the same
+          content as a readable 2D page (`page-view/`). */}
+      {view.presentation.kind === 'page' ? (
+        <PageView
+          content={pageContent()}
+          reason={view.presentation.reason}
+          diveHref={hrefFor(window.location, 'dive')}
+          onReturnToDive={view.returnToDive}
+          focusOnMount={view.switched}
+          locale={locale}
+        />
+      ) : (
+        <Dive view={view} />
+      )}
+      {soundConfigured(AUDIO) && <SiteSoundToggle placement={presentation} />}
+    </AudioProvider>
+  );
+}
 
+/** The sound switch, in the site's language. */
+function SiteSoundToggle({ placement }: { readonly placement: 'dive' | 'page' }) {
+  const { locale } = useLocale();
+  const words = CHROME_COPY[locale];
+  return <SoundToggle label={words.sound} promptLabel={words.soundPrompt} placement={placement} />;
+}
+
+/** The dive's chrome and the lazy 3D chunk. */
+function Dive({ view }: { readonly view: ReturnType<typeof usePresentation> }) {
   return (
     <>
       {/* Before the 3D chunk arrives the visitor already has the site's name, the way out to

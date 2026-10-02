@@ -9,7 +9,8 @@
  *   - the first view's CSS is over budget (gzip),
  *   - any single JavaScript chunk is over budget (raw),
  *   - the models the first view loads exceed the manifest's `initialLoadBudgetBytes()`,
- *   - a model the manifest lists is missing from the build.
+ *   - a model the manifest lists is missing from the build,
+ *   - an audio file is over its per-file budget, or a page loads or preloads audio up front.
  *
  * Budgets: tools/perf-budget/budgets.ts. Docs: docs/perf-budget.md.
  *
@@ -22,6 +23,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { gzipSync } from 'node:zlib';
 import { WEB_ASSETS, initialLoadBudgetBytes } from '@qa3elhamor/world-domain';
+import { auditAudio } from './audio-budget';
 import { BUDGETS, FIRST_VIEW_FORBIDDEN_CHUNK } from './budgets';
 import { siteBase } from '../deploy/site-base';
 import { listFiles, pageLoad } from './dist-graph';
@@ -129,6 +131,23 @@ if (modelBytes > modelBudget) {
       `${kib(modelBudget)}. Re-run "npm run assets:compress" or mark rarely-needed models lazy.`,
   );
 }
+
+// 4. Audio: each file under budget, none of it in any page's up-front load.
+const upFrontPages = ['index.html', 'moderation.html'].filter((page) =>
+  existsSync(resolve(distDir, page)),
+);
+const audio = auditAudio({
+  files: listFiles(distDir).map((path) => ({ path, bytes: rawSize(path) })),
+  pages: Object.fromEntries(
+    upFrontPages.map((page) => [page, readFileSync(resolve(distDir, page), 'utf8')]),
+  ),
+  upFront: upFrontPages.flatMap((page) =>
+    page === 'index.html' ? initial.all : pageLoad(distDir, page, base).all,
+  ),
+  maxFileBytes: BUDGETS.maxAudioFileBytes,
+});
+lines.push(...audio.lines);
+violations.push(...audio.violations);
 
 console.log(`perf-budget: ${distDir}`);
 for (const line of lines) console.log(`  ${line}`);

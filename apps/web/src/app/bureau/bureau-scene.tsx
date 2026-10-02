@@ -5,6 +5,7 @@ import { framingScale } from '@qa3elhamor/dive-feature';
 import { textDirection } from '@qa3elhamor/landmarks-domain';
 import { isTextEntry } from '@qa3elhamor/landmarks-ui';
 import type { LandmarkSceneProps } from '@qa3elhamor/landmarks-feature';
+import { useAudioDucking } from '@qa3elhamor/world-audio';
 import {
   Suspense,
   useCallback,
@@ -163,6 +164,8 @@ function BureauVisit({
     farewellSeconds,
     dispatch,
   );
+  // The ambient music steps back while the narrator talks (`@qa3elhamor/world-audio`).
+  useAudioDucking(dialogue.typing);
   const [playing, setPlaying] = useState<NarratorChoice>(choice);
 
   // --- filing: the scroll, the stamp, the bottle ------------------------------------------

@@ -28,7 +28,8 @@ export const bilingual = <const T extends Readonly<Record<string, string>>>(tabl
 
 /**
  * The page chrome around the dive: the language switch, the scene note, the depth gauge, the
- * credits and the landmark list. English accessible names are kept stable for the e2e suite.
+ * credits, the sound button and the landmark list. English accessible names are kept stable
+ * for the e2e suite.
  */
 export const CHROME_COPY = bilingual({
   en: {
@@ -46,6 +47,9 @@ export const CHROME_COPY = bilingual({
       'The 3D models in this site are used under the Creative Commons Attribution 4.0 licence. Their authors are credited below, as the licence requires.',
     creditsClose: 'Close',
     creditsUnavailable: 'Credits unavailable — licence error',
+    creditsMusic: 'Music',
+    sound: 'Sound',
+    soundPrompt: 'Sound on?',
   },
   ar: {
     languageGroup: 'اللغة',
@@ -62,6 +66,9 @@ export const CHROME_COPY = bilingual({
       'النماذج ثلاثية الأبعاد في هذا الموقع مستخدمة بموجب رخصة المشاع الإبداعي، نسب المصنَّف 4.0. أصحابها مذكورون أدناه كما تشترط الرخصة.',
     creditsClose: 'إغلاق',
     creditsUnavailable: 'الحقوق غير متاحة — خطأ في الترخيص',
+    creditsMusic: 'الموسيقى',
+    sound: 'الصوت',
+    soundPrompt: 'تشغيل الصوت؟',
   },
 });
 

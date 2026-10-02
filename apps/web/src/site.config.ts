@@ -1,5 +1,6 @@
 import type { Locale, LocalizedText } from '@qa3elhamor/content-domain';
 import type { LandmarkDefinition } from '@qa3elhamor/landmarks-domain';
+import type { AudioSource } from '@qa3elhamor/world-audio';
 import type { OceanEnvironmentOverrides } from '@qa3elhamor/world-feature';
 import type { DiveConfig } from './app/dive.config';
 import type { NarratorCastConfig } from './app/narrators.config';
@@ -253,6 +254,38 @@ export const NARRATOR_CAST: NarratorCastConfig = {
     tiki: { asset: 'patrick-narrator', heightFactor: 1.9 },
   },
   bundledByDefault: true,
+};
+
+/** The ambient sound (docs/audio.md). */
+export interface AudioConfig {
+  /**
+   * The looping music bed, or `null` for none. `sources` are paths inside `apps/web/public`,
+   * best first: the browser plays the first whose `type` it supports (Opus, then AAC). Files
+   * download only once the visitor wants sound. `creditId` is the `content/credits.json` entry
+   * (kind `music`) recording the track's source and licence: licence-clean music only.
+   */
+  readonly music: {
+    readonly sources: readonly AudioSource[];
+    readonly creditId: string;
+  } | null;
+  /** The synthesized rumble and bubbles (no files). */
+  readonly ambience: boolean;
+}
+
+/**
+ * Sound is off until the visitor's first click, tap or key press in the dive (never on the
+ * page view or with reduced motion, where only the sound button starts it), and their choice
+ * is remembered. `music: null, ambience: false` removes sound and its button entirely.
+ */
+export const AUDIO: AudioConfig = {
+  music: {
+    sources: [
+      { url: 'audio/aquarium-bed.opus', type: 'audio/ogg; codecs=opus' },
+      { url: 'audio/aquarium-bed.m4a', type: 'audio/mp4' },
+    ],
+    creditId: 'ambient-music',
+  },
+  ambience: true,
 };
 
 /** The place's name in `locale`, falling back to English. */

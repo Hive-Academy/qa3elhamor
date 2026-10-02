@@ -5,6 +5,7 @@
   "dependencies": {
     "@qa3elhamor/world-domain": "*",
     "@qa3elhamor/shared-util": "*",
+    "@qa3elhamor/world-audio": "*",
     "@qa3elhamor/world-feature": "*",
     "@qa3elhamor/world-ui": "*",
     "@qa3elhamor/dive-domain": "*",

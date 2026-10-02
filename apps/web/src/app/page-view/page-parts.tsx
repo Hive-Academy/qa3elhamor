@@ -1,5 +1,6 @@
 import {
   localize,
+  type Credit,
   type Locale,
   type LocalizedText,
   type Period,
@@ -178,5 +179,38 @@ export function Highlights({
         </li>
       ))}
     </ul>
+  );
+}
+
+/** One editorial credit (`content/credits.json`): its title (linked when it has a URL), author, licence and note. */
+export function CreditItem({ credit, t, lang }: PagePartProps & { readonly credit: Credit }) {
+  return (
+    <li>
+      {credit.url ? (
+        <OutboundLink href={credit.url} t={t}>
+          {localize(credit.title, lang)}
+        </OutboundLink>
+      ) : (
+        <span {...textProps(credit.title, lang)}>{localize(credit.title, lang)}</span>
+      )}
+      {credit.author && (
+        <>
+          {' '}
+          <span dir="auto">{t('by', { author: credit.author })}</span>
+        </>
+      )}
+      {credit.license && (
+        <>
+          {'. '}
+          <span dir="auto">{t('licence', { licence: credit.license })}</span>
+        </>
+      )}
+      {credit.note && (
+        <>
+          {'. '}
+          <span {...textProps(credit.note, lang)}>{localize(credit.note, lang)}</span>
+        </>
+      )}
+    </li>
   );
 }

@@ -3,6 +3,7 @@ import { useFrame, useThree } from '@react-three/fiber';
 import { framingScale } from '@qa3elhamor/dive-feature';
 import { textDirection } from '@qa3elhamor/landmarks-domain';
 import type { LandmarkSceneProps } from '@qa3elhamor/landmarks-feature';
+import { useAudioDucking } from '@qa3elhamor/world-audio';
 import {
   useCallback,
   useEffect,
@@ -139,6 +140,8 @@ function NarratedVisit<Slot>({
     farewellSeconds,
     dispatch,
   );
+  // The ambient music steps back while the narrator talks (`@qa3elhamor/world-audio`).
+  useAudioDucking(dialogue.typing);
   const [fullOpen, setFullOpen] = useFullView(open);
   const { onPick, onUnhover } = useObjectPicking(dispatch);
   // The picked object lives in the dialogue state: one source of truth, cleared whenever the

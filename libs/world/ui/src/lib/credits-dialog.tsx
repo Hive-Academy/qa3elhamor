@@ -1,5 +1,5 @@
 import type { ShippedCredit } from '@qa3elhamor/world-domain';
-import { useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { CreditsList } from './credits-list.js';
 import './credits.css';
 
@@ -11,6 +11,8 @@ export interface CreditsDialogProps {
   readonly title?: string;
   readonly intro?: string;
   readonly closeLabel?: string;
+  /** More credits after the model credits (the site's music, say), rendered as given. */
+  readonly children?: ReactNode;
 }
 
 const DEFAULT_INTRO =
@@ -28,6 +30,7 @@ export function CreditsDialog({
   title = 'Credits',
   intro = DEFAULT_INTRO,
   closeLabel = 'Close',
+  children,
 }: CreditsDialogProps) {
   const [open, setOpen] = useState(false);
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -74,6 +77,7 @@ export function CreditsDialog({
         </h2>
         <p className="world-credits__intro">{intro}</p>
         <CreditsList credits={credits} />
+        {children}
         <button type="button" className="world-credits__close" onClick={() => setOpen(false)}>
           {closeLabel}
         </button>

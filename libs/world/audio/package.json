@@ -1,0 +1,28 @@
+{
+  "name": "@qa3elhamor/world-audio",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "sideEffects": ["**/*.css"],
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "import": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./package.json": "./package.json"
+  },
+  "nx": {
+    "name": "world-audio",
+    "tags": ["scope:world", "type:feature", "platform:web"]
+  },
+  "dependencies": {
+    "@qa3elhamor/world-domain": "*"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  }
+}

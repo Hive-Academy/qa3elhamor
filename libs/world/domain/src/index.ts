@@ -6,3 +6,6 @@ export * from './lib/quality-profile.js';
 export * from './lib/quality-capabilities.js';
 export * from './lib/quality-governor.js';
 export * from './lib/quality-assets.js';
+export * from './lib/audio/sound-preference.js';
+export * from './lib/audio/sound-session.js';
+export * from './lib/audio/audio-mix.js';

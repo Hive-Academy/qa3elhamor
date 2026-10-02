@@ -53,6 +53,36 @@ body {
   display: contents;
 }
 
+/* The music's credit in the credits dialog, under the model credits, in the dialog's paper style. */
+.site-credits__music {
+  margin-top: 1.25rem;
+}
+
+.site-credits__subtitle {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+}
+
+.site-credits__music-list {
+  margin: 0;
+  padding: 0;
+  padding-inline-start: 0.875rem;
+  border-inline-start: 3px solid #7a4b2a;
+  list-style: none;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.site-credits__music-list a {
+  color: #7a2f1f;
+}
+
+.site-credits__music-list a:focus-visible {
+  outline: 3px solid #ffd68c;
+  outline-offset: 2px;
+}
+
 /* The canvas stays put while the document scrolls underneath it: the scroll is the dive. */
 .stage {
   position: fixed;
