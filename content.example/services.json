@@ -1,0 +1,69 @@
+{
+  "_sample": "SAMPLE CONTENT for a fictional resident, Sam Reef. `npm run template:reset` copies these files over content/; replace every value with your own (content/README.md), then delete this note.",
+  "items": [
+    {
+      "id": "web-apps",
+      "menuName": {
+        "en": "Kelp Shake",
+        "ar": "ميلك شيك الطحالب"
+      },
+      "title": {
+        "en": "Web apps",
+        "ar": "تطبيقات الويب"
+      },
+      "description": {
+        "en": "SAMPLE SERVICE. Fast, accessible web apps from first sketch to production.",
+        "ar": "خدمة نموذجية. تطبيقات ويب سريعة وسهلة الاستخدام من أول فكرة لحد الإطلاق."
+      },
+      "price": {
+        "en": "Two pearls",
+        "ar": "حبتين لولي"
+      },
+      "tags": [
+        "React",
+        "TypeScript"
+      ]
+    },
+    {
+      "id": "3d-sites",
+      "menuName": {
+        "en": "Classic Krabby Patty",
+        "ar": "الكرابي باتي الكلاسيكي"
+      },
+      "title": {
+        "en": "3D websites",
+        "ar": "مواقع ثلاثية الأبعاد"
+      },
+      "description": {
+        "en": "SAMPLE SERVICE. Interactive 3D on the web that still loads on a phone.",
+        "ar": "خدمة نموذجية. تجارب ثلاثية الأبعاد على الويب تفتح على الموبايل كمان."
+      },
+      "price": {
+        "en": "A sand dollar",
+        "ar": "دولار رملي"
+      },
+      "tags": [
+        "Three.js",
+        "React Three Fiber"
+      ]
+    },
+    {
+      "id": "advice",
+      "menuName": {
+        "en": "Secret Formula",
+        "ar": "الوصفة السرية"
+      },
+      "title": {
+        "en": "Technical advice",
+        "ar": "استشارات تقنية"
+      },
+      "description": {
+        "en": "SAMPLE SERVICE. A second opinion on your architecture.",
+        "ar": "خدمة نموذجية. رأي تاني في معمارية مشروعك."
+      },
+      "tags": [
+        "Architecture"
+      ]
+    }
+  ]
+}

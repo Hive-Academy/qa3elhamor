@@ -1,0 +1,8 @@
+f1c4039 fork: rebrand to Coral Deep (config, content, assets only)
+39462e9 template fix: motto takes its own direction
+88daa18 template fix: card spec independent of content
+e61634b template fix: theme the lagoon palette
+40de567 template fix: backslash too
+47e35fe template fix: refuse a shell-mangled SITE_BASE
+3ca2210 template fix: specs follow site.config
+925e659 template fix: reset ignores content/package.json

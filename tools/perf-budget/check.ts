@@ -23,6 +23,7 @@ import { fileURLToPath } from 'node:url';
 import { gzipSync } from 'node:zlib';
 import { WEB_ASSETS, initialLoadBudgetBytes } from '@qa3elhamor/world-domain';
 import { BUDGETS, FIRST_VIEW_FORBIDDEN_CHUNK } from './budgets';
+import { siteBase } from '../deploy/site-base';
 import { listFiles, pageLoad } from './dist-graph';
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
@@ -33,8 +34,7 @@ function option(name: string): string | undefined {
 }
 
 const distDir = resolve(option('--dist') ?? resolve(repoRoot, 'apps/web/dist'));
-const siteBase = (option('--base') ?? process.env['SITE_BASE'] ?? '/').replace(/^\/+|\/+$/g, '');
-const base = siteBase === '' ? '/' : `/${siteBase}/`;
+const base = siteBase(option('--base') ?? process.env['SITE_BASE']);
 
 const kib = (bytes: number): string => `${(bytes / 1024).toFixed(1)} KiB`;
 const gzipSize = (file: string): number => gzipSync(readFileSync(resolve(distDir, file))).length;

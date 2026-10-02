@@ -12,7 +12,8 @@
     "cms:local": "npx decap-server",
     "perf:budget": "tsx tools/perf-budget/check.ts",
     "deploy:check-contact": "tsx tools/deploy/check-contact-env.ts",
-    "deploy:prepare": "tsx tools/deploy/prepare-artefact.ts"
+    "deploy:prepare": "tsx tools/deploy/prepare-artefact.ts",
+    "template:reset": "tsx tools/template/reset.ts"
   },
   "private": true,
   "devDependencies": {

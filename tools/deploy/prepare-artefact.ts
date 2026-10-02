@@ -18,12 +18,12 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { pageLoad } from '../perf-budget/dist-graph';
 import { CSP_META_PATTERN } from './csp';
+import { siteBase } from './site-base';
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const index = process.argv.indexOf('--dist');
 const distDir = resolve(index === -1 ? resolve(repoRoot, 'apps/web/dist') : process.argv[index + 1]);
-const siteBase = (process.env['SITE_BASE'] ?? '/').replace(/^\/+|\/+$/g, '');
-const base = siteBase === '' ? '/' : `/${siteBase}/`;
+const base = siteBase(process.env['SITE_BASE']);
 
 if (!existsSync(resolve(distDir, 'index.html'))) {
   console.error(`prepare-artefact: ${distDir}/index.html not found. Run "npx nx run web:build" first.`);

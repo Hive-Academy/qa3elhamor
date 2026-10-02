@@ -13,6 +13,22 @@ It is built as a **config-driven, open-source template**. Content, branding, and
 resolve from data files; the scene libraries never import them directly. Forking should mean
 editing configuration, not components.
 
+## Use this template
+
+Fork it, then make it yours by editing content, config and assets only:
+
+```bash
+npm install
+npm run template:reset        # swap the owner's profile for neutral sample content
+# edit content/*.json and apps/web/src/site.config.ts (brand, theme, languages, landmarks, cast)
+npx nx dev web
+```
+
+[`docs/template.md`](docs/template.md) walks through it in about 30 minutes: content, brand and
+theme, the narrator cast, moving or replacing landmarks (including swapping a landmark's 3D model
+through the asset pipeline, with its licence credit), providers, and deploying to your own GitHub
+Pages. It was written by rebranding a fork end to end.
+
 ---
 
 ## Status

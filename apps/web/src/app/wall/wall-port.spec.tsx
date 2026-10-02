@@ -78,7 +78,7 @@ describe('the Bureau form with the wall on', () => {
     scroll({ submit }, true);
     const group = screen.getByRole('group', { name: 'Where should it go?' });
     expect(
-      within(group).getByRole('radio', { name: /Send privately to Abdallah/ }),
+      within(group).getByRole('radio', { name: en('complaintPrivateLabel') }),
     ).toHaveProperty('checked', true);
     fill();
     fireEvent.change(screen.getByLabelText(new RegExp(en('complaintEmailLabel'))), {

@@ -462,7 +462,7 @@ export function ComplaintScroll({
                       className="complaint-scroll__choice-name"
                     >
                       {option === 'private'
-                        ? wallWords.visibilityPrivate
+                        ? t('complaintPrivateLabel')
                         : wallWords.visibilityPublic}
                     </label>
                     <span
@@ -470,7 +470,7 @@ export function ComplaintScroll({
                       className="complaint-scroll__hint"
                     >
                       {option === 'private'
-                        ? wallWords.visibilityPrivateHint
+                        ? t('complaintPrivateHint')
                         : wallWords.visibilityPublicHint}
                     </span>
                   </span>

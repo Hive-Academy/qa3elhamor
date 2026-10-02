@@ -1,18 +1,13 @@
 /// <reference types='vitest' />
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { contentSecurityPolicy } from '../../tools/deploy/csp-vite-plugin.mjs';
-
-/**
- * Public base path. `/` suits a GitHub Pages user site (https://<user>.github.io/) and any
- * custom domain; a forker deploying to a project site sets `SITE_BASE=/<repo>/` at build time.
- * Always normalised to a leading and trailing slash. See docs/deploy.md.
- */
-function siteBase(raw: string | undefined): string {
-  const trimmed = (raw ?? '').trim().replace(/^\/+|\/+$/g, '');
-  return trimmed === '' ? '/' : `/${trimmed}/`;
-}
+// Public base path (`SITE_BASE`, docs/deploy.md): one rule with perf:budget and deploy:prepare
+// (tools/deploy/site-base.ts).
+import { contentSecurityPolicy, siteBase } from '../../tools/deploy/csp-vite-plugin.mjs';
+import { siteTemplate } from './src/site-build';
+import { DIVE_CONFIG, LANDMARKS, LANDMARK_PLACEMENTS, SITE } from './src/site.config';
 
 export default defineConfig(() => ({
   root: import.meta.dirname,
@@ -32,9 +27,25 @@ export default defineConfig(() => ({
     port: 4200,
     host: 'localhost',
   },
+  // siteTemplate: each page's <head> (title, description, theme colour, favicon, social
+  // preview) and the theme's CSS custom properties, from src/site.config.ts and
+  // content/site.json (src/site-build.ts, docs/template.md). `SITE_URL` (optional) is the
+  // site's public address, for the absolute URLs social previews need.
   // contentSecurityPolicy: build-time <meta> CSP per HTML entry (tools/deploy/csp.ts,
   // docs/security.md). Dev runs without one.
-  plugins: [react(), contentSecurityPolicy()],
+  plugins: [
+    react(),
+    siteTemplate({
+      site: SITE,
+      landmarks: LANDMARKS,
+      dive: DIVE_CONFIG,
+      placements: LANDMARK_PLACEMENTS,
+      readSiteJson: () =>
+        JSON.parse(readFileSync(resolve(import.meta.dirname, '../../content/site.json'), 'utf8')),
+      siteUrl: process.env['SITE_URL'],
+    }),
+    contentSecurityPolicy(),
+  ],
   // Uncomment this if you are using workers.
   // worker: {
   //  plugins: [],

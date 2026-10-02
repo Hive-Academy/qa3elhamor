@@ -156,11 +156,15 @@ describe('CitizenshipCard', () => {
     ).toBe('/fixed.webp');
   });
 
-  it('isolates the Arabic motto and the content-sourced text from the card direction', () => {
+  it('isolates the motto and the content-sourced text from the card direction', () => {
     renderCard();
     const motto = screen.getByText(siteCopy.citizenStatusMotto.en);
     expect(motto.tagName).toBe('BDI');
-    expect(motto.getAttribute('dir')).toBe('rtl');
+    // Its own direction, from its own script: Arabic reads right to left, a Latin motto doesn't.
+    expect(motto.getAttribute('dir')).toBe('auto');
+    expect(motto.getAttribute('lang')).toBe(
+      /[؀-ۿ]/u.test(siteCopy.citizenStatusMotto.en) ? 'ar' : null,
+    );
     // A translated field follows the card's direction; nothing is forced on it.
     expect(screen.getByText(profile.name.en).hasAttribute('dir')).toBe(false);
     for (const link of profile.links) {
@@ -173,11 +177,16 @@ describe('CitizenshipCard', () => {
 
 describe('CitizenshipCard in Arabic', () => {
   it('marks a field without a translation as English, left to right, and leaves the rest alone', () => {
-    renderCard('ar', { ...profile, headline: { en: 'Only in English' } });
+    // Fixture text, not the site's content: a fork's content may have no Arabic at all.
+    renderCard('ar', {
+      ...profile,
+      name: { en: 'Sam Reef', ar: 'سام ريف' },
+      headline: { en: 'Only in English' },
+    });
     const headline = screen.getByText('Only in English');
     expect(headline.getAttribute('lang')).toBe('en');
     expect(headline.getAttribute('dir')).toBe('ltr');
-    const name = screen.getByText(profile.name.ar ?? profile.name.en);
+    const name = screen.getByText('سام ريف');
     expect(name.hasAttribute('lang')).toBe(false);
   });
 });

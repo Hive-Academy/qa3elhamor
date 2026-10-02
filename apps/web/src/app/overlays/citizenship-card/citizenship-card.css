@@ -4,8 +4,8 @@
  * there re-skins the card too. Logical properties keep it correct in RTL.
  */
 .citizen-card {
-  --citizen-sea: #0f5e6e;
-  --citizen-sea-deep: #0a3d4a;
+  --citizen-sea: var(--theme-lagoon);
+  --citizen-sea-deep: var(--theme-lagoon-deep);
   --citizen-laminate: #fbf6e8;
 
   position: relative;

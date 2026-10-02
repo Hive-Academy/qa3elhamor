@@ -74,13 +74,14 @@ const OPTIONS: Readonly<Record<string, AssetOptions>> = {
 };
 
 const landmarkIds = new Set(LANDMARKS.map((l) => l.id));
-const WHOLE_MODEL_IDS = [
-  'pineapple-interior',
-  'spongebob-character',
-  'patrick-character',
-  'spongebob-narrator',
-  'patrick-narrator',
-];
+/**
+ * Every other manifest entry is a whole model: its source compressed as it is (plus any
+ * `OPTIONS`), not re-centred. So adding your own model is a `SOURCE_MODELS` + `WEB_ASSETS` entry
+ * and nothing here (docs/template.md, "Replace a landmark's model").
+ */
+const WHOLE_MODEL_IDS = WEB_ASSETS.map((a) => a.id).filter(
+  (id) => id !== 'environment' && !landmarkIds.has(id),
+);
 const RECIPE_IDS = new Set(['environment', ...landmarkIds, ...WHOLE_MODEL_IDS]);
 
 function sourcePath(entry: AssetEntry): string {

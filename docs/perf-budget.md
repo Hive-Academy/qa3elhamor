@@ -53,8 +53,8 @@ Keep three/R3F/drei out of the entry's graph:
   guard, which imports three).
 - `world-feature` and `world-ui` declare `"sideEffects": ["**/*.css"]`, so importing one light
   export from the barrel doesn't pull in the whole library.
-- Data the page view shares with the dive lives in light modules (`landmark-definitions.ts`,
-  `credits.tsx`, `world-ui`'s `plaque-placement.ts`). The 3D halves live apart
+- Data the page view shares with the dive lives in light modules (`src/site.config.ts`, which
+  imports types only, `credits.tsx`, `world-ui`'s `plaque-placement.ts`). The 3D halves live apart
   (`landmarks.config.ts`, `scene-credits.tsx`, `credits-plaque.tsx`).
 
 The gate checks this. `npm run perf:budget` fails when `index.html` or `moderation.html` loads a

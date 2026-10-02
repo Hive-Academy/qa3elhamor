@@ -1,4 +1,4 @@
-import type { Locale, LocalizedText } from '@qa3elhamor/content-domain';
+import type { Locale, LocalizedText, SiteCopy } from '@qa3elhamor/content-domain';
 import { bilingual } from '../i18n/ui-strings';
 
 /**
@@ -39,20 +39,14 @@ export const BUREAU_VISIT_COPY = bilingual({
 /**
  * What the Sardine President says once the bottle is on its way: one line per delivery outcome,
  * by the id the dialogue knows it under. Honest about a Bureau with no post office wired up.
+ * They name the site's owner, so they are content (`content/site.json` → `copy`).
  */
-export const FILED_LINES = {
-  filed: {
-    en: "Stamped, bottled and off on the current. It reaches Abdallah's desk before the next tide.",
-    ar: 'اتختمت، واتقفلت في إزازة، وماشية مع التيار. هتوصل مكتب عبدالله قبل المدّ الجاي.',
-  },
-  'filed-unsent': {
-    en: "Stamped and bottled, but between us: the Bureau's post office has not opened yet, so this bottle is going nowhere. The links on the Citizenship Card reach him.",
-    ar: 'اتختمت واتقفلت في إزازة، بس بيني وبينك: مكتب بريد البلدية لسه ما فتحش، فالإزازة دي مش رايحة في حتة. روابط بطاقة المواطن بتوصله.',
-  },
-  'filed-public': {
-    en: 'Stamped and bottled for the moderators. Once they approve it, it goes up on the public wall for every citizen to read.',
-    ar: 'اتختمت واتقفلت في إزازة رايحة للمشرفين. أول ما يوافقوا عليها، هتتعلّق على اللوحة العامة وكل المواطنين يقروها.',
-  },
-} as const satisfies Record<string, Required<LocalizedText>>;
+export const filedLines = (
+  copy: SiteCopy,
+): Readonly<Record<FiledLineId, LocalizedText>> => ({
+  filed: copy.complaintFiledLine,
+  'filed-unsent': copy.complaintFiledUnsentLine,
+  'filed-public': copy.complaintFiledPublicLine,
+});
 
-export type FiledLineId = keyof typeof FILED_LINES;
+export type FiledLineId = 'filed' | 'filed-unsent' | 'filed-public';

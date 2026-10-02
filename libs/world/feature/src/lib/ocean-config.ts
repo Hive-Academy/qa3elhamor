@@ -1,8 +1,9 @@
 /**
  * Every tunable of the deep-ocean atmosphere, in one place.
  *
- * `template-config` (per-fork look) and `quality-tiers` (per-device budget) drive these later;
- * until then the defaults below are the art direction. Colours are sRGB hex strings; distances
+ * A site overrides them per deployment (`SITE.ocean` in `apps/web/src/site.config.ts`, passed as
+ * `OceanWorld config`), and `quality-tiers` scales them per device; the defaults below are the
+ * art direction. Colours are sRGB hex strings; distances
  * and sizes are world units (see `WORLD_SCALE` in `world-space.tsx`).
  */
 export interface OceanFogConfig {

@@ -1,19 +1,14 @@
 import { DivePath, type DivePacingSpec, type DivePathSpec, type Vec3 } from '@qa3elhamor/dive-domain';
 import { WATER_VOLUME, WORLD_SCALE, sceneToWorld } from '@qa3elhamor/world-feature';
 import { DEFAULT_PLAQUE_FACING, DEFAULT_PLAQUE_POSITION } from '@qa3elhamor/world-ui';
+import { DIVE_CONFIG, LANDMARK_PLACEMENTS } from '../site.config';
 
-/**
- * Landmark anchors in scene-world units, as written by the asset pipeline to
- * `public/models/placements.json`. They are restated here because the app's TypeScript root
- * is `src/`; `dive.config.spec.ts` fails the build if the two ever disagree.
+/*
+ * How the dive is built from its route. The route itself, and the spots it stops at, are
+ * config: `DIVE_CONFIG` and `LANDMARK_PLACEMENTS` in `src/site.config.ts`.
  */
-export const LANDMARK_PLACEMENTS = {
-  'landmark-pineapple': [0.7891174902964195, 0.06950939887368529, -0.09919549481878809],
-  'landmark-tiki': [0.6515264937685465, 0.07000999830640853, -0.19213949727700275],
-  'landmark-krusty-krab': [-0.592705484493699, 0.0724034984617643, -0.3194804883119353],
-  'landmark-bureau': [-0.6057479723003212, 0.171782495712135, -0.008706998630456653],
-} as const satisfies Record<string, Vec3>;
 
+/** A named spot on the seabed (`LANDMARK_PLACEMENTS`): what a dive stop is named after. */
 export type LandmarkId = keyof typeof LANDMARK_PLACEMENTS;
 
 /** One control point of the dive. */
@@ -57,31 +52,6 @@ export interface DiveConfig {
   readonly route: readonly DiveRouteEntry[];
   readonly finale: DiveFinale;
 }
-
-/**
- * The sample dive: down from the surface towards the town, a stop at the pineapple, a short
- * hop to the tiki head beside it, over the rocks to the Krusty Krab, up to the Complaints
- * Bureau, and down to the credits notice on the seabed. Each landmark gets a similar share of
- * the scroll whatever the distance between them, and a hold where the camera only creeps.
- * template-config will move this into the forkable config.
- */
-export const DIVE_CONFIG: DiveConfig = {
-  screens: 8,
-  floorMeters: 180,
-  pacing: { dwell: 0.09, creep: 1.2 },
-  route: [
-    { kind: 'pass', position: [38, 31, 42] },
-    { kind: 'pass', position: [30, 19, 28] },
-    { kind: 'pass', position: [23, 9, 14] },
-    { kind: 'stop', landmark: 'landmark-pineapple', viewOffset: [3.5, 2.4, 7], focusHeight: 1.3, scroll: 0.2 },
-    { kind: 'stop', landmark: 'landmark-tiki', viewOffset: [-2.5, 1.8, 6.5], focusHeight: 1, scroll: 0.36 },
-    { kind: 'pass', position: [0, 5.5, 8] },
-    { kind: 'stop', landmark: 'landmark-krusty-krab', viewOffset: [9, 3.6, 3.75], focusHeight: 0.5, scroll: 0.6 },
-    { kind: 'pass', position: [-5.5, 7.5, 9] },
-    { kind: 'stop', landmark: 'landmark-bureau', viewOffset: [-3.5, 3.4, 8.5], focusHeight: 1.8, scroll: 0.82 },
-  ],
-  finale: { distance: 7.5, height: 3, faceHeight: 3.5 },
-};
 
 /**
  * The finale's camera position and look target in world units, from the credits plaque's

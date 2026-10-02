@@ -1,0 +1,80 @@
+{
+  "_sample": "SAMPLE CONTENT for a fictional resident, Sam Reef. `npm run template:reset` copies these files over content/; replace every value with your own (content/README.md), then delete this note.",
+  "items": [
+    {
+      "id": "reef-labs",
+      "company": {
+        "en": "Reef Labs (sample)",
+        "ar": "ريف لابز (نموذج)"
+      },
+      "role": {
+        "en": "Senior Developer",
+        "ar": "مطوّر أول"
+      },
+      "location": {
+        "en": "Remote",
+        "ar": "عن بُعد"
+      },
+      "period": {
+        "start": "2022-03"
+      },
+      "summary": {
+        "en": "SAMPLE ENTRY. Builds the product's web app and the tooling around it.",
+        "ar": "خبرة نموذجية. يبني تطبيق الويب للمنتج والأدوات حوله."
+      },
+      "highlights": [
+        {
+          "en": "Replace with something you shipped, and what it changed."
+        },
+        {
+          "en": "Replace with a second highlight."
+        }
+      ],
+      "tech": [
+        "TypeScript",
+        "React",
+        "Node.js"
+      ],
+      "quip": {
+        "en": "Meets every deadline, eventually. Brings snacks to the reef.",
+        "ar": "بيسلّم كل حاجة في ميعادها، في الآخر. وبيجيب حاجة حلوة للشِّعب."
+      }
+    },
+    {
+      "id": "kelp-co",
+      "company": {
+        "en": "Kelp & Co. (sample)",
+        "ar": "كيلب وشركاه (نموذج)"
+      },
+      "role": {
+        "en": "Developer",
+        "ar": "مطوّر"
+      },
+      "location": {
+        "en": "The shallows",
+        "ar": "المياه الضحلة"
+      },
+      "period": {
+        "start": "2019-01",
+        "end": "2022-02"
+      },
+      "summary": {
+        "en": "SAMPLE ENTRY. Your previous role.",
+        "ar": "خبرة نموذجية. دورك السابق."
+      },
+      "highlights": [
+        {
+          "en": "Replace with a highlight from this role."
+        }
+      ],
+      "tech": [
+        "JavaScript",
+        "PostgreSQL"
+      ],
+      "quip": {
+        "en": "Asked good questions. Some of them twice.",
+        "ar": "سأل أسئلة كويسة. بعضها مرتين."
+      }
+    }
+  ]
+}

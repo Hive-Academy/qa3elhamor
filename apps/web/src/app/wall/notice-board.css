@@ -9,7 +9,7 @@
   --nb-cork-dark: #8f6237;
   --nb-paper: #f7efd9;
   --nb-paper-edge: #dccb9f;
-  --nb-ink: #2a2118;
+  --nb-ink: var(--theme-ink);
   --nb-ink-soft: #5b4a36;
   --nb-pin: #b3261e;
   --nb-focus: #0b6fa4;

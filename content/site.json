@@ -307,6 +307,26 @@
     "complaintErrorMalformed": {
       "en": "That does not look like an email address.",
       "ar": "هذا لا يبدو عنوان بريد إلكتروني."
+    },
+    "complaintPrivateLabel": {
+      "en": "Send privately to Abdallah",
+      "ar": "ابعتها لعبدالله على انفراد"
+    },
+    "complaintPrivateHint": {
+      "en": "Only he reads it. Leave a reply address if you want an answer.",
+      "ar": "هو بس اللي هيقراها. سيب عنوان للرد لو عايز إجابة."
+    },
+    "complaintFiledLine": {
+      "en": "Stamped, bottled and off on the current. It reaches Abdallah's desk before the next tide.",
+      "ar": "اتختمت، واتقفلت في إزازة، وماشية مع التيار. هتوصل مكتب عبدالله قبل المدّ الجاي."
+    },
+    "complaintFiledUnsentLine": {
+      "en": "Stamped and bottled, but between us: the Bureau's post office has not opened yet, so this bottle is going nowhere. The links on the Citizenship Card reach him.",
+      "ar": "اتختمت واتقفلت في إزازة، بس بيني وبينك: مكتب بريد البلدية لسه ما فتحش، فالإزازة دي مش رايحة في حتة. روابط بطاقة المواطن بتوصله."
+    },
+    "complaintFiledPublicLine": {
+      "en": "Stamped and bottled for the moderators. Once they approve it, it goes up on the public wall for every citizen to read.",
+      "ar": "اتختمت واتقفلت في إزازة رايحة للمشرفين. أول ما يوافقوا عليها، هتتعلّق على اللوحة العامة وكل المواطنين يقروها."
     }
   }
 }

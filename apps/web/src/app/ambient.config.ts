@@ -10,7 +10,7 @@ import {
 
 /**
  * Ambient life placed around the dive. Everything positional is derived from the dive path at
- * runtime (whatever `dive.config.ts` currently routes), so re-tuning the dive moves the fish,
+ * runtime (whatever `DIVE_CONFIG` in `site.config.ts` currently routes), so re-tuning the dive moves the fish,
  * the Hamour's patrol and the kelp clearings with it. Counts are the quality tier's call
  * (`QUALITY_PROFILES[tier].ambientLife`); this file decides where and what.
  *

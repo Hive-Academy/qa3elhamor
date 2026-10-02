@@ -9,11 +9,13 @@ message naming the file, the field and the problem, for example:
 content/resume.json → items[0].period.start: expected a month as YYYY-MM, got "2024-13"
 ```
 
-The shipped values are now the site owner's real profile. Edit these files to update them.
+The shipped values are the site owner's real profile. **Forking?** Don't edit them in place:
+`npm run template:reset` swaps in the neutral sample from `content.example/` (a fictional "Sam
+Reef", validated by the tests), then make it yours (`docs/template.md`).
 
 | File              | Holds                                                              |
 | ----------------- | ------------------------------------------------------------------ |
-| `site.json`       | `profile` (name, headline, bio, location, avatar, skills, links) and `copy` (overlay titles, button labels, page title) |
+| `site.json`       | `profile` (name, headline, bio, location, avatar, skills, links) and `copy` (overlay titles, button labels, the page's `<title>` and description, and the Bureau's lines that name you) |
 | `resume.json`     | `items`: experience entries, newest first                          |
 | `services.json`   | `items`: services, each with a playful `menuName` and a real `title` |
 | `projects.json`   | `items`: work you showcase: `title`, `summary`, optional `description`, `highlights`, `role`, `period`, `tech`, `links` (`repo`, `live`, `case-study`), `media` (`src` + `alt`), `featured`, `order` |

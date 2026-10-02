@@ -10,6 +10,9 @@ import {
   storeLocale,
 } from './locale';
 
+// Independent of the site's own `SITE.locales`: these pin the resolution rules for a bilingual site.
+const BOTH = ['en', 'ar'] as const;
+
 describe('parseLocale', () => {
   it.each([
     ['ar', 'ar'],
@@ -18,32 +21,32 @@ describe('parseLocale', () => {
     ['en', 'en'],
     ['en-GB', 'en'],
   ])('reads %s as %s', (tag, locale) => {
-    expect(parseLocale(tag)).toBe(locale);
+    expect(parseLocale(tag, BOTH)).toBe(locale);
   });
 
   it.each([null, undefined, '', 'fr', 'arabic', 'e'])('rejects %s', (tag) => {
-    expect(parseLocale(tag)).toBeNull();
+    expect(parseLocale(tag, BOTH)).toBeNull();
   });
 });
 
 describe('resolveLocale: query, then storage, then the browser, then English', () => {
   it('lets ?lang= win over everything', () => {
     expect(
-      resolveLocale({ search: '?view=page&lang=ar', stored: 'en', languages: ['en-US'] }),
+      resolveLocale({ search: '?view=page&lang=ar', stored: 'en', languages: ['en-US'], enabled: BOTH }),
     ).toEqual({ locale: 'ar', source: 'query' });
     expect(
-      resolveLocale({ search: '?lang=en', stored: 'ar', languages: ['ar-EG'] }),
+      resolveLocale({ search: '?lang=en', stored: 'ar', languages: ['ar-EG'], enabled: BOTH }),
     ).toEqual({ locale: 'en', source: 'query' });
   });
 
   it('falls through an unknown ?lang= to the stored choice', () => {
     expect(
-      resolveLocale({ search: '?lang=fr', stored: 'ar', languages: ['en'] }),
+      resolveLocale({ search: '?lang=fr', stored: 'ar', languages: ['en'], enabled: BOTH }),
     ).toEqual({ locale: 'ar', source: 'storage' });
   });
 
   it('uses the stored choice over the browser', () => {
-    expect(resolveLocale({ search: '', stored: 'en', languages: ['ar-EG'] })).toEqual({
+    expect(resolveLocale({ search: '', stored: 'en', languages: ['ar-EG'], enabled: BOTH })).toEqual({
       locale: 'en',
       source: 'storage',
     });
@@ -51,15 +54,25 @@ describe('resolveLocale: query, then storage, then the browser, then English', (
 
   it('takes the first supported browser language: ar* speaks Arabic', () => {
     expect(
-      resolveLocale({ search: '', stored: null, languages: ['fr-FR', 'ar-EG', 'en'] }),
+      resolveLocale({ search: '', stored: null, languages: ['fr-FR', 'ar-EG', 'en'], enabled: BOTH }),
     ).toEqual({ locale: 'ar', source: 'navigator' });
     expect(
-      resolveLocale({ search: '', stored: 'garbage', languages: ['en-US', 'ar'] }),
+      resolveLocale({ search: '', stored: 'garbage', languages: ['en-US', 'ar'], enabled: BOTH }),
     ).toEqual({ locale: 'en', source: 'navigator' });
   });
 
+  it('speaks only the enabled languages: Arabic off reads every Arabic signal as the default', () => {
+    expect(parseLocale('ar-EG', ['en'])).toBeNull();
+    expect(
+      resolveLocale({ search: '?lang=ar', stored: 'ar', languages: ['ar-EG'], enabled: ['en'] }),
+    ).toEqual({ locale: 'en', source: 'default' });
+    expect(
+      resolveLocale({ search: '', stored: null, languages: ['fr'], enabled: ['ar', 'en'] }),
+    ).toEqual({ locale: 'ar', source: 'default' });
+  });
+
   it('defaults to English', () => {
-    expect(resolveLocale({ search: '', stored: null, languages: ['de', 'fr'] })).toEqual({
+    expect(resolveLocale({ search: '', stored: null, languages: ['de', 'fr'], enabled: BOTH })).toEqual({
       locale: 'en',
       source: 'default',
     });

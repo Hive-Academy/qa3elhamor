@@ -2,3 +2,4 @@
 // compiles csp-plugin.ts (and csp.ts) as part of the config bundle. Why a separate .mjs:
 // see csp-vite-plugin.d.mts.
 export { contentSecurityPolicy } from './csp-plugin.ts';
+export { siteBase } from './site-base.ts';

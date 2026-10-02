@@ -6,19 +6,19 @@
  * wraps the page. Logical properties throughout: the page flips for Arabic.
  */
 .page-view {
-  --lmk-paper: #f3ead3;
-  --lmk-paper-edge: #dccb9f;
-  --lmk-ink: #2a2118;
-  --lmk-ink-soft: #5b4a36;
-  --lmk-rule: #8c3b2a;
-  --lmk-focus: #0b6fa4;
-  --page-sea: #0f5e6e;
-  --page-sea-deep: #0a3d4a;
-  --page-night: #0a1e3f;
-  --page-foam: #e6f2ff;
-  --page-sand: #f3ead3;
+  --lmk-paper: var(--theme-paper);
+  --lmk-paper-edge: var(--theme-paper-edge);
+  --lmk-ink: var(--theme-ink);
+  --lmk-ink-soft: var(--theme-ink-soft);
+  --lmk-rule: var(--theme-rule);
+  --lmk-focus: var(--theme-focus);
+  --page-sea: var(--theme-lagoon);
+  --page-sea-deep: var(--theme-lagoon-deep);
+  --page-night: var(--theme-sea);
+  --page-foam: var(--theme-foam);
+  --page-sand: var(--theme-paper);
   --page-glow: #ffd68c;
-  --page-link: #0b5874;
+  --page-link: var(--theme-link);
 
   min-height: 100vh;
   background:
@@ -177,7 +177,7 @@
   position: sticky;
   inset-block-start: 0;
   z-index: 10;
-  background: rgba(10, 30, 63, 0.94);
+  background: color-mix(in srgb, var(--theme-sea) 94%, transparent);
   border-block-start: 1px solid rgba(243, 234, 211, 0.12);
 }
 

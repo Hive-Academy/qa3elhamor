@@ -2,6 +2,8 @@ import { localize, type Locale } from '@qa3elhamor/content-domain';
 import { useCallback, useEffect, useRef, type MouseEvent } from 'react';
 import type { CreditsSource } from '../credits';
 import { LanguageToggle } from '../i18n/language-toggle';
+import { directionOf } from '../i18n/locale';
+import { SITE, placeName } from '../../site.config';
 import { copyReader, textProps } from '../overlays/overlay-copy';
 import { pageText, type PageText, type PageViewCopyKey } from './page-copy';
 import type { PageContent } from './page-content';
@@ -160,9 +162,9 @@ export function PageView({
         <div className="page-view__masthead-inner">
           <div className="page-view__topline">
             <p className="page-view__place">
-              {/* The district's own name, always Arabic: isolated from the page direction. */}
-              <bdi lang="ar" dir="rtl">
-                قاع الهامور
+              {/* The place's own name as a sign (`SITE.brand.mark`): isolated from the page direction. */}
+              <bdi lang={SITE.brand.mark.lang} dir={directionOf(SITE.brand.mark.lang)}>
+                {SITE.brand.mark.text}
               </bdi>
             </p>
             <LanguageToggle placement="inline" />
@@ -182,7 +184,7 @@ export function PageView({
             {site('siteDescription')}
           </p>
           <div className="page-view__notice" data-reason={reason}>
-            <p>{t(NOTICES[reason])}</p>
+            <p>{t(NOTICES[reason], { place: placeName(lang) })}</p>
             <DiveLink
               reason={reason}
               href={diveHref}

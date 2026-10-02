@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { LANDMARK_PLACEMENTS } from '../dive.config';
+import { LANDMARK_PLACEMENTS } from '../../site.config';
 import {
   pointAtScreen,
   pointAtScreenAbove,

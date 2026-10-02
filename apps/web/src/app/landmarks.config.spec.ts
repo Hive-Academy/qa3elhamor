@@ -3,9 +3,8 @@ import { resolve } from 'node:path';
 import { findAsset } from '@qa3elhamor/world-domain';
 import { describe, expect, it } from 'vitest';
 import { ComingSoonOverlay } from './coming-soon-overlay';
-import { DIVE_CONFIG } from './dive.config';
 import { effectivePresentation } from '@qa3elhamor/landmarks-domain';
-import { LANDMARKS } from './landmark-definitions';
+import { DIVE_CONFIG, LANDMARKS } from '../site.config';
 import {
   LANDMARK_OVERLAYS,
   LANDMARK_SCENES,
@@ -22,12 +21,9 @@ const placements = JSON.parse(
 
 describe('landmarks config', () => {
   it('builds a valid registry against the dive and the overlays', () => {
-    expect(buildLandmarkRegistry().all.map((d) => d.id)).toEqual([
-      'pineapple',
-      'tiki',
-      'krusty-krab',
-      'bureau',
-    ]);
+    expect(buildLandmarkRegistry().all.map((d) => d.id)).toEqual(
+      LANDMARKS.map((d) => d.id),
+    );
   });
 
   it('stays in sync with the dive: one landmark per stop, in route order', () => {
@@ -38,10 +34,12 @@ describe('landmarks config', () => {
     expect(LANDMARKS.map((d) => d.waypoint)).toEqual(stops);
   });
 
-  it('places every landmark where the asset pipeline put it, with a manifested model', () => {
+  it('places every landmark cut from the map where the pipeline cut it, with a manifested model', () => {
     for (const definition of LANDMARKS) {
       expect(findAsset(definition.model), definition.model).toBeDefined();
-      expect(definition.position).toEqual(placements[definition.model]?.offset);
+      // A whole model of a fork's own (`offset: null`) stands wherever the config puts it.
+      const cut = placements[definition.model]?.offset;
+      if (cut) expect(definition.position, definition.id).toEqual(cut);
     }
   });
 
@@ -55,32 +53,25 @@ describe('landmarks config', () => {
     expect(() => buildLandmarkRegistry([...LANDMARKS, stray])).toThrow(
       /jellyfish-fields\.waypoint: "landmark-jellyfish" is not a dive waypoint[\s\S]*jellyfish-fields\.overlay/,
     );
-    expect(Object.keys(LANDMARK_OVERLAYS).sort()).toEqual(
-      LANDMARKS.flatMap((d) => (d.overlay ? [d.overlay] : [])).sort(),
+    for (const definition of LANDMARKS)
+      if (definition.overlay) expect(LANDMARK_OVERLAYS[definition.overlay], definition.id).toBeDefined();
+    // Only the scenes a configured landmark shows are built.
+    expect(Object.keys(LANDMARK_SCENES).sort()).toEqual(
+      LANDMARKS.flatMap((d) => (d.scene ? [d.scene] : [])).sort(),
     );
   });
 
-  it('binds real overlays to the finished landmarks; the rest stay placeholders', () => {
-    expect(LANDMARK_OVERLAYS['pineapple']).not.toBe(ComingSoonOverlay);
-    expect(LANDMARK_OVERLAYS['bureau']).not.toBe(ComingSoonOverlay);
-    expect(LANDMARK_OVERLAYS['tiki']).not.toBe(ComingSoonOverlay);
-    expect(LANDMARK_OVERLAYS['krusty-krab']).not.toBe(ComingSoonOverlay);
+  it('binds real overlays to the finished landmarks', () => {
+    for (const key of ['pineapple', 'bureau', 'tiki', 'krusty-krab'])
+      expect(LANDMARK_OVERLAYS[key], key).not.toBe(ComingSoonOverlay);
   });
 
-  it('presents the narrated landmarks in the world, with their dialogs as the fallback', () => {
-    for (const id of ['pineapple', 'tiki', 'krusty-krab', 'bureau']) {
-      const definition = LANDMARKS.find((d) => d.id === id);
-      expect(definition?.scene && LANDMARK_SCENES[definition.scene], id).toBeDefined();
-      expect(definition && effectivePresentation(definition, true), id).toBe('in-world');
-      expect(definition && effectivePresentation(definition, false), id).toBe('dialog');
-      expect(definition?.overlay, id).toBe(id);
+  it('presents the in-world landmarks in the world, with their dialogs as the fallback', () => {
+    for (const definition of LANDMARKS) {
+      if (definition.presentation !== 'in-world') continue;
+      expect(definition.scene && LANDMARK_SCENES[definition.scene], definition.id).toBeDefined();
+      expect(effectivePresentation(definition, true), definition.id).toBe('in-world');
+      expect(effectivePresentation(definition, false), definition.id).toBe('dialog');
     }
-  });
-
-  it('presents every landmark in the world now that the Bureau is narrated too', () => {
-    for (const definition of LANDMARKS)
-      expect(effectivePresentation(definition, true), definition.id).toBe(
-        'in-world',
-      );
   });
 });

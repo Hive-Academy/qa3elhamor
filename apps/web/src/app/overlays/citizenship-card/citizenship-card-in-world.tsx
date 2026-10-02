@@ -8,7 +8,8 @@ import {
   type ReactNode,
 } from 'react';
 import { bilingual } from '../../i18n/ui-strings';
-import { copyReader, toContentLocale } from '../overlay-copy';
+import { copyReader, fillCopy, toContentLocale } from '../overlay-copy';
+import { placeName } from '../../../site.config';
 import {
   CitizenBio,
   CitizenCardBand,
@@ -27,7 +28,7 @@ export const IN_WORLD_CARD_COPY = bilingual({
   en: {
     flipToBack: 'Turn over: visa stamps',
     flipToFront: 'Turn back: identity',
-    backIssuer: 'Border control of Qaa El-Hamour · Entry stamps',
+    backIssuer: 'Border control of {place} · Entry stamps',
     backTitle: 'Visa stamps',
     showingBack: 'Showing the back of the card: visa stamps.',
     showingFront: 'Showing the front of the card: identity.',
@@ -37,7 +38,7 @@ export const IN_WORLD_CARD_COPY = bilingual({
   ar: {
     flipToBack: 'اقلب البطاقة: أختام التأشيرة',
     flipToFront: 'ارجع للوجه: الهوية',
-    backIssuer: 'حرس حدود قاع الهامور · أختام الدخول',
+    backIssuer: 'حرس حدود {place} · أختام الدخول',
     backTitle: 'أختام التأشيرة',
     showingBack: 'ظهر البطاقة: أختام التأشيرة.',
     showingFront: 'وجه البطاقة: الهوية.',
@@ -161,7 +162,9 @@ export function CitizenshipCardInWorld({
           inert={side !== 'back'}
         >
           <header className="citizen-card__band citizen-pass__visa-band">
-            <p className="citizen-card__issuer">{words.backIssuer}</p>
+            <p className="citizen-card__issuer">
+              {fillCopy(words.backIssuer, { place: placeName(lang) })}
+            </p>
             <p className="citizen-card__title">{words.backTitle}</p>
           </header>
           <ScrollingFace

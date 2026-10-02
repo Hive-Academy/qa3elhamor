@@ -1,4 +1,5 @@
-import { DEFAULT_LOCALE, LOCALES, type Locale } from '@qa3elhamor/content-domain';
+import type { Locale } from '@qa3elhamor/content-domain';
+import { SITE } from '../../site.config';
 
 /**
  * Which language the site speaks, and where that choice comes from.
@@ -7,7 +8,10 @@ import { DEFAULT_LOCALE, LOCALES, type Locale } from '@qa3elhamor/content-domain
  * 1. `?lang=ar|en` in the URL: a shared link speaks the language it was shared in.
  * 2. The visitor's own earlier choice, kept in `localStorage` (only the locale, nothing else).
  * 3. The browser's languages: the first `ar*` or `en*` entry (`ar-EG` speaks Arabic).
- * 4. English, the content's required locale.
+ * 4. The site's default: the first of `SITE.locales` (`site.config.ts`).
+ *
+ * Only the languages the site speaks count (`SITE.locales`): with Arabic off, `?lang=ar`, a
+ * stored `ar` and an Arabic browser all read as the default.
  */
 
 /** The URL parameter that pins the language: `?lang=ar`. */
@@ -40,12 +44,15 @@ export const directionOf = (locale: Locale): TextDirection =>
 
 /**
  * Reads a language tag as one of the site's locales: `ar`, `ar-EG`, `AR` → `ar`; `en-GB` → `en`.
- * Anything else (another language, garbage, nothing) is `null`.
+ * Anything else (another language, one the site does not speak, garbage, nothing) is `null`.
  */
-export function parseLocale(value: string | null | undefined): Locale | null {
+export function parseLocale(
+  value: string | null | undefined,
+  enabled: readonly Locale[] = SITE.locales,
+): Locale | null {
   if (!value) return null;
   const primary = value.trim().toLowerCase().split(/[-_]/u)[0];
-  return LOCALES.find((locale) => locale === primary) ?? null;
+  return enabled.find((locale) => locale === primary) ?? null;
 }
 
 export interface LocaleInputs {
@@ -55,6 +62,8 @@ export interface LocaleInputs {
   readonly stored: string | null;
   /** `navigator.languages` (or `[navigator.language]`), most preferred first. */
   readonly languages: readonly string[];
+  /** The languages the site speaks, the default first. Defaults to `SITE.locales`. */
+  readonly enabled?: readonly [Locale, ...Locale[]];
 }
 
 /** Picks the locale from the URL, then the stored choice, then the browser (see the top). */
@@ -62,16 +71,17 @@ export function resolveLocale({
   search,
   stored,
   languages,
+  enabled = SITE.locales,
 }: LocaleInputs): LocaleResolution {
-  const fromQuery = parseLocale(new URLSearchParams(search).get(LOCALE_PARAM));
+  const fromQuery = parseLocale(new URLSearchParams(search).get(LOCALE_PARAM), enabled);
   if (fromQuery) return { locale: fromQuery, source: 'query' };
-  const fromStorage = parseLocale(stored);
+  const fromStorage = parseLocale(stored, enabled);
   if (fromStorage) return { locale: fromStorage, source: 'storage' };
   for (const language of languages) {
-    const fromNavigator = parseLocale(language);
+    const fromNavigator = parseLocale(language, enabled);
     if (fromNavigator) return { locale: fromNavigator, source: 'navigator' };
   }
-  return { locale: DEFAULT_LOCALE, source: 'default' };
+  return { locale: enabled[0], source: 'default' };
 }
 
 /**

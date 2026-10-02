@@ -1,11 +1,10 @@
 import type { DivePathSpec } from '@qa3elhamor/dive-domain';
 import { WORLD_SCALE, sceneToWorld } from '@qa3elhamor/world-feature';
-import {
-  LANDMARK_PLACEMENTS,
-  buildDiveSpec,
-  type LandmarkId,
-} from '../dive.config';
+import { LANDMARK_PLACEMENTS } from '../../site.config';
+import { buildDiveSpec, type LandmarkId } from '../dive.config';
 import type { Vec3 } from './view-layout';
+
+const isPlacement = (id: string): id is LandmarkId => id in LANDMARK_PLACEMENTS;
 
 /** Where the camera rests at a landmark's stop, what it looks at, and the seabed there. */
 export interface StopView {
@@ -16,19 +15,19 @@ export interface StopView {
 }
 
 /**
- * The resting view at the dive stop of landmark `id` (`dive.config.ts`): the stop's control
+ * The resting view at the dive stop `id` (`DIVE_CONFIG`, `site.config.ts`): the stop's control
  * point and its focus, in world units, before the portrait pull-back (the scene applies that
  * for its viewport). Throws for a stop that does not exist or does not look at anything: a
  * config error, caught at startup.
  */
 export function stopView(
-  id: LandmarkId,
+  id: string,
   spec: DivePathSpec = buildDiveSpec(),
   scale: number = WORLD_SCALE,
 ): StopView {
   const waypoint = spec.waypoints?.find((candidate) => candidate.id === id);
   const eye = waypoint ? spec.controlPoints[waypoint.at] : undefined;
-  if (!waypoint?.focus || !eye)
+  if (!waypoint?.focus || !eye || !isPlacement(id))
     throw new Error(
       `No dive stop "${id}" with a focus to compose a visit for.`,
     );

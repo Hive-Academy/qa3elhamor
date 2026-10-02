@@ -1,0 +1,35 @@
+{
+  "_sample": "SAMPLE CONTENT for a fictional resident, Sam Reef. `npm run template:reset` copies these files over content/; replace every value with your own (content/README.md), then delete this note.",
+  "items": [
+    {
+      "id": "site-design",
+      "kind": "design",
+      "title": {
+        "en": "Concept and design",
+        "ar": "الفكرة والتصميم"
+      },
+      "author": "Sam Reef"
+    },
+    {
+      "id": "qaa-el-hamour-trend",
+      "kind": "inspiration",
+      "title": {
+        "en": "The Qaa El-Hamour trend",
+        "ar": "تريند قاع الهامور"
+      },
+      "note": {
+        "en": "\"We've hit rock bottom\", taken literally.",
+        "ar": "بقينا في القاع، حرفيًا."
+      }
+    },
+    {
+      "id": "three-js",
+      "kind": "library",
+      "title": {
+        "en": "three.js"
+      },
+      "url": "https://threejs.org",
+      "license": "MIT"
+    }
+  ]
+}

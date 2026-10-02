@@ -134,13 +134,13 @@ landmarks may use the same model.
 ## Add your own landmark in 3 steps
 
 1. **Ship the model.** Add the GLB to the asset manifest (`libs/world/domain`, `WEB_ASSETS`)
-   and run the asset pipeline, which writes its placement to
-   `apps/web/public/models/placements.json`. The model should be centred at its origin, in
-   scene-world units.
+   and run the asset pipeline (`docs/template.md`, "Replace a landmark's model"), which writes
+   its placement to `apps/web/public/models/placements.json`. In scene-world units; a model of
+   your own is placed by its `position` (and `scale`, `rotation`).
 
-2. **Declare it.** Add an entry to `LANDMARKS` in `apps/web/src/app/landmark-definitions.ts`, and
-   a camera stop for it in `apps/web/src/app/dive.config.ts` (`{ kind: 'stop', landmark: ... }`
-   plus its placement in `LANDMARK_PLACEMENTS`):
+2. **Declare it.** In `apps/web/src/site.config.ts`: an entry in `LANDMARKS`, a named spot in
+   `LANDMARK_PLACEMENTS`, and a camera stop for it in `DIVE_CONFIG.route`
+   (`{ kind: 'stop', landmark: ... }`):
 
    ```ts
    {

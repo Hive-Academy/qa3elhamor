@@ -6,7 +6,7 @@
 html,
 body {
   margin: 0;
-  background: #0a1e3f;
+  background: var(--theme-sea, #0a1e3f);
   color: #e6f2ff;
   font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
   line-height: 1.5;

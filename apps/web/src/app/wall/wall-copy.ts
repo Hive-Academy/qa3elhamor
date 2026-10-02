@@ -3,15 +3,14 @@ import { bilingual } from '../i18n/ui-strings';
 /**
  * The public complaints wall's interface words outside the board (`i18n/ui-strings.ts`): the
  * Bureau form's choice between a private complaint and a public one, its outcomes, and the page
- * view's wall section. Only rendered when the wall is on. The board's own words load with it
+ * view's wall section. The private choice names the site's owner, so its words are content
+ * (`content/site.json` → `copy.complaintPrivateLabel`, `copy.complaintPrivateHint`). Only rendered when the wall is on. The board's own words load with it
  * (`notice-board-copy.ts`). Complaint text is visitor-authored and never comes from here.
  */
 // Pure: with the wall off nothing reads it, and the bundler drops it from the build.
 export const WALL_COPY = /* @__PURE__ */ bilingual({
   en: {
     visibilityLegend: 'Where should it go?',
-    visibilityPrivate: 'Send privately to Abdallah',
-    visibilityPrivateHint: 'Only he reads it. Leave a reply address if you want an answer.',
     visibilityPublic: 'Pin it on the public wall',
     visibilityPublicHint:
       'Every visitor can read it once a moderator approves it. The wall shows your name and species, never a reply address, so keep contact details out of it.',
@@ -25,8 +24,6 @@ export const WALL_COPY = /* @__PURE__ */ bilingual({
   },
   ar: {
     visibilityLegend: 'تروح فين؟',
-    visibilityPrivate: 'ابعتها لعبدالله على انفراد',
-    visibilityPrivateHint: 'هو بس اللي هيقراها. سيب عنوان للرد لو عايز إجابة.',
     visibilityPublic: 'علّقها على لوحة الشكاوى العامة',
     visibilityPublicHint:
       'أي زائر يقدر يقراها بعد ما المشرف يوافق عليها. اللوحة بتعرض اسمك ونوعك، عمرها ما بتعرض عنوان للرد، فما تكتبش بيانات تواصل فيها.',

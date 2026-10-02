@@ -1,7 +1,7 @@
-import { LOCALES } from '@qa3elhamor/content-domain';
 import { useLocale } from './locale-context';
 import { directionOf } from './locale';
 import { CHROME_COPY, LOCALE_NAMES } from './ui-strings';
+import { SITE } from '../../site.config';
 import './language-toggle.css';
 
 /**
@@ -11,6 +11,8 @@ import './language-toggle.css';
  *
  * `placement`: `chrome` floats in the dive's page chrome; `inline` sits in the flow (the page
  * view's masthead).
+ *
+ * The languages are the site's (`SITE.locales`); a site speaking one language has no switch.
  */
 export function LanguageToggle({
   placement = 'chrome',
@@ -18,6 +20,7 @@ export function LanguageToggle({
   readonly placement?: 'chrome' | 'inline';
 }) {
   const { locale, setLocale } = useLocale();
+  if (SITE.locales.length < 2) return null;
   return (
     <div
       className="language-toggle"
@@ -25,7 +28,7 @@ export function LanguageToggle({
       role="group"
       aria-label={CHROME_COPY[locale].languageGroup}
     >
-      {LOCALES.map((option) => (
+      {SITE.locales.map((option) => (
         <button
           key={option}
           type="button"

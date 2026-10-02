@@ -44,6 +44,9 @@ jobs:
       PAGES_BRANCH: ${{ vars.PAGES_BRANCH }}
       # Empty means "/" (user site or custom domain). A project site needs "/<repo>/".
       SITE_BASE: ${{ vars.SITE_BASE }}
+      # The site's public address, for the absolute URLs in social previews (og:url, og:image).
+      # Optional; e.g. https://<user>.github.io/ (docs/template.md).
+      SITE_URL: ${{ vars.SITE_URL }}
       # Contact form wiring, inlined into the bundle at build time (public by design).
       VITE_CONTACT_PROVIDER: ${{ vars.VITE_CONTACT_PROVIDER }}
       VITE_WEB3FORMS_ACCESS_KEY: ${{ secrets.VITE_WEB3FORMS_ACCESS_KEY }}

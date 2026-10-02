@@ -16,6 +16,9 @@ import {
 } from '../overlay-copy';
 import './citizenship-card.css';
 
+/** Any letter of the Arabic script. */
+const ARABIC_SCRIPT = /[؀-ۿ]/u;
+
 /** The content a Citizenship Card is rendered from, bound where the overlay is registered. */
 export interface CitizenshipCardContent {
   readonly profile: SiteProfile;
@@ -100,9 +103,14 @@ export function CitizenIdentity({
           <dt>{t('citizenStatusLabel')}</dt>
           <dd>
             {t('citizenStatusValue')}{' '}
-            {/* The trend's own words, always Arabic: isolated so its direction cannot
-                reorder the punctuation around it. */}
-            <bdi lang="ar" dir="rtl" className="citizen-card__motto">
+            {/* A motto in its own script (the shipped one is the trend's Arabic words):
+                isolated, with its own direction, so it cannot reorder the punctuation around
+                it. Arabic is marked as Arabic for its face and joining. */}
+            <bdi
+              lang={ARABIC_SCRIPT.test(t('citizenStatusMotto')) ? 'ar' : undefined}
+              dir="auto"
+              className="citizen-card__motto"
+            >
               {t('citizenStatusMotto')}
             </bdi>
           </dd>

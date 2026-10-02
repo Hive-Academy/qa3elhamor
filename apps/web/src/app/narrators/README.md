@@ -21,12 +21,12 @@ kit's parts directly: `dialogueReducer`, `visitScript`, `useVisitLifecycle`, `La
 `TalkBubbles`, `WorldFrame`, `SpeechBubble`, `useNarratorPost`, and `useSpeechBubblePlacement`
 (exported from `narrated-visit.tsx` for this; it keeps the bubble over the narrator and inside
 the window). Its comments are not about objects: the President's line after a filing goes
-through the dialogue's `select` with a hint id (`hints: FILED_LINES`).
+through the dialogue's `select` with a hint id (`hints: filedLines(copy)`, content: `content/site.json` → `copy.complaintFiled*`).
 
 ## Add a narrated visit in 5 steps
 
-1. **Cast.** `narrators.config.ts` already names a narrator for every `NarrationLandmarkId`
-   (`cast`). A bundled model is optional, in `bundled`.
+1. **Cast.** `NARRATOR_CAST` in `src/site.config.ts` already names a narrator for every
+   `NarrationLandmarkId` (`cast`). A bundled model is optional, in `bundled`.
 2. **Objects.** Map your content to `VisitObject[]` (`visit-types.ts`), one per 3D object. Each
    one has:
    - `label`;

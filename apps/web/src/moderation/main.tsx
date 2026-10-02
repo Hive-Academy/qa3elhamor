@@ -2,6 +2,7 @@ import { StrictMode } from 'react';
 import * as ReactDOM from 'react-dom/client';
 import { ModerationErrorBoundary } from './error-boundary';
 import { ModerationApp } from './moderation-app';
+import 'virtual:site-theme.css';
 import './moderation.css';
 
 // Entry of `moderation.html`, a separate Vite input: nothing here is reachable from the public

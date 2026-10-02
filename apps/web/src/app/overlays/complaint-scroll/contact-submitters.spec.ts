@@ -59,9 +59,10 @@ describe('web3formsSubmitter', () => {
   });
 
   it('delivers the normalised draft on a successful submission', async () => {
-    const result = await web3formsSubmitter({ accessKey: ACCESS_KEY }).submit(
-      draft,
-    );
+    const result = await web3formsSubmitter({
+      accessKey: ACCESS_KEY,
+      fromName: 'Qaa El-Hamour Complaints Bureau',
+    }).submit(draft);
     expect(result).toEqual({ status: 'delivered' });
 
     const [url, init] = lastFetch();
@@ -94,6 +95,8 @@ describe('web3formsSubmitter', () => {
     const body = requestBody();
     expect(body).not.toHaveProperty('species');
     expect(body).not.toHaveProperty('email');
+    // No configured sender name: the provider's own default.
+    expect(body).not.toHaveProperty('from_name');
   });
 
   it('uses a custom endpoint when provided', async () => {

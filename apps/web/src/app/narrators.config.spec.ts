@@ -9,14 +9,13 @@ import {
   narratorsConfigFor,
 } from './narrators.config';
 import { narratorName } from './narrators/narrator-copy';
+import { NARRATOR_CAST } from '../site.config';
 
 describe('narrators config', () => {
-  it('ships the original cast: the Hamour guides the Pineapple', () => {
+  it('ships the original cast (site.config.ts) unless the switch is on', () => {
     expect(NARRATORS_CONFIG.useBundledCharacters).toBe(false);
-    expect(narratorFor('pineapple')).toEqual({ kind: 'cast', cast: 'hamour' });
-    expect(narratorFor('tiki')).toEqual({ kind: 'cast', cast: 'hamour' });
-    expect(narratorFor('bureau')).toEqual({ kind: 'cast', cast: 'sardine-president' });
-    expect(narratorFor('krusty-krab')).toEqual({ kind: 'cast', cast: 'crab-clerk' });
+    for (const landmark of NARRATION_LANDMARKS)
+      expect(narratorFor(landmark)).toEqual({ kind: 'cast', cast: NARRATOR_CAST.cast[landmark] });
   });
 
   it('names a real cast member for every landmark, and real, lazy, tier-gated models', () => {
@@ -30,24 +29,32 @@ describe('narrators config', () => {
     }
   });
 
-  it('gives a mixed cast with the switch: SpongeBob and Patrick where named, the cast elsewhere', () => {
+  it('gives a mixed cast with the switch: the bundled model where named, the cast elsewhere', () => {
     const bundled = { ...NARRATORS_CONFIG, useBundledCharacters: true };
-    expect(narratorFor('pineapple', bundled)).toEqual({
-      kind: 'model',
-      asset: 'spongebob-narrator',
-      heightFactor: NARRATORS_CONFIG.bundled.pineapple?.heightFactor,
-      fallback: 'hamour',
-    });
-    expect(narratorFor('tiki', bundled)).toMatchObject({
-      kind: 'model',
-      asset: 'patrick-narrator',
-      fallback: 'hamour',
-    });
-    expect(narratorFor('krusty-krab', bundled)).toEqual({ kind: 'cast', cast: 'crab-clerk' });
-    expect(narratorFor('bureau', bundled)).toEqual({ kind: 'cast', cast: 'sardine-president' });
-    expect(narratorName(narratorFor('pineapple', bundled), 'en')).toBe('SpongeBob');
-    expect(narratorName(narratorFor('tiki', bundled), 'en')).toBe('Patrick');
-    expect(narratorName(narratorFor('pineapple'), 'en')).toBe('The Hamour');
+    for (const landmark of NARRATION_LANDMARKS) {
+      const cast = NARRATOR_CAST.cast[landmark];
+      const model = NARRATOR_CAST.bundled[landmark];
+      expect(narratorFor(landmark, bundled), landmark).toEqual(
+        model
+          ? { kind: 'model', asset: model.asset, heightFactor: model.heightFactor, fallback: cast }
+          : { kind: 'cast', cast },
+      );
+    }
+    const switched = { cast: NARRATOR_CAST.cast, useBundledCharacters: true };
+    expect(
+      narratorFor('pineapple', {
+        ...switched,
+        bundled: { pineapple: { asset: 'spongebob-narrator', heightFactor: 1.9 } },
+      }),
+    ).toMatchObject({ kind: 'model', asset: 'spongebob-narrator' });
+  });
+
+  it('names whoever plays the narrator', () => {
+    const model = (asset: 'spongebob-narrator' | 'patrick-narrator') =>
+      ({ kind: 'model', asset, heightFactor: 1, fallback: 'hamour' }) as const;
+    expect(narratorName(model('spongebob-narrator'), 'en')).toBe('SpongeBob');
+    expect(narratorName(model('patrick-narrator'), 'en')).toBe('Patrick');
+    expect(narratorName({ kind: 'cast', cast: 'hamour' }, 'en')).toBe('The Hamour');
   });
 
   it('turns on only for VITE_BUNDLED_CHARACTERS=true', () => {

@@ -138,6 +138,11 @@ collections:
               - { name: complaintErrorTooLong, label: Complaint error too long, widget: object, fields: *l10n }
               - { name: complaintErrorControlCharacter, label: Complaint error control character, widget: object, fields: *l10n }
               - { name: complaintErrorMalformed, label: Complaint error malformed, widget: object, fields: *l10n }
+              - { name: complaintPrivateLabel, label: Complaint private choice (public wall on), widget: object, fields: *l10n }
+              - { name: complaintPrivateHint, label: Complaint private choice hint (public wall on), widget: object, fields: *l10n }
+              - { name: complaintFiledLine, label: Narrator line once a complaint is sent, widget: object, fields: *l10n }
+              - { name: complaintFiledUnsentLine, label: Narrator line when no contact provider is set, widget: object, fields: *l10n }
+              - { name: complaintFiledPublicLine, label: Narrator line once a public complaint is pinned, widget: object, fields: *l10n }
 
       - name: resume
         label: Resume

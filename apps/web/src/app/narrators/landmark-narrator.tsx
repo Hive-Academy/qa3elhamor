@@ -71,7 +71,7 @@ export function mouthOf(
 }
 
 /**
- * A landmark's narrator as configured (`narrators.config.ts`): one of the original cast, or a
+ * A landmark's narrator as configured (`NARRATOR_CAST` in `site.config.ts`, `narrators.config.ts`): one of the original cast, or a
  * bundled character model. The model is lazy and tier-gated (`assetAllowed`): where the tier
  * does not allow it, or it fails to load, the original cast plays instead; while it loads,
  * nothing shows and it swims in once it arrives.

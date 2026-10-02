@@ -14,10 +14,10 @@ import {
   siteCopy,
 } from '@qa3elhamor/content-data-access';
 import { buildDiveSpec } from './dive.config';
-import { LANDMARKS } from './landmark-definitions';
+import { LANDMARKS } from '../site.config';
 import { createKrustyScene } from './krusty-krab/krusty-scene';
 import { createServicesMenuOverlay } from './krusty-krab/services-menu';
-import { stopView } from './narrators/stop-view';
+import { stopView, type StopView } from './narrators/stop-view';
 import { narratorFor, narratorsConfigFor } from './narrators.config';
 import { createCitizenshipCardOverlay } from './overlays/citizenship-card';
 import { createBureauScene } from './bureau/bureau-scene';
@@ -60,44 +60,60 @@ const NARRATORS = narratorsConfigFor(
 );
 
 /**
- * In-scene components by key, for landmarks with 3D content (`scene`). Each renders R3F
- * children in its landmark's frame. The Pineapple's, the Tiki's and the Krusty Krab's are
- * narrated visits (`narrators/narrated-visit.tsx`, see `narrators/README.md`): a narrator, the
- * content as 3D objects (skills as bubbles, jobs as stone tablets, services as rows on a menu
- * board), and the full view one tap away.
+ * In-scene components, by key, each made for the dive stop of the landmark that shows it (its
+ * camera framing). The Pineapple's, the Tiki's and the Krusty Krab's are narrated visits
+ * (`narrators/narrated-visit.tsx`, see `narrators/README.md`): a narrator, the content as 3D
+ * objects (skills as bubbles, jobs as stone tablets, services as rows on a menu board), and the
+ * full view one tap away.
  */
-export const LANDMARK_SCENES: LandmarkSceneRegistry = {
-  pineapple: createPineappleScene({
-    profile,
-    copy: siteCopy,
-    narration: narration.landmarks.pineapple,
-    narrator: narratorFor('pineapple', NARRATORS),
-    stop: stopView('landmark-pineapple'),
-  }),
-  tiki: createTikiScene({
-    entries: resumeEntries,
-    copy: siteCopy,
-    narration: narration.landmarks.tiki,
-    narrator: narratorFor('tiki', NARRATORS),
-    stop: stopView('landmark-tiki'),
-  }),
-  'krusty-krab': createKrustyScene({
-    services: serviceItems,
-    copy: siteCopy,
-    narration: narration.landmarks['krusty-krab'],
-    narrator: narratorFor('krusty-krab', NARRATORS),
-    stop: stopView('landmark-krusty-krab'),
-  }),
+const SCENE_FACTORIES = {
+  pineapple: (stop: StopView) =>
+    createPineappleScene({
+      profile,
+      copy: siteCopy,
+      narration: narration.landmarks.pineapple,
+      narrator: narratorFor('pineapple', NARRATORS),
+      stop,
+    }),
+  tiki: (stop: StopView) =>
+    createTikiScene({
+      entries: resumeEntries,
+      copy: siteCopy,
+      narration: narration.landmarks.tiki,
+      narrator: narratorFor('tiki', NARRATORS),
+      stop,
+    }),
+  'krusty-krab': (stop: StopView) =>
+    createKrustyScene({
+      services: serviceItems,
+      copy: siteCopy,
+      narration: narration.landmarks['krusty-krab'],
+      narrator: narratorFor('krusty-krab', NARRATORS),
+      stop,
+    }),
   // Not an object tour: the Sardine President, the clerk window and the complaint scroll.
-  bureau: createBureauScene({
-    copy: siteCopy,
-    submitter: COMPLAINT_SUBMITTER,
-    narration: narration.landmarks.bureau,
-    narrator: narratorFor('bureau', NARRATORS),
-    stop: stopView('landmark-bureau'),
-    wall: WALL,
+  bureau: (stop: StopView) =>
+    createBureauScene({
+      copy: siteCopy,
+      submitter: COMPLAINT_SUBMITTER,
+      narration: narration.landmarks.bureau,
+      narrator: narratorFor('bureau', NARRATORS),
+      stop,
+      wall: WALL,
+    }),
+} satisfies Record<string, (stop: StopView) => LandmarkSceneRegistry[string]>;
+
+/**
+ * The scenes the configured landmarks (`LANDMARKS`, site.config.ts) show, each at its
+ * landmark's stop. A scene no landmark names is not built, so removing a landmark from the
+ * config is enough.
+ */
+export const LANDMARK_SCENES: LandmarkSceneRegistry = Object.fromEntries(
+  Object.entries(SCENE_FACTORIES).flatMap(([key, create]) => {
+    const landmark = LANDMARKS.find((definition) => definition.scene === key);
+    return landmark ? [[key, create(stopView(landmark.waypoint))]] : [];
   }),
-};
+);
 
 /**
  * Validates the landmarks against the dive, the overlays and the scenes, once per page load. A broken

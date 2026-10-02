@@ -18,7 +18,7 @@ import {
   type SiteCopy,
   type SiteProfile,
 } from '@qa3elhamor/content-domain';
-import { LANDMARKS } from '../landmark-definitions';
+import { LANDMARKS } from '../../site.config';
 import type { ComplaintSubmitter } from '../overlays/complaint-scroll';
 import { COMPLAINT_SUBMITTER, WALL, type WallPort } from '../wall/wall-port';
 

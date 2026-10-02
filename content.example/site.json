@@ -1,0 +1,275 @@
+{
+  "_sample": "SAMPLE CONTENT for a fictional resident, Sam Reef. `npm run template:reset` copies these files over content/; replace every value with your own (content/README.md), then delete this note.",
+  "profile": {
+    "name": {
+      "en": "Sam Reef",
+      "ar": "سام ريف"
+    },
+    "headline": {
+      "en": "Full-stack developer (sample)",
+      "ar": "مطوّر برمجيات متكامل (نموذج)"
+    },
+    "bio": [
+      {
+        "en": "SAMPLE BIO. I build fast, accessible web apps and the occasional 3D experience that probably did not need to be 3D.",
+        "ar": "نبذة نموذجية. أبني تطبيقات ويب سريعة وسهلة الاستخدام، ومن حين لآخر تجربة ثلاثية الأبعاد."
+      },
+      {
+        "en": "Registered resident of the sea floor, where the rent is low and the pressure is high. Replace this with how you work and what you want next.",
+        "ar": "مقيم رسمي في قاع البحر، حيث الإيجار رخيص والضغط عالي. استبدل هذا بطريقة عملك وما تبحث عنه."
+      }
+    ],
+    "location": {
+      "en": "The sea floor",
+      "ar": "قاع البحر"
+    },
+    "skills": [
+      {
+        "id": "frontend",
+        "label": {
+          "en": "Frontend",
+          "ar": "الواجهات الأمامية"
+        },
+        "skills": [
+          "TypeScript",
+          "React",
+          "Three.js",
+          "CSS"
+        ]
+      },
+      {
+        "id": "backend",
+        "label": {
+          "en": "Backend",
+          "ar": "الخوادم"
+        },
+        "skills": [
+          "Node.js",
+          "PostgreSQL",
+          "REST APIs"
+        ]
+      },
+      {
+        "id": "tooling",
+        "label": {
+          "en": "Tooling",
+          "ar": "الأدوات"
+        },
+        "skills": [
+          "Nx",
+          "Vite",
+          "Vitest",
+          "GitHub Actions"
+        ]
+      }
+    ],
+    "links": [
+      {
+        "kind": "github",
+        "label": {
+          "en": "GitHub",
+          "ar": "جيت هاب"
+        },
+        "url": "https://github.com/your-handle"
+      },
+      {
+        "kind": "email",
+        "label": {
+          "en": "Email",
+          "ar": "البريد الإلكتروني"
+        },
+        "url": "mailto:you@example.com"
+      }
+    ]
+  },
+  "copy": {
+    "siteTitle": {
+      "en": "Sam Reef, at the bottom of the sea",
+      "ar": "سام ريف، في قاع البحر"
+    },
+    "siteDescription": {
+      "en": "A 3D portfolio: dive to the bottom of the sea and meet a (sample) developer.",
+      "ar": "بورتفوليو ثلاثي الأبعاد: اغطس لقاع البحر وقابل مطوّرًا (نموذجيًا)."
+    },
+    "aboutTitle": {
+      "en": "Citizenship Card — Qaa El-Hamour",
+      "ar": "بطاقة مواطن — قاع الهامور"
+    },
+    "resumeTitle": {
+      "en": "Performance Reviews",
+      "ar": "تقييمات الأداء"
+    },
+    "servicesTitle": {
+      "en": "Today's Menu",
+      "ar": "قائمة اليوم"
+    },
+    "contactTitle": {
+      "en": "Municipal Complaints Bureau",
+      "ar": "مكتب الشكاوى البلدي"
+    },
+    "contactSubmitLabel": {
+      "en": "Stamp and send",
+      "ar": "اختم وأرسل"
+    },
+    "closeLabel": {
+      "en": "Swim back",
+      "ar": "رجوع"
+    },
+    "creditsTitle": {
+      "en": "Credits",
+      "ar": "شكر وتقدير"
+    },
+    "citizenCardIssuer": {
+      "en": "Municipality of Qaa El-Hamour · Civil Registry",
+      "ar": "بلدية قاع الهامور · السجل المدني"
+    },
+    "citizenNameLabel": {
+      "en": "Name",
+      "ar": "الاسم"
+    },
+    "citizenOccupationLabel": {
+      "en": "Occupation",
+      "ar": "المهنة"
+    },
+    "citizenResidenceLabel": {
+      "en": "Residence",
+      "ar": "محل الإقامة"
+    },
+    "citizenResidenceDefault": {
+      "en": "The sea floor. The bottom, officially.",
+      "ar": "قاع البحر. القاع، رسميًا."
+    },
+    "citizenStatusLabel": {
+      "en": "Civil status",
+      "ar": "الحالة المدنية"
+    },
+    "citizenStatusValue": {
+      "en": "Settled at the bottom, and still shipping:",
+      "ar": "استقرّ في القاع، وما زال يطلق مشاريع:"
+    },
+    "citizenStatusMotto": {
+      "en": "بقينا في القاع",
+      "ar": "بقينا في القاع"
+    },
+    "citizenBioTitle": {
+      "en": "Statement of the citizen",
+      "ar": "إفادة المواطن"
+    },
+    "citizenSkillsTitle": {
+      "en": "Underwater specialties",
+      "ar": "تخصصات تحت الماء"
+    },
+    "citizenLinksTitle": {
+      "en": "Reach this citizen",
+      "ar": "للتواصل مع المواطن"
+    },
+    "complaintIntro": {
+      "en": "File your complaint with the Municipality. It lands on Sam's desk; the Sardine President reads every one, eventually.",
+      "ar": "قدّم شكواك إلى البلدية. توصل لمكتب سام، والرئيس السرديني يقرأ كل شكوى، ولو بعد حين."
+    },
+    "complaintSubjectLabel": {
+      "en": "Subject of the complaint",
+      "ar": "موضوع الشكوى"
+    },
+    "complaintBodyLabel": {
+      "en": "Details of the complaint",
+      "ar": "تفاصيل الشكوى"
+    },
+    "complaintNameLabel": {
+      "en": "Your name",
+      "ar": "اسمك"
+    },
+    "complaintSpeciesLabel": {
+      "en": "Sea species",
+      "ar": "الفصيلة البحرية"
+    },
+    "complaintSpeciesSuggestions": {
+      "en": "Sardine, Grouper, Disgruntled clam, Jellyfish, Recruiter shark",
+      "ar": "سردين، هامور، محارة غاضبة، قنديل بحر، قرش توظيف"
+    },
+    "complaintEmailLabel": {
+      "en": "Reply address",
+      "ar": "عنوان للرد"
+    },
+    "complaintEmailHint": {
+      "en": "So the Municipality can answer you. Never published.",
+      "ar": "حتى تتمكن البلدية من الرد عليك. لا يُنشر أبدًا."
+    },
+    "complaintOptional": {
+      "en": "optional",
+      "ar": "اختياري"
+    },
+    "complaintCounter": {
+      "en": "{count} of {limit} characters",
+      "ar": "{count} من {limit} حرفًا"
+    },
+    "complaintSending": {
+      "en": "Stamping…",
+      "ar": "جارٍ الختم…"
+    },
+    "complaintStampText": {
+      "en": "Sardine Municipal Stamp",
+      "ar": "ختم الرئيس السرديني"
+    },
+    "complaintSuccessTitle": {
+      "en": "Complaint stamped",
+      "ar": "تم ختم الشكوى"
+    },
+    "complaintSuccessBody": {
+      "en": "The Bureau has your complaint. Expect a reply before the next tide.",
+      "ar": "وصلت شكواك إلى المكتب. انتظر الرد قبل المدّ القادم."
+    },
+    "complaintPendingBody": {
+      "en": "Stamped, but the Bureau's post office has not opened yet: your complaint was not sent anywhere. Meanwhile, reach this citizen through the links on the Citizenship Card.",
+      "ar": "تم الختم، لكن مكتب بريد البلدية لم يفتح بعد: لم تُرسل شكواك إلى أي مكان. في الأثناء، تواصل مع المواطن عبر الروابط في بطاقة المواطن."
+    },
+    "complaintFailureBody": {
+      "en": "The stamp slipped and your complaint was not sent. Your text is still here; try again.",
+      "ar": "انزلق الختم ولم تُرسل شكواك. نصّك ما زال هنا؛ حاول مرة أخرى."
+    },
+    "complaintAnotherLabel": {
+      "en": "File another complaint",
+      "ar": "قدّم شكوى أخرى"
+    },
+    "complaintErrorSummary": {
+      "en": "The Municipality cannot accept this form yet. Fix the fields marked below.",
+      "ar": "لا تستطيع البلدية قبول هذا الطلب بعد. صحّح الحقول المحددة أدناه."
+    },
+    "complaintErrorEmpty": {
+      "en": "This field is required.",
+      "ar": "هذا الحقل مطلوب."
+    },
+    "complaintErrorTooLong": {
+      "en": "Too long: the limit is {limit} characters.",
+      "ar": "طويل جدًا: الحد الأقصى {limit} حرفًا."
+    },
+    "complaintErrorControlCharacter": {
+      "en": "Remove the hidden control characters.",
+      "ar": "احذف رموز التحكم المخفية."
+    },
+    "complaintErrorMalformed": {
+      "en": "That does not look like an email address.",
+      "ar": "هذا لا يبدو عنوان بريد إلكتروني."
+    },
+    "complaintPrivateLabel": {
+      "en": "Send privately to Sam",
+      "ar": "ابعتها لسام على انفراد"
+    },
+    "complaintPrivateHint": {
+      "en": "Only Sam reads it. Leave a reply address if you want an answer.",
+      "ar": "سام بس اللي هيقراها. سيب عنوان للرد لو عايز إجابة."
+    },
+    "complaintFiledLine": {
+      "en": "Stamped, bottled and off on the current. It reaches Sam's desk before the next tide.",
+      "ar": "اتختمت، واتقفلت في إزازة، وماشية مع التيار. هتوصل مكتب سام قبل المدّ الجاي."
+    },
+    "complaintFiledUnsentLine": {
+      "en": "Stamped and bottled, but between us: the Bureau's post office has not opened yet, so this bottle is going nowhere. The links on the Citizenship Card reach Sam.",
+      "ar": "اتختمت واتقفلت في إزازة، بس بيني وبينك: مكتب بريد البلدية لسه ما فتحش، فالإزازة دي مش رايحة في حتة. روابط بطاقة المواطن بتوصل لسام."
+    },
+    "complaintFiledPublicLine": {
+      "en": "Stamped and bottled for the moderators. Once they approve it, it goes up on the public wall for every citizen to read.",
+      "ar": "اتختمت واتقفلت في إزازة رايحة للمشرفين. أول ما يوافقوا عليها، هتتعلّق على اللوحة العامة وكل المواطنين يقروها."
+    }
+  }
+}

@@ -4,12 +4,12 @@
  * No overlay host wraps it here, so the host's paper colours are restated.
  */
 .bureau-scroll {
-  --lmk-paper: #f3ead3;
-  --lmk-paper-edge: #dccb9f;
-  --lmk-ink: #2a2118;
-  --lmk-ink-soft: #5b4a36;
-  --lmk-rule: #8c3b2a;
-  --lmk-focus: #0b6fa4;
+  --lmk-paper: var(--theme-paper);
+  --lmk-paper-edge: var(--theme-paper-edge);
+  --lmk-ink: var(--theme-ink);
+  --lmk-ink-soft: var(--theme-ink-soft);
+  --lmk-rule: var(--theme-rule);
+  --lmk-focus: var(--theme-focus);
   /* How tall the unrolled sheet may get; the phone's sheet sets it from the visual viewport. */
   --bureau-paper-max: calc(100dvh - 13rem);
 

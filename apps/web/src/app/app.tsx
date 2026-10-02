@@ -1,4 +1,6 @@
-import { Suspense } from 'react';
+import { Suspense, useEffect } from 'react';
+import { siteCopy } from '@qa3elhamor/content-data-access';
+import { localize } from '@qa3elhamor/content-domain';
 import { WEB_ASSETS, initialLoadBudgetBytes } from '@qa3elhamor/world-domain';
 import {
   DiveLoadBoundary,
@@ -13,10 +15,11 @@ import { PageView } from './page-view/page-view';
 import { hrefFor, usePresentation } from './page-view/presentation';
 import { ReadAsPageLink } from './page-view/read-as-page-link';
 import { LanguageToggle } from './i18n/language-toggle';
-import { formatNumber } from './i18n/locale';
+import { directionOf, formatNumber } from './i18n/locale';
 import { LocaleProvider, useLocale } from './i18n/locale-context';
 import { CHROME_COPY } from './i18n/ui-strings';
 import { fillCopy } from './overlays/overlay-copy';
+import { SITE } from '../site.config';
 
 /** The page view's content, from the same content module; built on first use, once. */
 let cachedPageContent: ReturnType<typeof buildPageContent> | undefined;
@@ -42,6 +45,12 @@ export function App() {
 function Views() {
   const view = usePresentation(hasWebgl);
   const { locale } = useLocale();
+
+  // The build writes the title in the default language (`site-build.ts`); this keeps it in the
+  // visitor's.
+  useEffect(() => {
+    document.title = localize(siteCopy.siteTitle, locale);
+  }, [locale]);
 
   // No WebGL, `?view=page`, the "read it as a page" link, or a dive that broke: the same
   // content as a readable 2D page (`page-view/`).
@@ -93,9 +102,9 @@ function SceneNote({
 
   return (
     <aside className="scene-note">
-      {/* The district's own name, always Arabic, whatever the site's language. */}
-      <h1 lang="ar" dir="rtl">
-        قاع الهامور
+      {/* The place's own name as a sign, in one language whatever the site's (`SITE.brand.mark`). */}
+      <h1 lang={SITE.brand.mark.lang} dir={directionOf(SITE.brand.mark.lang)}>
+        {SITE.brand.mark.text}
       </h1>
       <p>{words.sceneNoteLead}</p>
       <ReadAsPageLink

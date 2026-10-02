@@ -8,9 +8,9 @@
  */
 .citizen-pass {
   --lmk-paper-edge: #d6c391;
-  --lmk-ink: #2a2118;
-  --lmk-ink-soft: #5b4a36;
-  --lmk-rule: #8c3b2a;
+  --lmk-ink: var(--theme-ink);
+  --lmk-ink-soft: var(--theme-ink-soft);
+  --lmk-rule: var(--theme-rule);
   --pass-width: min(54rem, calc(100vw - 1.25rem));
   --pass-max-height: calc(100dvh - 9.5rem);
 

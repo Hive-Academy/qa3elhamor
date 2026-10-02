@@ -1,9 +1,13 @@
 import { fireEvent, render, screen } from '@testing-library/react';
+import { resolveText } from '@qa3elhamor/landmarks-domain';
 import { WEB_ASSETS } from '@qa3elhamor/world-domain';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 import App from './app';
 import { loadDiveShell } from './dive-shell-loader';
 import { siteTelemetry } from './telemetry';
+import { LANDMARKS, SITE } from '../site.config';
+
+const bureau = LANDMARKS.find((landmark) => landmark.id === 'bureau');
 
 // jsdom has no WebGL context, so the R3F canvas cannot mount here. Stub `Canvas` and assert
 // the DOM overlay instead; the scene itself is covered by the visual-regression suite in the
@@ -41,11 +45,14 @@ describe('App', () => {
   // Rendered by the entry outside the dive's <Suspense>, so they never wait for the 3D chunk.
   it('shows the title, the way out and the language switch outside the lazy dive', () => {
     render(<App />);
-    expect(screen.getByRole('heading', { name: 'قاع الهامور' })).toBeTruthy();
+    expect(screen.getByRole('heading', { name: SITE.brand.mark.text })).toBeTruthy();
     expect(
       screen.getByRole('link', { name: 'Skip the dive: read it as a page' }),
     ).toBeTruthy();
-    expect(screen.getByRole('group', { name: 'Language' })).toBeTruthy();
+    // One language (`SITE.locales`), no switch.
+    expect(Boolean(screen.queryByRole('group', { name: 'Language' }))).toBe(
+      SITE.locales.length > 1,
+    );
   });
 
   it('renders the ocean canvas', async () => {
@@ -53,9 +60,10 @@ describe('App', () => {
     expect(await screen.findByTestId('canvas')).toBeTruthy();
   });
 
-  it('titles the site in Arabic', () => {
+  it("titles the site with the brand's mark, in the mark's own language", () => {
     render(<App />);
-    expect(screen.getByRole('heading', { name: 'قاع الهامور' })).toBeTruthy();
+    const heading = screen.getByRole('heading', { name: SITE.brand.mark.text });
+    expect(heading.getAttribute('lang')).toBe(SITE.brand.mark.lang);
   });
 
   it('reports the manifested asset count from the world library', () => {
@@ -73,9 +81,11 @@ describe('App', () => {
   it('lists every landmark for keyboard users and opens its overlay', async () => {
     render(<App />);
     const nav = await screen.findByRole('navigation', { name: 'Landmarks' });
-    expect(nav.querySelectorAll('button')).toHaveLength(4);
-    fireEvent.click(screen.getByRole('button', { name: /Complaints Bureau/ }));
-    const dialog = screen.getByRole('dialog', { name: 'Complaints Bureau' });
+    expect(nav.querySelectorAll('button')).toHaveLength(LANDMARKS.length);
+    if (!bureau) return; // A site without the Bureau: the list is the whole check.
+    const name = resolveText(bureau.label, 'en');
+    fireEvent.click(screen.getByRole('button', { name: new RegExp(name) }));
+    const dialog = screen.getByRole('dialog', { name });
     expect(dialog.querySelector('form')).toBeTruthy();
     fireEvent.keyDown(dialog, { key: 'Escape' });
     expect(screen.queryByRole('dialog')).toBeNull();

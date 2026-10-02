@@ -12,7 +12,7 @@ const EN = {
   backToDive: 'Back to the dive',
   retryDive: 'Try the dive again',
   noticeRequested:
-    'You are reading Qaa El-Hamour as a page: everything from the dive, no swimming required.',
+    'You are reading {place} as a page: everything from the dive, no swimming required.',
   noticeNoWebgl:
     'This browser cannot run the 3D dive (WebGL is not available), so here is everything from it as a page.',
   noticeFailed:
@@ -58,7 +58,7 @@ const AR: PageViewCopy = {
   readAsPage: 'تخطَّ الغوص: اقرأها كصفحة',
   backToDive: 'ارجع إلى الغوص',
   retryDive: 'جرّب الغوص مرة أخرى',
-  noticeRequested: 'أنت تقرأ قاع الهامور كصفحة: كل ما في الغوص، بلا سباحة.',
+  noticeRequested: 'أنت تقرأ {place} كصفحة: كل ما في الغوص، بلا سباحة.',
   noticeNoWebgl:
     'هذا المتصفح لا يستطيع تشغيل الغوص ثلاثي الأبعاد (WebGL غير متاح)، فإليك كل ما فيه كصفحة.',
   noticeFailed:

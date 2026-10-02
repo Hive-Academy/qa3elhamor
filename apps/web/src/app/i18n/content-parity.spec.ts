@@ -13,7 +13,7 @@ import {
   type LocalizedText,
 } from '@qa3elhamor/content-domain';
 import { describe, expect, it } from 'vitest';
-import { LANDMARKS } from '../landmark-definitions';
+import { LANDMARKS, SITE } from '../../site.config';
 import { jobObjects } from '../tiki/job-objects';
 import { skillGroupObjects } from '../pineapple/pineapple-scene';
 
@@ -22,7 +22,11 @@ import { skillGroupObjects } from '../pineapple/pineapple-scene';
  * visitor reads in passing (what the narrators say, labels, titles, headlines) carries Arabic;
  * long technical text (résumé highlights, project write-ups) may stay English, and then renders
  * as English inside the Arabic page (`textProps`).
+ *
+ * Only for a site that speaks Arabic: with `SITE.locales` set to `['en']` (site.config.ts) the
+ * content needs no Arabic and these are skipped.
  */
+const speaksArabic = SITE.locales.includes('ar');
 
 const hasArabic = (text: LocalizedText | undefined): boolean =>
   text !== undefined && text.ar !== undefined && text.ar.trim() !== '';
@@ -30,7 +34,7 @@ const hasArabic = (text: LocalizedText | undefined): boolean =>
 /** Lines whose Arabic starts with a Latin letter would read left to right under `dir="auto"`. */
 const STARTS_LATIN = /^[\s\p{P}]*[A-Za-z]/u;
 
-describe('narration: every line, hint and farewell speaks Arabic', () => {
+describe.skipIf(!speaksArabic)('narration: every line, hint and farewell speaks Arabic', () => {
   for (const landmark of NARRATION_LANDMARKS) {
     const { lines, hints = {}, farewell } = narration.landmarks[landmark];
     const said: [string, LocalizedText][] = [
@@ -45,7 +49,7 @@ describe('narration: every line, hint and farewell speaks Arabic', () => {
   }
 });
 
-describe('labels, titles and headlines speak Arabic', () => {
+describe.skipIf(!speaksArabic)('labels, titles and headlines speak Arabic', () => {
   it('site copy', () => {
     expect(SITE_COPY_KEYS.filter((key) => !hasArabic(siteCopy[key]))).toEqual([]);
   });

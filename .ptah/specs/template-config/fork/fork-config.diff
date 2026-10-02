@@ -1,0 +1,179 @@
+diff --git a/apps/web/src/site.config.ts b/apps/web/src/site.config.ts
+index b973cd4..e39610d 100644
+--- a/apps/web/src/site.config.ts
++++ b/apps/web/src/site.config.ts
+@@ -64,6 +64,11 @@ export interface SiteConfig {
+     readonly foam: string;
+     /** Gauges and highlights on the sea. */
+     readonly accent: string;
++    /** The brighter water of mastheads and card bands (the 2D page, the Citizenship Card). */
++    readonly lagoon: string;
++    readonly lagoonDeep: string;
++    /** Links on paper. */
++    readonly link: string;
+     /** The paper of every card, menu and form. */
+     readonly paper: string;
+     readonly paperEdge: string;
+@@ -93,33 +98,41 @@ export interface SiteConfig {
+ 
+ export const SITE: SiteConfig = {
+   brand: {
+-    place: { en: 'Qaa El-Hamour', ar: 'قاع الهامور' },
+-    mark: { text: 'قاع الهامور', lang: 'ar' },
+-    contactFromName: 'Qaa El-Hamour Complaints Bureau',
++    place: { en: 'Coral Deep' },
++    mark: { text: 'Coral Deep', lang: 'en' },
++    contactFromName: 'Coral Deep Complaints Bureau',
+   },
+   meta: {
+     favicon: 'favicon.ico',
+-    siteName: 'Qaa El-Hamour',
++    siteName: 'Coral Deep',
++    ogImage: 'og-image.jpg',
+   },
+   theme: {
+-    sea: '#0a1e3f',
+-    seaLight: '#12406e',
+-    foam: '#e6f2ff',
+-    accent: '#7fd3f0',
+-    paper: '#f3ead3',
+-    paperEdge: '#dccb9f',
+-    ink: '#2a2118',
+-    inkSoft: '#5b4a36',
+-    rule: '#8c3b2a',
+-    focus: '#0b6fa4',
++    sea: '#241238',
++    seaLight: '#5b2a6e',
++    foam: '#fdeef4',
++    accent: '#ff9f68',
++    lagoon: '#7a2f6b',
++    lagoonDeep: '#4a1a45',
++    link: '#9a2e6e',
++    paper: '#eaf6ef',
++    paperEdge: '#b9dcc7',
++    ink: '#13301f',
++    inkSoft: '#3d5e4a',
++    rule: '#2f7a55',
++    focus: '#b2367a',
+     // Arabic glyphs from Plex (it only covers Arabic here: styles.css), everything else from
+     // the system.
+     fontUi: "'IBM Plex Sans Arabic', system-ui, -apple-system, 'Segoe UI', sans-serif",
+     // Plex carries the Arabic, Georgia the Latin.
+     fontPaper: "Georgia, 'IBM Plex Sans Arabic', 'Times New Roman', serif",
+   },
+-  ocean: {},
+-  locales: ['en', 'ar'],
++  ocean: {
++    fog: { color: '#241238', density: 0.03 },
++    caustics: { color: '#ffd1e8' },
++    lights: { ambientColor: '#4a2a6a' },
++  },
++  locales: ['en'],
+ };
+ 
+ /**
+@@ -155,7 +168,7 @@ export const LANDMARKS: readonly LandmarkDefinition[] = [
+     presentation: 'in-world',
+     scene: 'pineapple',
+     overlay: 'pineapple',
+-    label: { en: 'The Pineapple', ar: 'بيت الأناناس' },
++    label: "Sam's Pineapple",
+     caption: { en: 'About', ar: 'نبذة' },
+   },
+   {
+@@ -172,15 +185,17 @@ export const LANDMARKS: readonly LandmarkDefinition[] = [
+   },
+   {
+     id: 'krusty-krab',
+-    model: 'landmark-krusty-krab',
+-    position: LANDMARK_PLACEMENTS['landmark-krusty-krab'],
++    model: 'landmark-lighthouse',
++    // Where the Krusty Krab's building stood (it stays cut out of the town), on the seabed.
++    position: [-0.554, -0.004, -0.3753],
++    scale: 0.8,
+     waypoint: 'landmark-krusty-krab',
+     // A narrator and the services as a flipping menu board; the full menu dialog is the fallback.
+     presentation: 'in-world',
+     scene: 'krusty-krab',
+     overlay: 'krusty-krab',
+-    label: { en: 'The Krusty Krab', ar: 'مطعم كراستي كراب' },
+-    caption: { en: 'Services menu', ar: 'قائمة الخدمات' },
++    label: 'The Lighthouse',
++    caption: 'Services menu',
+   },
+   {
+     id: 'bureau',
+@@ -233,8 +248,8 @@ export const DIVE_CONFIG: DiveConfig = {
+ export const NARRATOR_CAST: NarratorCastConfig = {
+   cast: {
+     pineapple: 'hamour',
+-    tiki: 'hamour',
+-    'krusty-krab': 'crab-clerk',
++    tiki: 'crab-clerk',
++    'krusty-krab': 'hamour',
+     bureau: 'sardine-president',
+   },
+   // The owner's mixed cast (2026-10-02): SpongeBob at home, Patrick at the Tiki; the crab clerk
+diff --git a/libs/world/domain/src/lib/asset-manifest.ts b/libs/world/domain/src/lib/asset-manifest.ts
+index 944d32e..f45c44f 100644
+--- a/libs/world/domain/src/lib/asset-manifest.ts
++++ b/libs/world/domain/src/lib/asset-manifest.ts
+@@ -5,7 +5,8 @@ export type SourceModelId =
+   | 'bikini-bottom-map'
+   | 'pineapple-interior'
+   | 'spongebob-character'
+-  | 'patrick-character';
++  | 'patrick-character'
++  | 'fork-lighthouse';
+ 
+ /**
+  * A raw model committed under `assets/`. Licence credit is keyed by this id.
+@@ -81,6 +82,11 @@ export const SOURCE_MODELS: readonly SourceModel[] = [
+     path: 'assets/sponge_on_the_run_patrick_base_model_textured/scene.gltf',
+     bytes: 3_393_407,
+   },
++  {
++    id: 'fork-lighthouse',
++    path: 'assets/fork-lighthouse/scene.glb',
++    bytes: 15_067,
++  },
+ ];
+ 
+ /**
+@@ -114,11 +120,20 @@ export const WEB_ASSETS: readonly AssetEntry[] = [
+     lazy: false,
+   },
+   {
++    // Still cut out of the town (so the lighthouse stands on an empty lot), but nothing loads it.
+     id: 'landmark-krusty-krab',
+     sourceModel: 'bikini-bottom-map',
+     compressedPath: 'models/landmark-krusty-krab.glb',
+     budgetBytes: 150 * KiB,
+     minimumTier: 'low',
++    lazy: true,
++  },
++  {
++    id: 'landmark-lighthouse',
++    sourceModel: 'fork-lighthouse',
++    compressedPath: 'models/landmark-lighthouse.glb',
++    budgetBytes: 12 * KiB,
++    minimumTier: 'low',
+     lazy: false,
+   },
+   {
+diff --git a/libs/world/domain/src/lib/attribution.ts b/libs/world/domain/src/lib/attribution.ts
+index 67744da..1f4e122 100644
+--- a/libs/world/domain/src/lib/attribution.ts
++++ b/libs/world/domain/src/lib/attribution.ts
+@@ -70,4 +70,11 @@ export const ATTRIBUTIONS: Readonly<Record<SourceModelId, Attribution>> = {
+       'https://sketchfab.com/3d-models/sponge-on-the-run-patrick-base-model-textured-9254a020fb76477ab4be69ee353e3fcb',
+     ...CC_BY_4,
+   },
++  'fork-lighthouse': {
++    title: 'Coral Deep Lighthouse',
++    author: 'Sam Reef',
++    authorUrl: 'https://github.com/sam-reef',
++    sourceUrl: 'https://github.com/sam-reef/coral-deep',
++    ...CC_BY_4,
++  },
+ };

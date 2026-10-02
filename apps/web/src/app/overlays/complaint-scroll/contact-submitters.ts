@@ -116,6 +116,8 @@ export interface Web3FormsSubmitterConfig {
   /** Web3Forms access key (public by design, safe in the client bundle). */
   readonly accessKey: string;
   readonly endpoint?: string;
+  /** Sender name on the delivered email (`from_name`); the provider's default when omitted. */
+  readonly fromName?: string;
 }
 
 /**
@@ -125,6 +127,7 @@ export interface Web3FormsSubmitterConfig {
 export function web3formsSubmitter({
   accessKey,
   endpoint = 'https://api.web3forms.com/submit',
+  fromName,
 }: Web3FormsSubmitterConfig): ComplaintSubmitter {
   return {
     async submit(draft: ComplaintDraft): Promise<ComplaintDelivery> {
@@ -133,9 +136,9 @@ export function web3formsSubmitter({
         subject: draft.subject,
         name: draft.senderName,
         message: draft.body,
-        from_name: 'Qaa El-Hamour Complaints Bureau',
         botcheck: false,
       };
+      if (fromName) body.from_name = fromName;
       if (draft.senderSpecies) body.species = draft.senderSpecies;
       if (draft.replyEmail) body.email = draft.replyEmail;
 
@@ -286,7 +289,10 @@ function warnAndFallback(env: ContactEnv, reason: string): ComplaintSubmitter {
  * Missing or invalid configuration resolves to `pendingSubmitter`, so the site always builds
  * and the form always works.
  */
-export function createContactSubmitter(env: ContactEnv): ComplaintSubmitter {
+export function createContactSubmitter(
+  env: ContactEnv,
+  { fromName }: { readonly fromName?: string } = {},
+): ComplaintSubmitter {
   const problems = contactConfigProblems(env);
   if (problems.length > 0) {
     return warnAndFallback(env, problems[0]);
@@ -299,6 +305,7 @@ export function createContactSubmitter(env: ContactEnv): ComplaintSubmitter {
   if (provider === 'web3forms') {
     return web3formsSubmitter({
       accessKey: text(env.VITE_WEB3FORMS_ACCESS_KEY),
+      fromName,
     });
   }
 

@@ -56,7 +56,7 @@ import {
 } from '../overlays/complaint-scroll';
 import { copyReader, toContentLocale } from '../overlays/overlay-copy';
 import type { WallPort } from '../wall/wall-port';
-import { BUREAU_VISIT_COPY, FILED_LINES } from './bureau-copy';
+import { BUREAU_VISIT_COPY, filedLines } from './bureau-copy';
 import {
   INITIAL_FILING,
   filedLineOf,
@@ -146,8 +146,8 @@ function BureauVisit({
   const t = copyReader(copy, lang);
   const words = BUREAU_VISIT_COPY[lang];
   const script = useMemo(
-    () => visitScript(narration, lang, FILED_LINES),
-    [narration, lang],
+    () => visitScript(narration, lang, filedLines(copy)),
+    [narration, lang, copy],
   );
 
   const [dialogue, dispatch] = useReducer(

@@ -95,9 +95,12 @@ guarantee above then needs the `ktx` binary on `PATH`.
 
 ## Adding or changing an asset
 
-Add the entry to `WEB_ASSETS` (owned by `libs/world/domain`), then add a recipe here: a landmark
-goes in `landmarks.ts` with its nodes and region; a whole model goes in `WHOLE_MODEL_IDS` and, if it
-needs knobs, `OPTIONS` in `compress.ts`. Run `npm run assets:compress` and commit the outputs, the
+Add the entry to `WEB_ASSETS` (owned by `libs/world/domain`; a new source model also needs its
+`SOURCE_MODELS` entry and its credit in `ATTRIBUTIONS`). A landmark cut from the map also needs a
+recipe in `landmarks.ts` with its nodes and region. Any other entry is a **whole model**: compressed
+as it is, not re-centred, with no recipe to write; add `OPTIONS` in `compress.ts` only if it needs
+knobs. A source may be a `.gltf` or a `.glb`. Walkthrough with a worked example:
+`docs/template.md`, "Replace a landmark's model". Run `npm run assets:compress` and commit the outputs, the
 updated `placements.json` and the updated table in `docs/asset-compression-report.md`.
 
 ## Licence

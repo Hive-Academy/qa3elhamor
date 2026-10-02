@@ -1,0 +1,17 @@
+ apps/web/public/admin/config.yml               |   2 +-
+ apps/web/public/models/landmark-lighthouse.glb | Bin 0 -> 9328 bytes
+ apps/web/public/models/placements.json         |   7 ++
+ apps/web/public/og-image.jpg                   | Bin 0 -> 84474 bytes
+ apps/web/src/site.config.ts                    |  61 ++++++----
+ assets/fork-lighthouse/license.txt             |  11 ++
+ assets/fork-lighthouse/scene.glb               | Bin 0 -> 14464 bytes
+ content/credits.json                           |   3 +-
+ content/narration.json                         | 106 +++++------------
+ content/projects.json                          | 141 +++-------------------
+ content/resume.json                            | 159 +++++--------------------
+ content/services.json                          |  96 +++++----------
+ content/site.json                              | 158 ++++++++----------------
+ docs/asset-compression-report.md               |   9 +-
+ libs/world/domain/src/lib/asset-manifest.ts    |  17 ++-
+ libs/world/domain/src/lib/attribution.ts       |   7 ++
+ 16 files changed, 242 insertions(+), 535 deletions(-)

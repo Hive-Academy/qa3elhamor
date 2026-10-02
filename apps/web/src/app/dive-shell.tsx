@@ -26,7 +26,8 @@ import { buildAmbientLife } from './ambient.config';
 import { SiteCredits } from './credits';
 import { SceneCredits } from './scene-credits';
 import { DepthGauge } from './depth-gauge';
-import { DIVE_CONFIG, buildDivePath } from './dive.config';
+import { buildDivePath } from './dive.config';
+import { DIVE_CONFIG, SITE } from '../site.config';
 import { InWorldAtmosphere } from './in-world/in-world-atmosphere';
 import { inWorldAvailable } from './in-world/in-world-mode';
 import {
@@ -55,7 +56,7 @@ import { CHROME_COPY } from './i18n/ui-strings';
 /** Resolved once: the manifest owns the path, Vite owns the deploy base. */
 const ENVIRONMENT_URL = assetUrl('environment', import.meta.env.BASE_URL);
 
-/** Built and validated once per page load from `dive.config.ts`. */
+/** Built and validated once per page load from `DIVE_CONFIG` (`site.config.ts`). */
 const DIVE_PATH = buildDivePath();
 const CAMERA_START = DIVE_PATH.pointAt(0);
 
@@ -162,6 +163,7 @@ function Dive({ onDiveFailure }: DiveShellProps) {
             >
               <OceanWorld
                 environmentUrl={ENVIRONMENT_URL}
+                config={SITE.ocean}
                 controls={false}
                 quality={quality.profile}
                 ambientLife={AMBIENT_LIFE}

@@ -100,6 +100,13 @@ export const SITE_COPY_KEYS = [
   'complaintErrorTooLong',
   'complaintErrorControlCharacter',
   'complaintErrorMalformed',
+  // The Bureau's choice between private and public (only shown with the public wall on), and
+  // what the Sardine President says once a complaint is filed: these name the site's owner.
+  'complaintPrivateLabel',
+  'complaintPrivateHint',
+  'complaintFiledLine',
+  'complaintFiledUnsentLine',
+  'complaintFiledPublicLine',
 ] as const;
 
 export type SiteCopyKey = (typeof SITE_COPY_KEYS)[number];

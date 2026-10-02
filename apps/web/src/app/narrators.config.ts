@@ -1,21 +1,27 @@
 import type { NarrationLandmarkId } from '@qa3elhamor/content-domain';
 import type { NarratorCastId } from '@qa3elhamor/world-feature';
+import { NARRATOR_CAST } from '../site.config';
 
 /**
- * Who narrates each landmark. The default cast is original and built in code
- * (`@qa3elhamor/world-feature`, no asset files, IP-clean). `useBundledCharacters` swaps in
- * the decimated SpongeBob and Patrick models shipped with the template where a landmark names
- * one in `bundled`, giving a mixed cast: Nickelodeon characters, so it is off in the template
- * and an owner turns it on for their own deployment with `VITE_BUNDLED_CHARACTERS=true`,
+ * Who narrates each landmark: the cast is config (`NARRATOR_CAST` in `src/site.config.ts`), the
+ * switch to the bundled models is the deployment's (`VITE_BUNDLED_CHARACTERS`). The default
+ * cast is original and built in code (`@qa3elhamor/world-feature`, no asset files, IP-clean).
+ * `useBundledCharacters` swaps in the decimated SpongeBob and Patrick models shipped with the
+ * template where a landmark names one in `bundled`, giving a mixed cast: Nickelodeon
+ * characters, so it is off in the template and an owner turns it on for their own deployment,
  * accepting that risk (`.ptah/scope-decisions.md`, amendments of 2026-10-01 and 2026-10-02).
  *
  * Swapping the cast is config only: no scene code changes.
  */
-export interface NarratorsConfig {
-  /** The original cast, per landmark: the default, and the fallback for a bundled model. */
-  readonly cast: Readonly<Record<NarrationLandmarkId, NarratorCastId>>;
+export interface NarratorsConfig extends NarratorCastConfig {
   /** True: a landmark with a `bundled` character gets it instead of its original cast. */
   readonly useBundledCharacters: boolean;
+}
+
+/** The cast as `site.config.ts` declares it. */
+export interface NarratorCastConfig {
+  /** The original cast, per landmark: the default, and the fallback for a bundled model. */
+  readonly cast: Readonly<Record<NarrationLandmarkId, NarratorCastId>>;
   /** The bundled character per landmark, where there is one. The others keep their cast. */
   readonly bundled: Readonly<Partial<Record<NarrationLandmarkId, BundledCharacter>>>;
 }
@@ -36,19 +42,8 @@ export const bundledCharactersFromEnv = (env: {
 }): boolean => env.VITE_BUNDLED_CHARACTERS === 'true';
 
 export const NARRATORS_CONFIG: NarratorsConfig = {
-  cast: {
-    pineapple: 'hamour',
-    tiki: 'hamour',
-    'krusty-krab': 'crab-clerk',
-    bureau: 'sardine-president',
-  },
+  ...NARRATOR_CAST,
   useBundledCharacters: bundledCharactersFromEnv(import.meta.env),
-  // The mixed cast (owner, 2026-10-02): SpongeBob at home, Patrick at the Tiki; the crab clerk
-  // keeps the Krusty Krab and the Sardine President the Bureau.
-  bundled: {
-    pineapple: { asset: 'spongebob-narrator', heightFactor: 1.9 },
-    tiki: { asset: 'patrick-narrator', heightFactor: 1.9 },
-  },
 };
 
 /**

@@ -1,0 +1,38 @@
+{
+  "_sample": "SAMPLE CONTENT for a fictional resident, Sam Reef. `npm run template:reset` copies these files over content/; replace every value with your own (content/README.md), then delete this note.",
+  "items": [
+    {
+      "id": "this-site",
+      "title": {
+        "en": "This site",
+        "ar": "هذا الموقع"
+      },
+      "summary": {
+        "en": "SAMPLE PROJECT. A scroll-driven 3D dive built from an open-source template.",
+        "ar": "مشروع نموذجي. غطسة ثلاثية الأبعاد بالتمرير مبنية على قالب مفتوح المصدر."
+      },
+      "highlights": [
+        {
+          "en": "Replace with what you built and why it matters."
+        }
+      ],
+      "role": {
+        "en": "Everything",
+        "ar": "كل حاجة"
+      },
+      "tech": [
+        "React",
+        "Three.js",
+        "Nx"
+      ],
+      "links": [
+        {
+          "kind": "repo",
+          "url": "https://github.com/your-handle/your-site"
+        }
+      ],
+      "featured": true,
+      "order": 1
+    }
+  ]
+}

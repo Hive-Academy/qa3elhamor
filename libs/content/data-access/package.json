@@ -37,7 +37,8 @@
         "inputs": [
           "default",
           "^production",
-          "{workspaceRoot}/apps/web/public/admin/config.yml"
+          "{workspaceRoot}/apps/web/public/admin/config.yml",
+          "{workspaceRoot}/content.example/*.json"
         ]
       }
     }

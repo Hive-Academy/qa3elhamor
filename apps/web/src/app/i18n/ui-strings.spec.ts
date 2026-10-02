@@ -1,6 +1,6 @@
 import { LOCALES } from '@qa3elhamor/content-domain';
 import { describe, expect, it } from 'vitest';
-import { BUREAU_VISIT_COPY, FILED_LINES } from '../bureau/bureau-copy';
+import { BUREAU_VISIT_COPY } from '../bureau/bureau-copy';
 import { KRUSTY_VISIT_COPY } from '../krusty-krab/krusty-copy';
 import { NARRATOR_COPY, NARRATOR_NAMES } from '../narrators/narrator-copy';
 import { IN_WORLD_CARD_COPY } from '../overlays/citizenship-card/citizenship-card-in-world';
@@ -28,7 +28,6 @@ const TABLES = {
 /** Strings keyed by id, each carrying every locale (`{ en, ar }` per entry). */
 const ENTRY_TABLES = {
   NARRATOR_NAMES,
-  FILED_LINES,
   LOCALE_NAMES: Object.fromEntries(
     Object.entries(LOCALE_NAMES).map(([id, names]) => [id, { en: names.short, ar: names.name }]),
   ),

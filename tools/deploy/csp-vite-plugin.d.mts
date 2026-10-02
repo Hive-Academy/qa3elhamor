@@ -13,3 +13,6 @@
 import type { Plugin } from 'vite';
 
 export declare const contentSecurityPolicy: () => Plugin;
+
+/** `site-base.ts`: `SITE_BASE` as a base path; throws on a shell-mangled file path. */
+export declare const siteBase: (raw: string | undefined) => string;

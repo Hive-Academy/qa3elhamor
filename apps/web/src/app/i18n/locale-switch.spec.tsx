@@ -4,6 +4,10 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vite
 import App from '../app';
 import { loadDiveShell } from '../dive-shell-loader';
 import { LOCALE_STORAGE_KEY } from './locale';
+import { SITE } from '../../site.config';
+
+// A bilingual site's switch; with one language (`SITE.locales`) there is none: see app.spec.tsx.
+const bilingual = SITE.locales.length > 1;
 
 // jsdom cannot mount the R3F canvas, and reports no WebGL; see app.spec.tsx.
 vi.mock('@react-three/fiber', async (importOriginal) => ({
@@ -46,7 +50,7 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-describe('the language switch', () => {
+describe.skipIf(!bilingual)('the language switch', () => {
   it('starts in English from an English browser, with EN pressed', () => {
     render(<App />);
     expect(html.lang).toBe('en');
@@ -142,7 +146,7 @@ describe('the language switch', () => {
   });
 });
 
-describe('the page view in Arabic', () => {
+describe.skipIf(!bilingual)('the page view in Arabic', () => {
   it('reads right to left with the switch in its masthead, and switches in place', () => {
     window.history.replaceState(null, '', '/?view=page&lang=ar');
     const { container } = render(<App />);

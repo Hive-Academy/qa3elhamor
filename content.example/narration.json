@@ -1,0 +1,100 @@
+{
+  "_sample": "SAMPLE CONTENT for a fictional resident, Sam Reef. `npm run template:reset` copies these files over content/; replace every value with your own (content/README.md), then delete this note.",
+  "landmarks": {
+    "pineapple": {
+      "lines": [
+        {
+          "en": "Welcome to the pineapple, home of Sam Reef. A registered resident of the bottom of the sea.",
+          "ar": "أهلاً بيك في الأناناسة، بيت سام ريف. مقيم رسمي في قاع البحر."
+        },
+        {
+          "en": "Sam builds web apps, and the odd 3D site like this one. This is sample content, waiting for a real owner.",
+          "ar": "سام بيبني تطبيقات ويب، ومواقع ثلاثية الأبعاد زي ده. ده محتوى نموذجي مستني صاحبه الحقيقي."
+        },
+        {
+          "en": "Those bubbles are Sam's specialties. Pick one and I'll tell you about it.",
+          "ar": "الفقاعات دي تخصصات سام. اختار واحدة وأحكيلك عنها."
+        }
+      ],
+      "hints": [
+        {
+          "id": "frontend",
+          "text": {
+            "en": "TypeScript, React and Three.js: interfaces, in two and three dimensions.",
+            "ar": "واجهات ببعدين وتلاتة: TypeScript وReact وThree.js."
+          }
+        },
+        {
+          "id": "backend",
+          "text": {
+            "en": "Node.js and PostgreSQL. The plumbing that keeps the reef running.",
+            "ar": "السباكة اللي مشغّلة الشعاب: Node.js وPostgreSQL."
+          }
+        },
+        {
+          "id": "tooling",
+          "text": {
+            "en": "Nx, Vite and GitHub Actions. If it is not in the pipeline, it did not ship.",
+            "ar": "اللي مش في خط النشر يبقى ما اتشحنش: Nx وVite وGitHub Actions."
+          }
+        }
+      ],
+      "farewell": {
+        "en": "Next stop: Performance Reviews. Follow the current.",
+        "ar": "المحطة الجاية: تقييمات الأداء. امشي مع التيار."
+      }
+    },
+    "tiki": {
+      "lines": [
+        {
+          "en": "Welcome to Performance Reviews. Every job is on file here, newest first.",
+          "ar": "أهلاً بيك في تقييمات الأداء. كل شغلانة متسجّلة هنا، الأحدث الأول."
+        },
+        {
+          "en": "Pick a tablet to read the review. Sample reviews, for now.",
+          "ar": "اختار لوح واقرا التقييم. تقييمات نموذجية لحد دلوقتي."
+        }
+      ],
+      "farewell": {
+        "en": "Reviews filed. The menu is just down the current.",
+        "ar": "التقييمات اتحفظت. المنيو على بعد تيار."
+      }
+    },
+    "krusty-krab": {
+      "lines": [
+        {
+          "en": "Welcome! Today's menu is short, and every dish is a real service.",
+          "ar": "أهلاً بيك! منيو النهارده قصير، وكل طبق خدمة حقيقية."
+        },
+        {
+          "en": "Prices are in pearls and sand dollars. Serious orders go through the Complaints Bureau.",
+          "ar": "الأسعار باللولي ودولارات الرمل. الطلبات الجد بتعدّي على مكتب الشكاوى."
+        }
+      ],
+      "farewell": {
+        "en": "Enjoy your meal. The Bureau is next.",
+        "ar": "بالهنا. المكتب هو اللي جاي."
+      }
+    },
+    "bureau": {
+      "lines": [
+        {
+          "en": "This is the Municipal Complaints Bureau. Complaints, questions and project ideas all go in the same tray.",
+          "ar": "ده مكتب الشكاوى البلدي. الشكاوى والأسئلة والأفكار، كله في نفس الدرج."
+        },
+        {
+          "en": "It goes privately to Sam's desk. The Sardine President reads every one, eventually.",
+          "ar": "كله بيروح على مكتب سام على انفراد. والرئيس السرديني بيقرا كل واحدة، ولو بعد شوية."
+        },
+        {
+          "en": "Leave a reply address if you want an answer.",
+          "ar": "سيب عنوان للرد لو عايز إجابة."
+        }
+      ],
+      "farewell": {
+        "en": "Thanks for visiting. Swim safe, and come back down anytime.",
+        "ar": "شكراً لزيارتك. عوم بالسلامة، وانزل لنا تاني في أي وقت."
+      }
+    }
+  }
+}

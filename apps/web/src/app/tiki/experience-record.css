@@ -4,15 +4,15 @@
  * wraps it.
  */
 .tiki-record {
-  --page-sea: #0f5e6e;
-  --page-sea-deep: #0a3d4a;
-  --page-link: #0b5874;
-  --lmk-paper: #f3ead3;
-  --lmk-paper-edge: #dccb9f;
-  --lmk-ink: #2a2118;
-  --lmk-ink-soft: #5b4a36;
-  --lmk-rule: #8c3b2a;
-  --lmk-focus: #0b6fa4;
+  --page-sea: var(--theme-lagoon);
+  --page-sea-deep: var(--theme-lagoon-deep);
+  --page-link: var(--theme-link);
+  --lmk-paper: var(--theme-paper);
+  --lmk-paper-edge: var(--theme-paper-edge);
+  --lmk-ink: var(--theme-ink);
+  --lmk-ink-soft: var(--theme-ink-soft);
+  --lmk-rule: var(--theme-rule);
+  --lmk-focus: var(--theme-focus);
 
   font-family: var(--font-ui);
   line-height: 1.55;

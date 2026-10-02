@@ -5,7 +5,8 @@ import { WATER_VOLUME, WORLD_SCALE } from '@qa3elhamor/world-feature';
 import { DEFAULT_PLAQUE_FACING, DEFAULT_PLAQUE_POSITION } from '@qa3elhamor/world-ui';
 import { describe, expect, it } from 'vitest';
 import { formatDepth } from './depth-gauge';
-import { DIVE_CONFIG, LANDMARK_PLACEMENTS, buildDivePath, buildDiveSpec } from './dive.config';
+import { DIVE_CONFIG, LANDMARK_PLACEMENTS } from '../site.config';
+import { buildDivePath, buildDiveSpec } from './dive.config';
 
 const placements = JSON.parse(
   readFileSync(resolve(import.meta.dirname, '../../public/models/placements.json'), 'utf8')
@@ -13,8 +14,11 @@ const placements = JSON.parse(
 
 describe('dive config', () => {
   it('uses the landmark placements the asset pipeline wrote', () => {
+    // A spot named after an asset cut from the map is where the pipeline cut it; a spot of a
+    // fork's own (any other name) is wherever the config says.
     for (const [id, offset] of Object.entries(LANDMARK_PLACEMENTS)) {
-      expect(placements[id]?.offset).toEqual(offset);
+      const cut = placements[id]?.offset;
+      if (cut) expect(offset, id).toEqual(cut);
     }
   });
 
@@ -23,20 +27,19 @@ describe('dive config', () => {
     expect(DivePath.validate(spec)).toEqual([]);
     // Every route entry, then the finale.
     expect(spec.controlPoints).toHaveLength(DIVE_CONFIG.route.length + 1);
-    expect(buildDivePath().waypoints.map((w) => w.id)).toEqual([
-      'landmark-pineapple',
-      'landmark-tiki',
-      'landmark-krusty-krab',
-      'landmark-bureau',
-    ]);
+    expect(buildDivePath().waypoints.map((w) => w.id)).toEqual(
+      DIVE_CONFIG.route.flatMap((e) => (e.kind === 'stop' ? [e.landmark] : [])),
+    );
   });
 
   it('places stops relative to landmarks in world units', () => {
     const path = buildDivePath();
-    const bureau = path.waypoint('landmark-bureau');
-    const base = LANDMARK_PLACEMENTS['landmark-bureau'].map((c) => c * WORLD_SCALE);
-    expect(bureau?.focus?.[0]).toBeCloseTo(base[0], 9);
-    expect(bureau?.focus?.[2]).toBeCloseTo(base[2], 9);
+    for (const stop of DIVE_CONFIG.route.flatMap((e) => (e.kind === 'stop' ? [e] : []))) {
+      const waypoint = path.waypoint(stop.landmark);
+      const base = LANDMARK_PLACEMENTS[stop.landmark].map((c) => c * WORLD_SCALE);
+      expect(waypoint?.focus?.[0]).toBeCloseTo(base[0], 9);
+      expect(waypoint?.focus?.[2]).toBeCloseTo(base[2], 9);
+    }
   });
 
   it('starts near the surface, ends deep, and stays inside the water volume', () => {

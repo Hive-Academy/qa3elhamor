@@ -71,6 +71,7 @@ In `Hive-Academy/qa3elhamor`, Settings, Secrets and variables, Actions:
 | Variable | `PAGES_REPOSITORY` | `Abdallah-khalil/Abdallah-khalil.github.io` |
 | Variable | `PAGES_BRANCH` | `master` (the Pages repo's publishing branch) |
 | Variable | `SITE_BASE` | leave unset for a user site |
+| Variable | `SITE_URL` | `https://abdallah-khalil.github.io/` (optional: social previews get absolute `og:url`/`og:image`) |
 | Variable | `VITE_CONTACT_PROVIDER` | `web3forms` or `formspree` (or leave unset: the form shows "not wired") |
 | Secret | `VITE_WEB3FORMS_ACCESS_KEY` | Web3Forms access key (when the provider is `web3forms`) |
 | Variable | `VITE_FORMSPREE_FORM_ID` | Formspree form id (when the provider is `formspree`) |
@@ -118,7 +119,8 @@ Fork the repository, then pick one.
 
 **Project site** (`https://<you>.github.io/<repo>/`): no second repository is needed.
 
-1. Set the repository variable `SITE_BASE` to `/<repo>/`.
+1. Set the repository variable `SITE_BASE` to `/<repo>/` (and, optionally, `SITE_URL` to
+   `https://<you>.github.io/<repo>/`). Rebranding first: [template.md](template.md).
 2. Use the standard Pages flow (Settings, Pages, Source: GitHub Actions) with your own workflow, or
    build locally and push `apps/web/dist` to a `gh-pages` branch:
 
