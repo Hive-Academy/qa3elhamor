@@ -19,7 +19,7 @@ test.skip(
   'E2E_BASE_URL is set: export E2E_CONTACT_WIRED=1 if that deployment has a contact provider',
 );
 
-test.describe('Complaints Bureau, in the world', { tag: '@desktop-only' }, () => {
+test.describe('Complaints Bureau, in the world', { tag: ['@desktop-only', '@nightly'] }, () => {
   test('filing a complaint: the scroll unrolls, the stamp lands, the provider gets it', async ({
     page,
   }) => {

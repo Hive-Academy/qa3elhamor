@@ -34,7 +34,7 @@ test.describe('as a dialog', () => {
   });
 });
 
-test('in the world, the unrolled scroll says the same and sends nothing', async ({ page }) => {
+test('in the world, the unrolled scroll says the same and sends nothing', { tag: '@nightly' }, async ({ page }) => {
   const sent = await forbidProvider(page);
   await dive(page, BUREAU.nav);
   await skipDialogue(page, BUREAU.narrator);

@@ -153,7 +153,7 @@ test.describe('complaints wall (on, mocked API)', () => {
     expect(dialogs).toBe(0);
   });
 
-  test('the Bureau offers the notice wall after the President', { tag: '@desktop-only' }, async ({
+  test('the Bureau offers the notice wall after the President', { tag: ['@desktop-only', '@nightly'] }, async ({
     page,
   }) => {
     await mockWall(page);

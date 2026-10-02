@@ -114,6 +114,7 @@ export default defineConfig({
           {
             name: 'pending',
             testMatch: /bureau-pending\.spec\.ts$/,
+            grepInvert: process.env['E2E_NIGHTLY'] ? undefined : /@nightly/,
             use: {
               browserName: 'chromium' as const,
               viewport: { width: 1440, height: 900 },
