@@ -131,3 +131,11 @@ Run 36984383736 left 3 failures on the `.speech-box` inline-opacity wait (placem
 - e2e `bubblePlaced` now waits for `[data-visit-state]` to be `talking|ready` (120 s); no CSS opacity assertions remain in the suite.
 
 Verification: dialogue spec 15/15; `npx nx run-many -t lint,typecheck,test -p web web-e2e --skipSync` passes; Pineapple, Krusty Krab and Bureau dive specs at `E2E_CPU_THROTTLE=4 CI=1`, retries 0: 3/3 passed in two consecutive runs. Not touched: i18n tables, configs, content.
+
+## Revision 4
+
+Run 36987967758: the remaining 3 failures were `toHaveCount` on the 3D labels, which only become visible/focusable after frame-driven fly-out animation.
+- Object counts now go through the kit's accessible list, rendered from data at open: `getByRole('list', { name, includeHidden: true })` / `getByRole('button', { includeHidden: true })`. No app change was needed.
+- The part that cannot be frame-independent (a label visible and focusable, arrow-key selection, "Back to the tour") is split out into `dive: <landmark> objects fly out and can be picked by keyboard @nightly` (3 tests). The `desktop` project skips `@nightly` unless `E2E_NIGHTLY=1`; mobile always skips it.
+- `.github/workflows/e2e.yml`: new `e2e-inworld` job on `schedule` (03:17 UTC) and `workflow_dispatch`, runs `--project=desktop --grep @nightly`, uploads its own report; the `e2e` job (push/PR) no longer runs on schedule. Documented in docs/testing.md ("Nightly in-world job").
+- Verification: `dive.spec` desktop (3 visit flows + bureau, now without the nightly steps) at `E2E_CPU_THROTTLE=6 CI=1`, retries 0, run twice: 4/4 both times. Before splitting, the same flows with the label waits (timeouts raised to 180 s) also passed twice at 6x locally, so the nightly tests are expected to pass; they were not run separately here. Lint/typecheck pass. (Port 4510 was held by another process, so local runs used `E2E_PORT=4620`.)

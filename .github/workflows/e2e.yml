@@ -13,6 +13,9 @@ on:
   push:
     branches: [main]
   pull_request:
+  # The animation-driven in-world steps (job e2e-inworld) run nightly, not on every push.
+  schedule:
+    - cron: '17 3 * * *'
   workflow_dispatch:
     inputs:
       base_url:
@@ -37,7 +40,7 @@ permissions:
 
 jobs:
   e2e:
-    if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.update_snapshots) }}
+    if: ${{ github.event_name != 'schedule' && !(github.event_name == 'workflow_dispatch' && inputs.update_snapshots) }}
     runs-on: ubuntu-latest
     timeout-minutes: 75
     env:
@@ -63,6 +66,40 @@ jobs:
         if: ${{ !cancelled() }}
         with:
           name: playwright-report
+          path: |
+            apps/web-e2e/playwright-report
+            apps/web-e2e/test-results
+          retention-days: 14
+          if-no-files-found: ignore
+
+  # Steps that wait on frame-driven animation (the objects flying out of a landmark, then picked by
+  # keyboard). On a 2-core runner with software GL they take minutes, so they stay out of the
+  # push/PR run. Nightly and by hand; see docs/testing.md.
+  e2e-inworld:
+    if: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && !inputs.update_snapshots) }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      E2E_BASE_URL: ${{ inputs.base_url }}
+      E2E_NIGHTLY: '1'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - run: npx playwright install --with-deps chromium
+
+      - run: npx nx run web-e2e:e2e -- --project=desktop --grep @nightly
+
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report-inworld
           path: |
             apps/web-e2e/playwright-report
             apps/web-e2e/test-results

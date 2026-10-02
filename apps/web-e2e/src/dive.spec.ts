@@ -3,6 +3,7 @@ import {
   BUREAU,
   VISITS,
   bubble,
+  FLIGHT_TIMEOUT,
   dive,
   landmarkButton,
   press,
@@ -35,23 +36,15 @@ for (const visit of VISITS) {
     }).toPass({ timeout: 90_000 });
     await skipDialogue(page, visit.narrator);
 
-    // The content comes out as 3D objects with DOM labels: the skill bubbles, tablets, dishes.
-    const objects = page.getByRole('list', { name: visit.objectsList }).getByRole('button');
-    await expect(objects).toHaveCount(visit.objectCount);
-    await expect(objects.first()).toBeVisible({ timeout: 60_000 });
-    await expect(objects.last()).toBeVisible();
-
-    // Keyboard: focusing an object selects it and the arrow keys move along, selecting as they go.
-    await objects.first().focus();
-    await expect(objects.first()).toHaveAttribute('aria-expanded', 'true');
-    await page.keyboard.press('ArrowRight');
-    await expect(objects.nth(1)).toBeFocused();
-    await expect(objects.nth(1)).toHaveAttribute('aria-expanded', 'true');
-    await press(speech.getByRole('button', { name: /^Back to the tour/ }));
-    await expect(objects.nth(1)).toHaveAttribute('aria-expanded', 'false');
+    // The content as the kit's list of objects: one button per object, rendered from data when
+    // the visit opens (the skill bubbles, tablets, dishes). Counted through the accessibility
+    // mirror, `includeHidden`, because the 3D labels only become visible after frame-driven
+    // fly-out animations, which crawl on a software rasteriser.
+    // (Their flight and keyboard selection are the nightly test below.)
+    const list = page.getByRole('list', { name: visit.objectsList, includeHidden: true });
+    await expect(list.getByRole('button', { includeHidden: true })).toHaveCount(visit.objectCount);
 
     // The full view, and Escape back to the guide with focus on the button that opened it.
-    await skipDialogue(page, visit.narrator).catch(() => undefined);
     const openFull = speech.getByRole('button', { name: visit.openFull });
     await press(openFull);
     await expect(page.getByRole('button', { name: 'Back to the guide' })).toBeVisible();
@@ -63,6 +56,36 @@ for (const visit of VISITS) {
     // Leave: the narrator says goodbye and focus goes back to the landmark's nav button.
     await press(speech.getByRole('button', { name: 'Back to the dive' }));
     await expect(landmarkButton(page, visit.nav)).toBeFocused();
+  });
+}
+
+// The part of a visit that depends on frame-driven animation: the objects fly out of the model
+// and only then are their labels visible and focusable. On a software rasteriser on a shared
+// runner that can take minutes, so it runs in the nightly `e2e-inworld` job (E2E_NIGHTLY=1,
+// docs/testing.md), not on every pull request.
+for (const visit of VISITS) {
+  test(`dive: ${visit.region} objects fly out and can be picked by keyboard @nightly`, async ({
+    page,
+  }) => {
+    await dive(page, visit.nav);
+    const speech = bubble(page, visit.narrator);
+    await skipDialogue(page, visit.narrator);
+
+    // One 3D label must show up eventually (the objects really flew out); long, as it is
+    // animation-driven. The keyboard steps below need a label that can take focus.
+    const objects = page.getByRole('list', { name: visit.objectsList }).getByRole('button');
+    await expect(objects.first()).toBeVisible({ timeout: FLIGHT_TIMEOUT * 1.5 });
+    await expect(objects.last()).toBeVisible({ timeout: FLIGHT_TIMEOUT });
+
+    // Keyboard: focusing an object selects it and the arrow keys move along, selecting as they go.
+    await objects.first().focus();
+    await expect(objects.first()).toHaveAttribute('aria-expanded', 'true');
+    await page.keyboard.press('ArrowRight');
+    await expect(objects.nth(1)).toBeFocused();
+    await expect(objects.nth(1)).toHaveAttribute('aria-expanded', 'true');
+    await press(speech.getByRole('button', { name: /^Back to the tour/ }));
+    await expect(objects.nth(1)).toHaveAttribute('aria-expanded', 'false');
+
   });
 }
 

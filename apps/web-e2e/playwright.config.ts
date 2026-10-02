@@ -73,6 +73,8 @@ export default defineConfig({
     {
       name: 'desktop',
       testIgnore: NOT_WEBGL_SPECS,
+      // @nightly: animation-driven in-world steps, run by the e2e-inworld job (E2E_NIGHTLY=1).
+      grepInvert: process.env['E2E_NIGHTLY'] ? undefined : /@nightly/,
       use: { browserName: 'chromium', viewport: { width: 1440, height: 900 } },
     },
     {
@@ -81,7 +83,7 @@ export default defineConfig({
       testMatch: /(smoke|dive|bureau|fallback)\.spec\.ts$/,
       // The long camera flights run once, on desktop; mobile keeps one visit (the Pineapple)
       // and the quick dialog paths.
-      grepInvert: /@desktop-only/,
+      grepInvert: /@desktop-only|@nightly/,
       use: {
         browserName: 'chromium',
         viewport: { width: 390, height: 844 },

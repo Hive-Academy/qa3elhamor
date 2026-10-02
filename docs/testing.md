@@ -101,6 +101,16 @@ awaited (`canvasReady`, it mounts lazily) and `test.slow()` triples the timeout 
 To reproduce a slow runner locally: `E2E_CPU_THROTTLE=4 CI=1 npx nx run web-e2e:e2e -- --project=desktop`
 (Chrome DevTools CPU throttling, 4x).
 
+## Nightly in-world job
+
+Objects flying out of a landmark (and the keyboard selection that needs their labels to be visible) are
+driven by animation frames. On a CI runner with software GL they can take minutes, so those steps are
+tests tagged `@nightly` (`dive.spec.ts`, "objects fly out and can be picked by keyboard"). They are skipped
+by default and run by the `e2e-inworld` job in `e2e.yml` (nightly at 03:17 UTC and on manual dispatch), or
+locally with `E2E_NIGHTLY=1 npx nx run web-e2e:e2e -- --project=desktop --grep @nightly`. The push/PR run
+still checks, for every landmark, that the narrator speaks, the objects exist (counted through the kit's
+accessible list, which is rendered from data, not frames), the full view opens and Esc and leaving return focus.
+
 ## CI
 
 `.github/workflows/e2e.yml` runs on pushes to `main` and on pull requests: `npm ci`,
