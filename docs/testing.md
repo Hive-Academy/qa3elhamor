@@ -103,6 +103,10 @@ To reproduce a slow runner locally: `E2E_CPU_THROTTLE=4 CI=1 npx nx run web-e2e:
 
 ## Nightly in-world job
 
+The full in-world landmark visits (`dive.spec.ts`: fly in, meet the narrator, objects, full view, leave)
+are nightly too: animation time is clamped per frame, so at the ~1 fps of a software-GL runner the
+narrator's swim-in alone can exceed the push/PR budget. Push/PR CI keeps the deterministic set (smoke,
+dialog visits, in-world Bureau filing, page view, no-WebGL, Arabic, wall).
 Objects flying out of a landmark (and the keyboard selection that needs their labels to be visible) are
 driven by animation frames. On a CI runner with software GL they can take minutes, so those steps are
 tests tagged `@nightly` (`dive.spec.ts`, "objects fly out and can be picked by keyboard"). They are skipped

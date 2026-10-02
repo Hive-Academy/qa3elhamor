@@ -14,8 +14,10 @@ import {
 // dialogue, select a 3D object by keyboard, open the full view, leave with Escape, and end up
 // back on the landmark's navigation button.
 for (const visit of VISITS) {
-  // Mobile runs the first visit only; the other flights are desktop-only to keep the run short.
-  const tag = visit.id === 'pineapple' ? [] : ['@desktop-only'];
+  // Nightly: animation time is clamped per frame, so at the ~1 fps of the software-GL runner the
+  // narrator's swim-in takes many times its wall-clock length and these flows exceed any sane
+  // push/PR budget (docs/testing.md "Nightly in-world job").
+  const tag = ['@nightly'];
   test(`dive: ${visit.region} opens, its content is there and it can be left`, { tag }, async ({ page }) => {
     await dive(page, visit.nav);
 
