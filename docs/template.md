@@ -78,10 +78,11 @@ Fonts: the Arabic face is self-hosted under `apps/web/public/fonts/` and declare
 `NARRATOR_CAST` in `site.config.ts`. `cast` picks, per landmark, one of the original
 characters built in code (`hamour`, `sardine-president`, `crab-clerk`): IP-clean, always
 available, and the fallback on low-end devices. `bundled` names the shipped SpongeBob and
-Patrick models; they replace the cast **only** when the build sets `VITE_BUNDLED_CHARACTERS=true`.
+Patrick models; `bundledByDefault` turns them on (the original owner's site ships `true`).
+`VITE_BUNDLED_CHARACTERS=true|false` overrides it at build time.
 
 They are Nickelodeon characters. The model licences (CC-BY-4.0) cover the meshes, not the
-characters, so the template keeps them off. Turn them on for your own deployment only if you
+characters. **A fork should set `bundledByDefault: false`** and turn them on only if you
 accept that risk. In development, `?narrators=bundled` / `?narrators=original` previews either.
 
 ## 4. Landmarks: move, rename, remove, add (5 minutes)

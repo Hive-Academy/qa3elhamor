@@ -12,10 +12,11 @@ import { narratorName } from './narrators/narrator-copy';
 import { NARRATOR_CAST } from '../site.config';
 
 describe('narrators config', () => {
-  it('ships the original cast (site.config.ts) unless the switch is on', () => {
-    expect(NARRATORS_CONFIG.useBundledCharacters).toBe(false);
+  it("follows the site's bundledByDefault when the env leaves it unset", () => {
+    expect(NARRATORS_CONFIG.useBundledCharacters).toBe(NARRATOR_CAST.bundledByDefault);
+    const off = { ...NARRATORS_CONFIG, useBundledCharacters: false };
     for (const landmark of NARRATION_LANDMARKS)
-      expect(narratorFor(landmark)).toEqual({ kind: 'cast', cast: NARRATOR_CAST.cast[landmark] });
+      expect(narratorFor(landmark, off)).toEqual({ kind: 'cast', cast: NARRATOR_CAST.cast[landmark] });
   });
 
   it('names a real cast member for every landmark, and real, lazy, tier-gated models', () => {
@@ -40,7 +41,7 @@ describe('narrators config', () => {
           : { kind: 'cast', cast },
       );
     }
-    const switched = { cast: NARRATOR_CAST.cast, useBundledCharacters: true };
+    const switched = { cast: NARRATOR_CAST.cast, useBundledCharacters: true, bundledByDefault: false };
     expect(
       narratorFor('pineapple', {
         ...switched,
@@ -57,15 +58,20 @@ describe('narrators config', () => {
     expect(narratorName({ kind: 'cast', cast: 'hamour' }, 'en')).toBe('The Hamour');
   });
 
-  it('turns on only for VITE_BUNDLED_CHARACTERS=true', () => {
+  it('env true/false overrides; anything else uses the site default', () => {
     expect(bundledCharactersFromEnv({ VITE_BUNDLED_CHARACTERS: 'true' })).toBe(true);
-    for (const value of [undefined, '', 'false', 'TRUE', '1', 'yes'])
+    expect(bundledCharactersFromEnv({ VITE_BUNDLED_CHARACTERS: 'true' }, false)).toBe(true);
+    expect(bundledCharactersFromEnv({ VITE_BUNDLED_CHARACTERS: 'false' }, true)).toBe(false);
+    for (const value of [undefined, '', 'TRUE', '1', 'yes']) {
       expect(bundledCharactersFromEnv({ VITE_BUNDLED_CHARACTERS: value })).toBe(false);
+      expect(bundledCharactersFromEnv({ VITE_BUNDLED_CHARACTERS: value }, true)).toBe(true);
+    }
   });
 
   it('previews the switch from the URL in development only', () => {
-    expect(narratorsConfigFor('?narrators=bundled', true).useBundledCharacters).toBe(true);
-    expect(narratorsConfigFor('?narrators=bundled', false).useBundledCharacters).toBe(false);
+    const off = { ...NARRATORS_CONFIG, useBundledCharacters: false };
+    expect(narratorsConfigFor('?narrators=bundled', true, off).useBundledCharacters).toBe(true);
+    expect(narratorsConfigFor('?narrators=bundled', false, off).useBundledCharacters).toBe(false);
     const on = { ...NARRATORS_CONFIG, useBundledCharacters: true };
     expect(narratorsConfigFor('?narrators=original', true, on).useBundledCharacters).toBe(false);
     expect(narratorsConfigFor('?quality=high', true)).toBe(NARRATORS_CONFIG);

@@ -234,9 +234,10 @@ export const DIVE_CONFIG: DiveConfig = {
  * default, and the fallback for a bundled model on a tier that does not load it.
  *
  * `bundled` names the decimated SpongeBob and Patrick models shipped with the template. They
- * replace the cast only on a deployment built with `VITE_BUNDLED_CHARACTERS=true`: they are
- * Nickelodeon characters, so the template keeps them off and an owner turns them on for their
- * own site, accepting that risk (`.ptah/scope-decisions.md`, asset and licensing constraints).
+ * are Nickelodeon characters: this site (the owner's) turns them on with `bundledByDefault`,
+ * accepting that risk (`.ptah/scope-decisions.md`, asset and licensing constraints). A fork
+ * sets `bundledByDefault: false` (docs/template.md); `VITE_BUNDLED_CHARACTERS=true|false`
+ * overrides either way at build time.
  */
 export const NARRATOR_CAST: NarratorCastConfig = {
   cast: {
@@ -251,6 +252,7 @@ export const NARRATOR_CAST: NarratorCastConfig = {
     pineapple: { asset: 'spongebob-narrator', heightFactor: 1.9 },
     tiki: { asset: 'patrick-narrator', heightFactor: 1.9 },
   },
+  bundledByDefault: true,
 };
 
 /** The place's name in `locale`, falling back to English. */

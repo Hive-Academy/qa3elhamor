@@ -24,6 +24,8 @@ export interface NarratorCastConfig {
   readonly cast: Readonly<Record<NarrationLandmarkId, NarratorCastId>>;
   /** The bundled character per landmark, where there is one. The others keep their cast. */
   readonly bundled: Readonly<Partial<Record<NarrationLandmarkId, BundledCharacter>>>;
+  /** Whether `bundled` is on when `VITE_BUNDLED_CHARACTERS` is unset. A fork sets `false`. */
+  readonly bundledByDefault: boolean;
 }
 
 /** A bundled narrator model: a `WEB_ASSETS` id, lazy and gated by the quality tier. */
@@ -36,14 +38,22 @@ export interface BundledCharacter {
   readonly heightFactor: number;
 }
 
-/** The deployment's switch: `VITE_BUNDLED_CHARACTERS=true` (any other value, or unset, is off). */
-export const bundledCharactersFromEnv = (env: {
-  readonly VITE_BUNDLED_CHARACTERS?: string;
-}): boolean => env.VITE_BUNDLED_CHARACTERS === 'true';
+/**
+ * The deployment's switch: `VITE_BUNDLED_CHARACTERS=true` or `false` overrides; unset (or any
+ * other value) uses the site's `bundledByDefault`.
+ */
+export const bundledCharactersFromEnv = (
+  env: { readonly VITE_BUNDLED_CHARACTERS?: string },
+  fallback = false,
+): boolean => {
+  if (env.VITE_BUNDLED_CHARACTERS === 'true') return true;
+  if (env.VITE_BUNDLED_CHARACTERS === 'false') return false;
+  return fallback;
+};
 
 export const NARRATORS_CONFIG: NarratorsConfig = {
   ...NARRATOR_CAST,
-  useBundledCharacters: bundledCharactersFromEnv(import.meta.env),
+  useBundledCharacters: bundledCharactersFromEnv(import.meta.env, NARRATOR_CAST.bundledByDefault),
 };
 
 /**
