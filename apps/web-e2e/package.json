@@ -2,6 +2,7 @@
   "name": "@qa3elhamor/web-e2e",
   "version": "0.0.1",
   "private": true,
+  "type": "module",
   "nx": {
     "name": "web-e2e",
     "tags": [
@@ -10,6 +11,28 @@
     ],
     "implicitDependencies": [
       "web"
-    ]
+    ],
+    "targets": {
+      "typecheck": {
+        "command": "tsc -p tsconfig.json --noEmit",
+        "options": {
+          "cwd": "{projectRoot}"
+        }
+      },
+      "e2e": {
+        "command": "playwright test",
+        "cache": false,
+        "options": {
+          "cwd": "{projectRoot}"
+        }
+      },
+      "e2e-update-snapshots": {
+        "command": "playwright test --project=visual --update-snapshots",
+        "cache": false,
+        "options": {
+          "cwd": "{projectRoot}"
+        }
+      }
+    }
   }
 }

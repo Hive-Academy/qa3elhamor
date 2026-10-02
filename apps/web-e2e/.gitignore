@@ -1,0 +1,4 @@
+# Production builds the webServers serve (scripts/serve.mjs) and Playwright's own output.
+.dist/
+test-results/
+playwright-report/

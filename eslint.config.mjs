@@ -79,6 +79,8 @@ export default [
               sourceTag: 'type:api-interfaces',
               onlyDependOnLibsWithTags: ['type:api-interfaces', 'type:domain'],
             },
+            // End-to-end projects drive the built site from outside: they import no workspace code.
+            { sourceTag: 'type:e2e', onlyDependOnLibsWithTags: [] },
             // Build-time tooling (e.g. the asset pipeline) reads the domain manifests.
             {
               sourceTag: 'type:tool',

@@ -1,0 +1,108 @@
+name: E2E
+
+# Playwright end-to-end and visual-regression suite (apps/web-e2e, docs/testing.md).
+#
+# There is no preview host yet (the site is a static GitHub Pages build), so by default the suite
+# builds the site and serves it with `vite preview` on the runner. Run by hand with `base_url` to
+# point it at a deployed site instead. Chromium gets WebGL from SwiftShader (software), so no GPU
+# is needed.
+#
+# Visual baselines are Linux-specific: generate them with the `update_snapshots` input (below),
+# then commit them. Until Linux baselines exist the visual tests skip, and everything else runs.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: 'Run against an already-deployed site instead of a local build, e.g. https://abdallah-khalil.github.io/'
+        type: string
+        required: false
+      update_snapshots:
+        description: 'Regenerate the Linux visual baselines instead of running the suite.'
+        type: boolean
+        default: false
+      commit_snapshots:
+        description: 'With update_snapshots: commit the new baselines to the branch you ran this on.'
+        type: boolean
+        default: false
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  e2e:
+    if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.update_snapshots) }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      E2E_BASE_URL: ${{ inputs.base_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      # Builds the site twice (contact provider wired with a fake key, and not wired), serves
+      # both with `vite preview` and runs every project.
+      - run: npx nx run web-e2e:e2e
+
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report
+          path: |
+            apps/web-e2e/playwright-report
+            apps/web-e2e/test-results
+          retention-days: 14
+          if-no-files-found: ignore
+
+  update-snapshots:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.update_snapshots }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - run: npx playwright install --with-deps chromium
+
+      - run: npx nx run web-e2e:e2e-update-snapshots
+        env:
+          E2E_BASE_URL: ${{ inputs.base_url }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: web-e2e-snapshots
+          path: apps/web-e2e/snapshots
+          retention-days: 14
+
+      - name: Commit the baselines
+        if: ${{ inputs.commit_snapshots }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add apps/web-e2e/snapshots
+          git diff --cached --quiet && echo "baselines unchanged" && exit 0
+          git commit -m "test(e2e): update Linux visual baselines"
+          git push
