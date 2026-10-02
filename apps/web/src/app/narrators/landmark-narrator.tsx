@@ -143,14 +143,19 @@ export interface ResidentNarratorProps {
   readonly eye: Vec3;
   readonly reducedMotion: boolean;
   readonly hold?: NarratorClipHold | null;
+  /** Bumped by `onPoke`: each change makes it react (`useNarratorPoke`). */
+  readonly poke?: number;
+  /** A click or tap on it: it reacts, and the landmark does not open. */
+  readonly onPoke?: () => void;
 }
 
 /**
  * The landmark's narrator idling at its post before the visit, while the visitor dives past
  * (`resident.ts`): only a rigged bundled model, only where the tier allows the model (medium and
  * up). It loads when the camera comes near, unmounts when it goes far, and waves as the camera
- * passes close. Decorative: no events, nothing to focus, the visit's flow is untouched. A model
- * that fails to load shows nothing here (the visit has its own fallback).
+ * passes close. A click or tap on it only makes it react (`onPoke`): it never opens the visit,
+ * and has nothing to focus (the visit's "Say hi" is the keyboard's way). A model that fails to
+ * load shows nothing here (the visit has its own fallback).
  */
 export function ResidentNarrator(props: ResidentNarratorProps) {
   const { tier } = useQuality();
@@ -176,6 +181,8 @@ function ResidentPresence({
   eye,
   reducedMotion,
   hold,
+  poke,
+  onPoke,
   url,
   rig,
   heightFactor,
@@ -222,6 +229,8 @@ function ResidentPresence({
           waving={view.waving}
           reducedMotion={reducedMotion}
           hold={hold}
+          poke={poke}
+          onPoke={onPoke}
         />
       </Suspense>
     </NarratorModelBoundary>

@@ -1,4 +1,6 @@
 import type { Locale } from '@qa3elhamor/content-domain';
+import { useSfx } from '@qa3elhamor/world-audio';
+import type { VoiceProfileId } from '@qa3elhamor/world-domain';
 import {
   useEffect,
   useId,
@@ -44,6 +46,10 @@ export interface VisitHudProps {
   readonly objectsOut: boolean;
 
   readonly speaker: string;
+  /** The speaker's babble voice (`voiceOf`); null is silent. */
+  readonly voice?: VoiceProfileId | null;
+  /** "Say hi": pokes the narrator (it reacts, as when clicked). Omitted: no such button. */
+  readonly onPoke?: () => void;
   readonly dialogue: DialogueState;
   readonly script: DialogueScript;
   readonly onTyped: () => void;
@@ -90,6 +96,8 @@ export function VisitHud({
   fullOpen,
   objectsOut,
   speaker,
+  voice = null,
+  onPoke,
   dialogue,
   script,
   onTyped,
@@ -110,6 +118,12 @@ export function VisitHud({
   panelRef,
 }: VisitHudProps) {
   const kit = NARRATOR_COPY[lang];
+  const { plip } = useSfx();
+  /** A button's action, with its click sound. */
+  const clicked = (action: () => void) => () => {
+    plip();
+    action();
+  };
   const ids = useId();
   const panelId = `${ids}-detail`;
   const text = dialogueText(dialogue, script);
@@ -172,12 +186,16 @@ export function VisitHud({
             ref={openFullRef}
             type="button"
             className="speech__button speech__button--primary"
-            onClick={onOpenFull}
+            onClick={clicked(onOpenFull)}
           >
             {fullIcon}
             {words.openFull}
           </button>
-          <button type="button" className="speech__button" onClick={onLeave}>
+          <button
+            type="button"
+            className="speech__button"
+            onClick={clicked(onLeave)}
+          >
             {kit.leave}
           </button>
         </div>
@@ -205,14 +223,18 @@ export function VisitHud({
           <button
             type="button"
             className="speech__button speech__button--quiet"
-            onClick={onSkip}
+            onClick={clicked(onSkip)}
           >
             {kit.skip}
           </button>
         )}
         {inBubble}
         {dialogue.stage === 'hint' ? (
-          <button type="button" className="speech__button" onClick={onResume}>
+          <button
+            type="button"
+            className="speech__button"
+            onClick={clicked(onResume)}
+          >
             {kit.resume} {onward}
           </button>
         ) : (
@@ -220,7 +242,7 @@ export function VisitHud({
             <button
               type="button"
               className="speech__button"
-              onClick={onAdvance}
+              onClick={clicked(onAdvance)}
             >
               {kit.next} {onward}
             </button>
@@ -264,6 +286,11 @@ export function VisitHud({
           lingerSeconds={farewellSeconds}
           autofocus={open}
           reducedMotion={reducedMotion}
+          voice={voice}
+          greetLabel={
+            onPoke && dialogue.stage !== 'farewell' ? kit.sayHi : undefined
+          }
+          onGreet={onPoke}
         >
           {footer}
         </SpeechBubble>

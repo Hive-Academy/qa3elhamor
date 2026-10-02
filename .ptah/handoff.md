@@ -84,6 +84,12 @@ commit batch 3 (three items, one commit or one per item) and push.
 - **Batch 4 (MVP) — COMMITTED, all APPROVED:** landmark-pineapple (Citizenship Card: bio + skills from content),
   landmark-bureau (contact scroll form), **asset-attribution-ui** (pulled forward: must exist
   before the repo goes public), quality-tiers (also wires `trackQualityTier`).
+- **LIVE STATUS — session 2026-10-02 (afternoon), keep updated:**
+  - **Owner: reviews PAUSED "until we have everything working"** — run the real checks + look at screenshots, but no cross-side review rounds until the owner re-enables them.
+  - **All CLI lanes out of quota today:** agy (429, resets ~2026-10-07), codex (until 2026-10-03 20:10), opencode/Kimi (unknown error = limit), Glm (quota). Owner said Glm is out; when reviews resume, owner picked codex first; fallback in-process `code-logic-reviewer` subagent labelled "weaker evidence".
+  - `ambient-audio` committed `7754afb` (world-audio lib, CC0 "Underwater Theme II" by Cleyton Kauffman, synthesized ambience) — **awaiting owner mood sign-off** before `[x]`. Open questions to owner: ducking per line vs whole visit; should Tab count as the first gesture.
+  - `character-animation`: research + review in `.ptah/specs/character-animation/`; decision = **option (d) runtime-generated skin weights at load** (GLB unchanged). SpongeBob spike in progress, plus "resident" idle narrators visible at landmarks during the dive (owner: show movement before clicking).
+  - New owner items (roadmap): `cinematic-tour`, `voice-sfx` (in progress in world-audio), `ocean-text` (hybrid A+C+B chosen; SDF component in progress in world-ui, dev preview `/ocean-text-preview.html`).
 - **NEXT SESSION (written 2026-10-02 at end of session) — READ THIS FIRST:**
   - **State:** every original roadmap item is built, cross-side reviewed and committed; CI and push/PR E2E are green on `main` (`27b1f04` and earlier). Narrator-dependent e2e flows run in the nightly `e2e-inworld` job (frame-bound on software GL — see docs/testing.md).
   - **Just changed:** SpongeBob (Pineapple) and Patrick (Tiki) are now ON by default for the owner's site (`apps/web/src/site.config.ts` → `NARRATOR_CAST.bundledByDefault: true`; env `VITE_BUNDLED_CHARACTERS=true|false` overrides). They are lazy and need the **medium tier or higher** — on the low tier / no WebGL the original cast (Hamour) stands in. If the owner still sees only the fish locally: check `?quality=high`, the tier readout bottom-left, and the console for a model load error.

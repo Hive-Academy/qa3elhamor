@@ -293,3 +293,42 @@
     animation: none;
   }
 }
+
+/*
+ * "Say hi": a small, quiet tag on the bubble's top rim, opposite the name, that pokes the
+ * narrator (what a click on the narrator does, for the keyboard). Last in the tab order.
+ */
+.speech__greet {
+  position: absolute;
+  inset-block-start: -0.9rem;
+  inset-inline-end: 1.1rem;
+  min-height: 1.75rem;
+  padding: 0 0.625rem;
+  border: 2px solid var(--speech-ink);
+  border-radius: 999px;
+  background: var(--speech-paper);
+  color: #2b4a6b;
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 750;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  opacity: 0.8;
+  transition: opacity 120ms ease;
+}
+
+.speech__greet:hover,
+.speech__greet:focus-visible {
+  opacity: 1;
+}
+
+.speech__greet:focus-visible {
+  outline: 3px solid #2a6f97;
+  outline-offset: 2px;
+}
+
+/* The name tag gives the greeting room on the rim. */
+.speech[data-greet] .speech__who {
+  max-width: calc(100% - 9rem);
+}

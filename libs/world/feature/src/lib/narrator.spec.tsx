@@ -8,6 +8,7 @@ import { Narrator } from './narrator.js';
 // No WebGL here: the frame loop is stubbed and the R3F intrinsics render as inert DOM elements,
 // which is enough to see what `<Narrator>` mounts (and that it does not throw).
 vi.mock('@react-three/fiber', () => ({ useFrame: () => undefined }));
+vi.mock('@react-three/drei', () => ({ useCursor: () => undefined }));
 
 describe('<Narrator> at the config boundary', () => {
   beforeEach(() => {

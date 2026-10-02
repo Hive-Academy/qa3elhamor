@@ -1,10 +1,14 @@
 import { LANDMARK_AUTOFOCUS_ATTRIBUTE } from '@qa3elhamor/landmarks-ui';
-import type {
-  CSSProperties,
-  KeyboardEvent,
-  MouseEvent,
-  ReactNode,
-  Ref,
+import { useSfx, useVoiceBabble } from '@qa3elhamor/world-audio';
+import type { VoiceProfileId } from '@qa3elhamor/world-domain';
+import {
+  useEffect,
+  useRef,
+  type CSSProperties,
+  type KeyboardEvent,
+  type MouseEvent,
+  type ReactNode,
+  type Ref,
 } from 'react';
 import { splitTyped, useTypewriter } from './typewriter';
 import './speech-bubble.css';
@@ -36,6 +40,17 @@ export interface SpeechBubbleProps {
   readonly autofocus?: boolean;
   /** Reduced motion: lines appear whole, no typing, no caret, no pop. */
   readonly reducedMotion?: boolean;
+  /**
+   * The speaker's babble voice (`narrator-voice.ts`), heard as the line types out. Null or
+   * omitted: silent. A departing bubble is silent.
+   */
+  readonly voice?: VoiceProfileId | null;
+  /**
+   * "Say hi": a small tag on the bubble's rim that pokes the narrator, the keyboard's way to what
+   * a click on the narrator does. Last in the tab order. Shown when both are given.
+   */
+  readonly greetLabel?: string;
+  readonly onGreet?: () => void;
 }
 
 /**
@@ -59,11 +74,17 @@ export function SpeechBubble({
   lingerSeconds = 1.6,
   autofocus = false,
   reducedMotion = false,
+  voice = null,
+  greetLabel,
+  onGreet,
 }: SpeechBubbleProps) {
   const shown = useTypewriter(text, typing, take, onTyped, {
     instant: reducedMotion,
   });
   const [typed, rest] = splitTyped(text, shown);
+  useVoiceBabble(departing ? null : voice, typed);
+  usePopOnAppear(departing);
+  const greets = !departing && greetLabel !== undefined && onGreet;
 
   const onKeyDown = (event: KeyboardEvent<HTMLElement>) => {
     if (event.target !== event.currentTarget) return;
@@ -89,6 +110,7 @@ export function SpeechBubble({
     >
       <section
         className="speech"
+        data-greet={greets ? '' : undefined}
         aria-label={speaker}
         aria-roledescription={roleDescription}
         tabIndex={-1}
@@ -110,6 +132,11 @@ export function SpeechBubble({
           {text}
         </p>
         {children && <div className="speech__footer">{children}</div>}
+        {greets && (
+          <button type="button" className="speech__greet" onClick={onGreet}>
+            {greetLabel}
+          </button>
+        )}
       </section>
       <span className="speech__tail" aria-hidden="true">
         <svg viewBox="0 0 40 100" preserveAspectRatio="none">
@@ -119,4 +146,15 @@ export function SpeechBubble({
       </span>
     </div>
   );
+}
+
+/** The bubble's pop, once as it appears (not for one that mounts already departing). */
+function usePopOnAppear(departing: boolean) {
+  const { pop } = useSfx();
+  const popped = useRef(false);
+  useEffect(() => {
+    if (popped.current || departing) return;
+    popped.current = true;
+    pop();
+  }, [departing, pop]);
 }

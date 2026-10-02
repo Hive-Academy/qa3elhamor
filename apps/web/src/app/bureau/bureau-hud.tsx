@@ -1,4 +1,6 @@
 import type { Locale } from '@qa3elhamor/content-domain';
+import { useSfx } from '@qa3elhamor/world-audio';
+import type { VoiceProfileId } from '@qa3elhamor/world-domain';
 import {
   useEffect,
   useRef,
@@ -34,6 +36,10 @@ export interface BureauHudProps {
   readonly open: boolean;
 
   readonly speaker: string;
+  /** The speaker's babble voice (`voiceOf`); null is silent. */
+  readonly voice?: VoiceProfileId | null;
+  /** "Say hi": pokes the narrator (it reacts, as when clicked). Omitted: no such button. */
+  readonly onPoke?: () => void;
   readonly dialogue: DialogueState;
   readonly script: DialogueScript;
   readonly onTyped: () => void;
@@ -76,6 +82,8 @@ export function BureauHud({
   reducedMotion = false,
   open,
   speaker,
+  voice = null,
+  onPoke,
   dialogue,
   script,
   onTyped,
@@ -93,6 +101,12 @@ export function BureauHud({
   sheet,
 }: BureauHudProps) {
   const kit = NARRATOR_COPY[lang];
+  const { plip } = useSfx();
+  /** A button's action, with its click sound. */
+  const clicked = (action: () => void) => () => {
+    plip();
+    action();
+  };
   const text = dialogueText(dialogue, script);
   const filed = dialogue.stage === 'hint';
   const actions = filed || showsActions(dialogue, script);
@@ -127,17 +141,25 @@ export function BureauHud({
           ref={primaryRef}
           type="button"
           className="speech__button speech__button--primary"
-          onClick={onOpenScroll}
+          onClick={clicked(onOpenScroll)}
         >
           <span className="bureau-scroll-icon" aria-hidden="true" />
           {filed ? fileAnother : words.openScroll}
         </button>
         {onOpenWall && (
-          <button type="button" className="speech__button" onClick={onOpenWall}>
+          <button
+            type="button"
+            className="speech__button"
+            onClick={clicked(onOpenWall)}
+          >
             {words.openWall}
           </button>
         )}
-        <button type="button" className="speech__button" onClick={onLeave}>
+        <button
+          type="button"
+          className="speech__button"
+          onClick={clicked(onLeave)}
+        >
           {kit.leave}
         </button>
       </div>
@@ -161,12 +183,16 @@ export function BureauHud({
         <button
           type="button"
           className="speech__button speech__button--quiet"
-          onClick={onSkip}
+          onClick={clicked(onSkip)}
         >
           {kit.skip}
         </button>
         {canAdvance(dialogue, script) && (
-          <button type="button" className="speech__button" onClick={onAdvance}>
+          <button
+            type="button"
+            className="speech__button"
+            onClick={clicked(onAdvance)}
+          >
             {kit.next} {onward}
           </button>
         )}
@@ -210,6 +236,11 @@ export function BureauHud({
           lingerSeconds={farewellSeconds}
           autofocus={open}
           reducedMotion={reducedMotion}
+          voice={voice}
+          greetLabel={
+            onPoke && dialogue.stage !== 'farewell' ? kit.sayHi : undefined
+          }
+          onGreet={onPoke}
         >
           {footer}
         </SpeechBubble>

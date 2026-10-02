@@ -1,4 +1,5 @@
-import { useFrame } from '@react-three/fiber';
+import { useCursor } from '@react-three/drei';
+import { useFrame, type ThreeEvent } from '@react-three/fiber';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Vector3, type Group } from 'three';
 import { tickAmbientClock } from './ambient-clock.js';
@@ -72,6 +73,12 @@ export interface NarratorProps {
   readonly poke?: number;
   /** Development preview for a rigged model: loop or freeze one clip. Null / omitted in production. */
   readonly hold?: NarratorClipHold | null;
+  /**
+   * A click or tap on it (a rigged model's hit proxy, a cast's body) while it is shown and
+   * staying: the caller typically bumps `poke`. The click goes no further (the landmark behind
+   * it does not open), and the cursor is a pointer over it. Omitted: it takes no pointer events.
+   */
+  readonly onPoke?: () => void;
 }
 
 /**
@@ -130,6 +137,7 @@ function NarratorBody({
   waving = false,
   poke = 0,
   hold = null,
+  onPoke,
 }: NarratorProps) {
   const prefersReduced = usePrefersReducedMotion();
   const reduced = reducedMotion ?? prefersReduced;
@@ -246,9 +254,30 @@ function NarratorBody({
     else if (event === 'exited') onExited?.();
   });
 
+  // Pointing at it: only while it is shown and staying (not before it swims in, nor while it
+  // swims away), and never passed on to what is behind it.
+  const [hovered, setHovered] = useState(false);
+  useCursor(hovered && present && onPoke !== undefined);
+  const reachable = () => present && body.current?.visible === true;
+  const pointer = onPoke
+    ? {
+        onClick: (event: ThreeEvent<MouseEvent>) => {
+          if (!reachable()) return;
+          event.stopPropagation();
+          onPoke();
+        },
+        onPointerOver: (event: ThreeEvent<PointerEvent>) => {
+          if (!reachable()) return;
+          event.stopPropagation();
+          setHovered(true);
+        },
+        onPointerOut: () => setHovered(false),
+      }
+    : {};
+
   if (!bounds) return null;
   return (
-    <group ref={root} position={post}>
+    <group ref={root} position={post} {...pointer}>
       <group ref={body} visible={false}>
         <group scale={fit} position={[-bounds.centreX * fit, -bounds.minY * fit, -bounds.centreZ * fit]}>
           {mesh ? <mesh geometry={mesh.geometry} material={mesh.material} /> : model && <primitive object={model} />}

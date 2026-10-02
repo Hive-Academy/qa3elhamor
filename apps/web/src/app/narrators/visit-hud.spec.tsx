@@ -190,3 +190,23 @@ describe('VisitHud: the end of the tour', () => {
     expect(on.onLeave).toHaveBeenCalled();
   });
 });
+
+describe('VisitHud: saying hi', () => {
+  it('offers "Say hi" in the bubble, which pokes the narrator and nothing else', () => {
+    const onPoke = vi.fn();
+    const on = renderHud({ onPoke });
+    fireEvent.click(within(bubble()).getByRole('button', { name: 'Say hi' }));
+    expect(onPoke).toHaveBeenCalledTimes(1);
+    expect(on.onAdvance).not.toHaveBeenCalled();
+  });
+
+  it('says it in Arabic', () => {
+    renderHud({ lang: 'ar', dir: 'rtl', onPoke: vi.fn() });
+    expect(within(bubble()).getByRole('button', { name: 'سلّم' })).toBeTruthy();
+  });
+
+  it('is absent when the visit gives no poke', () => {
+    renderHud();
+    expect(within(bubble()).queryByRole('button', { name: 'Say hi' })).toBeNull();
+  });
+});

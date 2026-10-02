@@ -15,6 +15,7 @@ export const NARRATOR_COPY = bilingual({
     lineOf: 'Line {n} of {total}',
     leave: 'Back to the dive',
     backToGuide: 'Back to the guide',
+    sayHi: 'Say hi',
   },
   ar: {
     bubbleRole: 'فقاعة كلام',
@@ -24,6 +25,7 @@ export const NARRATOR_COPY = bilingual({
     lineOf: 'السطر {n} من {total}',
     leave: 'رجوع للغطسة',
     backToGuide: 'رجوع للمرشد',
+    sayHi: 'سلّم',
   },
 });
 

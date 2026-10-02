@@ -3,7 +3,11 @@ import { useFrame, useThree } from '@react-three/fiber';
 import { framingScale } from '@qa3elhamor/dive-feature';
 import { textDirection } from '@qa3elhamor/landmarks-domain';
 import type { LandmarkSceneProps } from '@qa3elhamor/landmarks-feature';
-import { useAudioDucking } from '@qa3elhamor/world-audio';
+import {
+  AudioBridge,
+  useAudioBridge,
+  useAudioDucking,
+} from '@qa3elhamor/world-audio';
 import {
   useCallback,
   useEffect,
@@ -37,6 +41,8 @@ import {
   speechAnchorOf,
 } from './landmark-narrator';
 import { NARRATOR_COPY, narratorName } from './narrator-copy';
+import { useNarratorPoke } from './narrator-poke';
+import { voiceOf } from './narrator-voice';
 import {
   chooseNarratorPlacement,
   inSight,
@@ -59,6 +65,7 @@ import {
   useFullView,
   useObjectPicking,
   useVisitLifecycle,
+  useVisitWhoosh,
 } from './visit-hooks';
 import { VisitHud } from './visit-hud';
 import { visitScript } from './visit-script';
@@ -154,6 +161,11 @@ function NarratedVisit<Slot>({
   );
   // The ambient music steps back while the narrator talks (`@qa3elhamor/world-audio`).
   useAudioDucking(dialogue.typing);
+  useVisitWhoosh(open);
+  // The HUD renders in drei's own React root: the sound is carried into it.
+  const audio = useAudioBridge();
+  // A click or tap on the narrator (the resident or the guide), or the HUD's "Say hi".
+  const { poke, onPoke } = useNarratorPoke();
   const [fullOpen, setFullOpen] = useFullView(open);
   const { onPick, onUnhover } = useObjectPicking(dispatch);
   // The picked object lives in the dialogue state: one source of truth, cleared whenever the
@@ -225,6 +237,8 @@ function NarratedVisit<Slot>({
           eye={stop.eye}
           reducedMotion={reducedMotion}
           hold={POSE_PREVIEW}
+          poke={poke}
+          onPoke={onPoke}
         />
       </WorldFrame>
     );
@@ -257,6 +271,8 @@ function NarratedVisit<Slot>({
             reducedMotion={reducedMotion}
             onSettled={onSettled}
             onExited={onExited}
+            poke={poke}
+            onPoke={onPoke}
           />
           <TalkBubbles
             from={mouth}
@@ -286,37 +302,41 @@ function NarratedVisit<Slot>({
         wrapperClass="visit-hud-anchor"
         style={{ pointerEvents: 'none' }}
       >
-        <VisitHud
-          lang={lang}
-          dir={dir}
-          width={size.width}
-          height={size.height}
-          compact={size.width < COMPACT_BELOW_PX}
-          farewellSeconds={farewellSeconds}
-          open={open}
-          fullOpen={fullOpen}
-          objectsOut={objectsOut}
-          speaker={narratorName(playing, lang)}
-          reducedMotion={reducedMotion}
-          dialogue={dialogue}
-          script={script}
-          onTyped={() => dispatch({ type: 'typed' })}
-          onAdvance={() => dispatch({ type: 'advance' })}
-          onSkip={() => dispatch({ type: 'skip' })}
-          onResume={() => dispatch({ type: 'resume' })}
-          onOpenFull={() => setFullOpen(true)}
-          onLeave={close}
-          objects={objects}
-          selected={selected}
-          onPick={onPick}
-          onUnhover={onUnhover}
-          words={words}
-          fullIcon={fullView.icon}
-          shape={shape}
-          speechRef={speechRef}
-          labelRefs={labelRefs}
-          panelRef={panelRef}
-        />
+        <AudioBridge value={audio}>
+          <VisitHud
+            lang={lang}
+            dir={dir}
+            width={size.width}
+            height={size.height}
+            compact={size.width < COMPACT_BELOW_PX}
+            farewellSeconds={farewellSeconds}
+            open={open}
+            fullOpen={fullOpen}
+            objectsOut={objectsOut}
+            speaker={narratorName(playing, lang)}
+            voice={voiceOf(playing)}
+            onPoke={onPoke}
+            reducedMotion={reducedMotion}
+            dialogue={dialogue}
+            script={script}
+            onTyped={() => dispatch({ type: 'typed' })}
+            onAdvance={() => dispatch({ type: 'advance' })}
+            onSkip={() => dispatch({ type: 'skip' })}
+            onResume={() => dispatch({ type: 'resume' })}
+            onOpenFull={() => setFullOpen(true)}
+            onLeave={close}
+            objects={objects}
+            selected={selected}
+            onPick={onPick}
+            onUnhover={onUnhover}
+            words={words}
+            fullIcon={fullView.icon}
+            shape={shape}
+            speechRef={speechRef}
+            labelRefs={labelRefs}
+            panelRef={panelRef}
+          />
+        </AudioBridge>
       </Html>
 
       <InWorldCard

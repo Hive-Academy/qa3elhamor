@@ -5,7 +5,11 @@ import { framingScale } from '@qa3elhamor/dive-feature';
 import { textDirection } from '@qa3elhamor/landmarks-domain';
 import { isTextEntry } from '@qa3elhamor/landmarks-ui';
 import type { LandmarkSceneProps } from '@qa3elhamor/landmarks-feature';
-import { useAudioDucking } from '@qa3elhamor/world-audio';
+import {
+  AudioBridge,
+  useAudioBridge,
+  useAudioDucking,
+} from '@qa3elhamor/world-audio';
 import {
   Suspense,
   useCallback,
@@ -39,12 +43,14 @@ import {
   useSpeechBubblePlacement,
 } from '../narrators/narrated-visit';
 import { narratorName } from '../narrators/narrator-copy';
+import { useNarratorPoke } from '../narrators/narrator-poke';
+import { voiceOf } from '../narrators/narrator-voice';
 import type { StopView } from '../narrators/stop-view';
 import { TalkBubbles } from '../narrators/talk-bubbles';
 import { typingSeconds } from '../narrators/typewriter';
 import { viewFrame, worldPerPx, type Vec3 } from '../narrators/view-layout';
 import type { VisitLayout } from '../narrators/visit-types';
-import { useVisitLifecycle } from '../narrators/visit-hooks';
+import { useVisitLifecycle, useVisitWhoosh } from '../narrators/visit-hooks';
 import { visitScript } from '../narrators/visit-script';
 import { WorldFrame } from '../narrators/world-frame';
 import type { NarratorChoice } from '../narrators.config';
@@ -166,6 +172,11 @@ function BureauVisit({
   );
   // The ambient music steps back while the narrator talks (`@qa3elhamor/world-audio`).
   useAudioDucking(dialogue.typing);
+  useVisitWhoosh(open);
+  // The HUD renders in drei's own React root: the sound is carried into it.
+  const audio = useAudioBridge();
+  // A click or tap on the President, or the HUD's "Say hi".
+  const { poke, onPoke } = useNarratorPoke();
   const [playing, setPlaying] = useState<NarratorChoice>(choice);
 
   // --- filing: the scroll, the stamp, the bottle ------------------------------------------
@@ -385,6 +396,8 @@ function BureauVisit({
             reducedMotion={reducedMotion}
             onSettled={onSettled}
             onExited={onExited}
+            poke={poke}
+            onPoke={onPoke}
           />
           <TalkBubbles
             from={mouth}
@@ -417,44 +430,48 @@ function BureauVisit({
         wrapperClass="visit-hud-anchor"
         style={{ pointerEvents: 'none' }}
       >
-        <BureauHud
-          lang={lang}
-          dir={dir}
-          width={size.width}
-          height={size.height}
-          farewellSeconds={farewellSeconds}
-          reducedMotion={reducedMotion}
-          open={open}
-          speaker={narratorName(playing, lang)}
-          dialogue={dialogue}
-          script={script}
-          onTyped={() => dispatch({ type: 'typed' })}
-          onAdvance={() => dispatch({ type: 'advance' })}
-          onSkip={() => dispatch({ type: 'skip' })}
-          onLeave={close}
-          scrollOut={open && out}
-          onOpenScroll={openScroll}
-          onOpenWall={wall ? openWall : undefined}
-          wallOut={open && wallOut}
-          words={words}
-          fileAnother={t('complaintAnotherLabel')}
-          filedTopic={t('complaintSuccessTitle')}
-          speechRef={speechRef}
-          sheet={
-            sheetMode && open && out ? (
-              <BureauSheet
-                key={filing.sheet}
-                layoutHeight={size.height}
-                state={paperStateOf(filing.stage, 'arrived')}
-                {...scrollProps}
-              />
-            ) : sheetMode && open && wallOut ? (
-              <BureauWallSheet layoutHeight={size.height}>
-                {board('sheet')}
-              </BureauWallSheet>
-            ) : null
-          }
-        />
+        <AudioBridge value={audio}>
+          <BureauHud
+            lang={lang}
+            dir={dir}
+            width={size.width}
+            height={size.height}
+            farewellSeconds={farewellSeconds}
+            reducedMotion={reducedMotion}
+            open={open}
+            speaker={narratorName(playing, lang)}
+            voice={voiceOf(playing)}
+            onPoke={onPoke}
+            dialogue={dialogue}
+            script={script}
+            onTyped={() => dispatch({ type: 'typed' })}
+            onAdvance={() => dispatch({ type: 'advance' })}
+            onSkip={() => dispatch({ type: 'skip' })}
+            onLeave={close}
+            scrollOut={open && out}
+            onOpenScroll={openScroll}
+            onOpenWall={wall ? openWall : undefined}
+            wallOut={open && wallOut}
+            words={words}
+            fileAnother={t('complaintAnotherLabel')}
+            filedTopic={t('complaintSuccessTitle')}
+            speechRef={speechRef}
+            sheet={
+              sheetMode && open && out ? (
+                <BureauSheet
+                  key={filing.sheet}
+                  layoutHeight={size.height}
+                  state={paperStateOf(filing.stage, 'arrived')}
+                  {...scrollProps}
+                />
+              ) : sheetMode && open && wallOut ? (
+                <BureauWallSheet layoutHeight={size.height}>
+                  {board('sheet')}
+                </BureauWallSheet>
+              ) : null
+            }
+          />
+        </AudioBridge>
       </Html>
 
       {!sheetMode && wall && (

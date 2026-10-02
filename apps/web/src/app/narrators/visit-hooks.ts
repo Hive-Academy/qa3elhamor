@@ -1,3 +1,4 @@
+import { useSfx } from '@qa3elhamor/world-audio';
 import {
   useCallback,
   useEffect,
@@ -108,4 +109,15 @@ export function useFullView(open: boolean) {
     return () => window.removeEventListener('keydown', onKeyDown, true);
   }, [fullOpen]);
   return [fullOpen, setFullOpen] as const;
+}
+
+/** A soft whoosh as the landmark opens and as it closes (not as the visit first mounts). */
+export function useVisitWhoosh(open: boolean) {
+  const { whoosh } = useSfx();
+  const was = useRef(open);
+  useEffect(() => {
+    if (was.current === open) return;
+    was.current = open;
+    whoosh();
+  }, [open, whoosh]);
 }
