@@ -226,6 +226,13 @@ Two constraints follow, both load-bearing on the build:
    > Sardine President, the Hamour as dive guide + ambient. The bundled characters are enabled
    > per deployment by `VITE_BUNDLED_CHARACTERS=true` (set for the owner's Pages deploy); the
    > template default stays off. Original cast remains the fallback (low tier, load failure).
+   >
+   > **Amended (2026-10-02, owner, later).** Bundled characters ON by default for the owner's site
+   > (`site.config.ts` `NARRATOR_CAST.bundledByDefault: true`; forks set false;
+   > `VITE_BUNDLED_CHARACTERS=true|false` still overrides). **Explicit OK** to replace
+   > `Abdallah-khalil.github.io` completely (no backup needed — the 2019 page is not wanted) and
+   > to make `Hive-Academy/qa3elhamor` public. New asks for the next session: soft aquarium
+   > background music; SpongeBob/Patrick should move and interact (not only talk).
 
 3. **Raw asset weight is 27.6 MB** — far past a usable first-load budget. Draco/Meshopt
    compression plus KTX2 texture transcoding is a Phase 2 requirement, not an optimization

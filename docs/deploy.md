@@ -35,10 +35,11 @@ The workflow is **manual only** (`workflow_dispatch`) and publishes nothing unle
 
 Nothing here has been run for you. Replace nothing in the commands; the names are the real ones.
 
-### 1. Back up the current 2019 site
+### 1. Back up the current site (optional)
 
-The Pages repo currently holds a 2019 "coming soon" page on `master`. Keep it on a branch so it
-can be restored. Run on your machine:
+The Pages repo held a 2019 "coming soon" page on `master`. **The owner chose not to keep it
+(2026-10-02), so this step is skipped for abdallah-khalil.github.io.** A forker replacing an
+existing site they care about can keep it on a branch first:
 
 ```bash
 git clone git@github.com:Abdallah-khalil/Abdallah-khalil.github.io.git
