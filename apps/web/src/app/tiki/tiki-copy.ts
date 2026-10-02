@@ -1,11 +1,12 @@
 import type { Locale } from '@qa3elhamor/content-domain';
+import { bilingual } from '../i18n/ui-strings';
 import type { VisitWords } from '../narrators/visit-types';
 
 /**
- * Words only the Tiki visit needs. Kept here like the Pineapple's; they move into
- * `content/site.json` copy keys once the owner signs the experience off.
+ * Words only the Tiki visit needs. Interface words, not content: see
+ * `i18n/ui-strings.ts`.
  */
-export const TIKI_VISIT_COPY = {
+export const TIKI_VISIT_COPY = bilingual({
   en: {
     openFull: 'Read the full record',
     objectsList: 'Performance reviews, carved in stone',
@@ -20,4 +21,4 @@ export const TIKI_VISIT_COPY = {
     detailOf: '{role}، {company}: أبرز الإنجازات والتقنيات',
     present: 'الآن',
   },
-} as const satisfies Record<Locale, VisitWords & Record<string, string>>;
+}) satisfies Readonly<Record<Locale, VisitWords>>;

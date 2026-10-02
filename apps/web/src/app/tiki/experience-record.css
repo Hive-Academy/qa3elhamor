@@ -14,7 +14,7 @@
   --lmk-rule: #8c3b2a;
   --lmk-focus: #0b6fa4;
 
-  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-family: var(--font-ui);
   line-height: 1.55;
   text-align: start;
 }

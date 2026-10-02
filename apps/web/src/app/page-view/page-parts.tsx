@@ -5,6 +5,7 @@ import {
   type Period,
 } from '@qa3elhamor/content-domain';
 import type { ReactNode } from 'react';
+import { textProps } from '../overlays/overlay-copy';
 import type { PageText } from './page-copy';
 
 /** What every page section renders with: the page's copy and the content locale. */
@@ -164,11 +165,14 @@ export function Highlights({
   readonly lang: Locale;
 }) {
   if (items.length === 0) return null;
+  // A list left wholly untranslated is one English list (its bullets on the English side), not
+  // English items hanging in an Arabic list.
+  const wholeList = items.every((item) => textProps(item, lang).lang !== undefined);
   return (
-    <ul className="page-highlights">
+    <ul className="page-highlights" {...(wholeList ? textProps(items[0], lang) : {})}>
       {items.map((item, index) => (
         // Highlights have no id of their own; their order is their identity.
-        <li key={index} dir="auto">
+        <li key={index} {...(wholeList ? {} : textProps(item, lang))}>
           {localize(item, lang)}
         </li>
       ))}

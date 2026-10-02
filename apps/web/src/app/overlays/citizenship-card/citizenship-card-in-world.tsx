@@ -7,6 +7,7 @@ import {
   type KeyboardEvent,
   type ReactNode,
 } from 'react';
+import { bilingual } from '../../i18n/ui-strings';
 import { copyReader, toContentLocale } from '../overlay-copy';
 import {
   CitizenBio,
@@ -19,10 +20,10 @@ import {
 import './citizenship-card-in-world.css';
 
 /**
- * Words only the in-world card needs (the flip control and the back of the card). Kept here
- * for the prototype; they move into `content/site.json` copy once the owner signs it off.
+ * Words only the in-world card needs (the flip control and the back of the card). Interface
+ * words, not content: see `i18n/ui-strings.ts`.
  */
-export const IN_WORLD_CARD_COPY = {
+export const IN_WORLD_CARD_COPY = bilingual({
   en: {
     flipToBack: 'Turn over: visa stamps',
     flipToFront: 'Turn back: identity',
@@ -43,7 +44,7 @@ export const IN_WORLD_CARD_COPY = {
     frontRegion: 'وجه البطاقة: الهوية والإفادة',
     backRegion: 'ظهر البطاقة: أختام التأشيرة',
   },
-} as const;
+});
 
 export type CardSide = 'front' | 'back';
 
@@ -150,7 +151,8 @@ export function CitizenshipCardInWorld({
               <CitizenBio {...parts} id={ids} />
             </div>
           </ScrollingFace>
-          <p className="citizen-pass__mrz" aria-hidden="true">
+          {/* Latin by definition: keeps its tracking and direction in an Arabic card. */}
+          <p className="citizen-pass__mrz" aria-hidden="true" lang="en" dir="ltr">
             {machineReadableZone(localize(profile.name, 'en'))}
           </p>
         </div>

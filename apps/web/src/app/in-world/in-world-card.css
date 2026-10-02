@@ -6,3 +6,12 @@
 .in-world-surface[data-phase='leaving'] {
   pointer-events: none;
 }
+
+/*
+ * drei lays its `<Html>` wrappers out from the left (absolute boxes moved by matrix transforms).
+ * In an Arabic page their static position would flip to the right and carry the card off
+ * screen, so the wrapper stays left to right; the card inside sets its own `dir`.
+ */
+.in-world-card-anchor {
+  direction: ltr;
+}

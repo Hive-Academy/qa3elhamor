@@ -11,47 +11,55 @@
           "ar": "مهندس حلول ذكاء اصطناعي، وراه أكتر من ١٢ سنة منصات SaaS. وصل القاع وكمّل شغل."
         },
         {
-          "en": "Lately: two production AI-native platforms, Pro-Estate and Ptah. Agents, MCP and context engineering, mostly."
+          "en": "Lately: two production AI-native platforms, Pro-Estate and Ptah. Agents, MCP and context engineering, mostly.",
+          "ar": "وآخر حاجة: منصتين ذكاء اصطناعي شغالين فعلًا، برو إستيت وبتاح. أغلبها وكلاء ذكيين وMCP وهندسة سياق."
         },
         {
-          "en": "Those bubbles are his underwater specialties. Pick one and I'll give you the short tour, no sales pitch."
+          "en": "Those bubbles are his underwater specialties. Pick one and I'll give you the short tour, no sales pitch.",
+          "ar": "الفقاعات دي تخصصاته تحت المية. اختار واحدة وأحكيلك عنها باختصار، من غير كلام بياعين."
         }
       ],
       "hints": [
         {
           "id": "ai-llm-ops",
           "text": {
-            "en": "LangChain, LangGraph, MCP, RAG. Agents that cooperate, and harnesses that don't mind which model is on shift."
+            "en": "LangChain, LangGraph, MCP, RAG. Agents that cooperate, and harnesses that don't mind which model is on shift.",
+            "ar": "وكلاء بيتعاونوا مع بعض، وأدوات تشغيل مش فارق معاها أنهي نموذج عليه الوردية: LangChain وLangGraph وMCP وRAG."
           }
         },
         {
           "id": "architecture",
           "text": {
-            "en": "Hexagonal, Clean Architecture, DDD, multi-tenancy. He draws the boxes first, so the code has somewhere to live."
+            "en": "Hexagonal, Clean Architecture, DDD, multi-tenancy. He draws the boxes first, so the code has somewhere to live.",
+            "ar": "معمارية سداسية وClean Architecture وDDD وتعدد المستأجرين. بيرسم الصناديق الأول، عشان الكود يلاقي مكان يسكن فيه."
           }
         },
         {
           "id": "backend",
           "text": {
-            "en": "NestJS 11 and TypeScript, with Prisma, ZenStack and Bull queues. The plumbing that keeps the reef running."
+            "en": "NestJS 11 and TypeScript, with Prisma, ZenStack and Bull queues. The plumbing that keeps the reef running.",
+            "ar": "السباكة اللي مشغّلة الشعاب: NestJS 11 وTypeScript، مع Prisma وZenStack وطوابير Bull."
           }
         },
         {
           "id": "databases",
           "text": {
-            "en": "PostgreSQL, MongoDB, Neo4j, Redis, sqlite-vec. A different fish for every current."
+            "en": "PostgreSQL, MongoDB, Neo4j, Redis, sqlite-vec. A different fish for every current.",
+            "ar": "لكل تيار سمكة: PostgreSQL وMongoDB وNeo4j وRedis وsqlite-vec."
           }
         },
         {
           "id": "frontend",
           "text": {
-            "en": "Angular 21 with signals and SSR, in Nx monorepos. Even the bottom deserves a good-looking interface."
+            "en": "Angular 21 with signals and SSR, in Nx monorepos. Even the bottom deserves a good-looking interface.",
+            "ar": "حتى القاع يستاهل واجهة حلوة: Angular 21 بالـ signals والـ SSR، جوّه مستودعات Nx موحّدة."
           }
         },
         {
           "id": "devops-tooling",
           "text": {
-            "en": "Docker, Kubernetes, GitHub Actions, Nx. If it isn't in the pipeline, it didn't ship."
+            "en": "Docker, Kubernetes, GitHub Actions, Nx. If it isn't in the pipeline, it didn't ship.",
+            "ar": "اللي مش في خط النشر يبقى ما اتشحنش: Docker وKubernetes وGitHub Actions وNx."
           }
         }
       ],
@@ -67,10 +75,12 @@
           "ar": "أهلاً بيك في تقييمات الأداء. كل شغلانة متسجّلة هنا، الأحدث الأول."
         },
         {
-          "en": "It starts at Khabeer Group in 2015, then years of freelance work for startups abroad."
+          "en": "It starts at Khabeer Group in 2015, then years of freelance work for startups abroad.",
+          "ar": "البداية كانت في Khabeer Group سنة ٢٠١٥، وبعدها سنين شغل حر لشركات ناشئة برّه."
         },
         {
-          "en": "Then Prio, as Lead Software Development Engineer: owning architecture, CI/CD and mentoring senior engineers."
+          "en": "Then Prio, as Lead Software Development Engineer: owning architecture, CI/CD and mentoring senior engineers.",
+          "ar": "بعدها Prio، مهندس برمجيات رائد: شايل المعمارية والـ CI/CD، وبيوجّه مهندسين كبار."
         },
         {
           "en": "In 2020 he co-founded Miramar Staffing, and he still leads its tech. Reviews: consistently above sea level.",
@@ -89,10 +99,12 @@
           "ar": "أهلاً بيك في الكراستي كراب. منيو النهارده قصير، وكل طبق خدمة حقيقية."
         },
         {
-          "en": "The names are for fun. Underneath: AI agent and MCP architecture, SaaS platforms, leadership, bilingual delivery."
+          "en": "The names are for fun. Underneath: AI agent and MCP architecture, SaaS platforms, leadership, bilingual delivery.",
+          "ar": "الأسامي للهزار. لكن تحتها: معمارية وكلاء ذكاء اصطناعي وMCP، ومنصات SaaS، وقيادة فرق، وتسليم بلغتين."
         },
         {
-          "en": "Prices are in pearls, kelp and sand dollars. Serious orders go through the Complaints Bureau. Don't ask."
+          "en": "Prices are in pearls, kelp and sand dollars. Serious orders go through the Complaints Bureau. Don't ask.",
+          "ar": "الأسعار باللولي والطحالب ودولارات الرمل. الطلبات الجد بتعدّي على مكتب الشكاوى. ما تسألش."
         }
       ],
       "farewell": {
@@ -107,10 +119,12 @@
           "ar": "ده مكتب الشكاوى البلدي. الشكاوى والأسئلة والأفكار، كله في نفس الدرج."
         },
         {
-          "en": "It goes privately to Abdallah's desk. The Sardine President reads every one, eventually."
+          "en": "It goes privately to Abdallah's desk. The Sardine President reads every one, eventually.",
+          "ar": "كله بيروح على مكتب عبدالله على انفراد. والرئيس السرديني بيقرا كل واحدة، ولو بعد شوية."
         },
         {
-          "en": "Leave a reply address if you want an answer. The Municipality is efficient, not psychic."
+          "en": "Leave a reply address if you want an answer. The Municipality is efficient, not psychic.",
+          "ar": "سيب عنوان للرد لو عايز إجابة. البلدية شاطرة، بس مش بتشم على ضهر إيدها."
         },
         {
           "en": "We reached the bottom, and we still answer the mail.",

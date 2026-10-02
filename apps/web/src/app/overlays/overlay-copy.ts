@@ -1,7 +1,9 @@
 import {
+  DEFAULT_LOCALE,
   LOCALES,
   localize,
   type Locale,
+  type LocalizedText,
   type SiteCopy,
   type SiteCopyKey,
 } from '@qa3elhamor/content-domain';
@@ -32,3 +34,18 @@ export const fillCopy = (
   template.replace(/\{(\w+)\}/gu, (match, name: string) =>
     name in values ? String(values[name]) : match,
   );
+
+/**
+ * Attributes for an element showing `text` in `locale`: `<p {...textProps(text, lang)}>`.
+ *
+ * A field with no translation falls back to English (`localize`); in an Arabic page it is marked
+ * `lang="en" dir="ltr"`, so it is laid out (punctuation on the right side) and read aloud as
+ * English. A translated field adds nothing and follows the page's language and direction.
+ */
+export const textProps = (
+  text: LocalizedText,
+  locale: Locale,
+): { readonly lang?: Locale; readonly dir?: 'ltr' } =>
+  locale !== DEFAULT_LOCALE && localize(text, locale) === text.en && text[locale] !== text.en
+    ? { lang: DEFAULT_LOCALE, dir: 'ltr' }
+    : {};

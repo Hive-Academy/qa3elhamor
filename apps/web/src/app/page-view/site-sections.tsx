@@ -17,7 +17,7 @@ import {
   ComplaintScroll,
   type ComplaintSubmitter,
 } from '../overlays/complaint-scroll';
-import { copyReader } from '../overlays/overlay-copy';
+import { copyReader, textProps } from '../overlays/overlay-copy';
 import type { NarrationStop } from './page-content';
 import { OutboundLink, PageSection, type PagePartProps } from './page-parts';
 
@@ -118,14 +118,14 @@ export function NarrationSection({
               <h3
                 id={`page-narration-${id}`}
                 className="page-entry__title"
-                dir="auto"
+                {...textProps(label, lang)}
               >
                 {localize(label, lang)}
               </h3>
               <div className="page-narration__lines">
                 {narration.lines.map((line, index) => (
                   // Lines have no id; their order is the dialogue.
-                  <p key={index} dir="auto">
+                  <p key={index} {...textProps(line, lang)}>
                     {localize(line, lang)}
                   </p>
                 ))}
@@ -137,7 +137,7 @@ export function NarrationSection({
                       <dt dir="auto">
                         {t('hintOn', { topic: topic(hintId) })}
                       </dt>
-                      <dd dir="auto">{localize(hint, lang)}</dd>
+                      <dd {...textProps(hint, lang)}>{localize(hint, lang)}</dd>
                     </div>
                   ))}
                 </dl>
@@ -147,7 +147,7 @@ export function NarrationSection({
                   <span className="page-narration__farewell-label">
                     {t('farewell')}:{' '}
                   </span>
-                  <span dir="auto">{localize(narration.farewell, lang)}</span>
+                  <span {...textProps(narration.farewell, lang)}>{localize(narration.farewell, lang)}</span>
                 </p>
               )}
             </article>
@@ -186,7 +186,7 @@ export function CreditsSection({
                     {localize(credit.title, lang)}
                   </OutboundLink>
                 ) : (
-                  <span dir="auto">{localize(credit.title, lang)}</span>
+                  <span {...textProps(credit.title, lang)}>{localize(credit.title, lang)}</span>
                 )}
                 {credit.author && (
                   <>
@@ -205,7 +205,7 @@ export function CreditsSection({
                 {credit.note && (
                   <>
                     {'. '}
-                    <span dir="auto">{localize(credit.note, lang)}</span>
+                    <span {...textProps(credit.note, lang)}>{localize(credit.note, lang)}</span>
                   </>
                 )}
               </li>

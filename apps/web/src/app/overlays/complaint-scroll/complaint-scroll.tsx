@@ -308,6 +308,9 @@ export function ComplaintScroll({
     id: fieldId(field),
     name: field,
     value: values[field],
+    // What the visitor types follows its own script (an Arabic complaint in an English page,
+    // and the reverse); the email field pins `ltr` over this.
+    dir: 'auto' as const,
     required: !COMPLAINT_FIELD_SPECS[field].optional,
     'aria-invalid': shownIssue(field) ? (true as const) : undefined,
     'aria-describedby': describedBy(field, extras),

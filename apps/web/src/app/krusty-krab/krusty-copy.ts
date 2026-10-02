@@ -1,11 +1,12 @@
 import type { Locale } from '@qa3elhamor/content-domain';
+import { bilingual } from '../i18n/ui-strings';
 import type { VisitWords } from '../narrators/visit-types';
 
 /**
- * Words only the Krusty Krab visit needs. Kept here like the Pineapple's and the Tiki's; they
- * move into `content/site.json` copy keys once the owner signs the experience off.
+ * Words only the Krusty Krab visit needs. Interface words, not
+ * content: see `i18n/ui-strings.ts`.
  */
-export const KRUSTY_VISIT_COPY = {
+export const KRUSTY_VISIT_COPY = bilingual({
   en: {
     openFull: 'See the full menu',
     objectsList: "Today's menu: every dish is a service",
@@ -20,4 +21,4 @@ export const KRUSTY_VISIT_COPY = {
     detailOf: '{dish}، {service}: هتاخد إيه',
     priceNote: 'السعر: {price}',
   },
-} as const satisfies Record<Locale, VisitWords & Record<string, string>>;
+}) satisfies Readonly<Record<Locale, VisitWords>>;

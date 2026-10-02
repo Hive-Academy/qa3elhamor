@@ -10,6 +10,7 @@ import type { LandmarkOverlayProps } from '@qa3elhamor/landmarks-ui';
 import { useId, useState, type ComponentType } from 'react';
 import {
   copyReader,
+  textProps,
   toContentLocale,
   type CopyReader,
 } from '../overlay-copy';
@@ -79,13 +80,13 @@ export function CitizenIdentity({
       <dl className="citizen-card__fields">
         <div className="citizen-card__field">
           <dt>{t('citizenNameLabel')}</dt>
-          <dd className="citizen-card__name" dir="auto">
+          <dd className="citizen-card__name" {...textProps(profile.name, lang)}>
             {localize(profile.name, lang)}
           </dd>
         </div>
         <div className="citizen-card__field">
           <dt>{t('citizenOccupationLabel')}</dt>
-          <dd dir="auto">{localize(profile.headline, lang)}</dd>
+          <dd {...textProps(profile.headline, lang)}>{localize(profile.headline, lang)}</dd>
         </div>
         <div className="citizen-card__field">
           <dt>{t('citizenResidenceLabel')}</dt>
@@ -149,7 +150,7 @@ export function CitizenBio({
       </h4>
       {profile.bio.map((paragraph, index) => (
         // Paragraphs have no id of their own; their order is their identity.
-        <p key={index} dir="auto">
+        <p key={index} {...textProps(paragraph, lang)}>
           {localize(paragraph, lang)}
         </p>
       ))}

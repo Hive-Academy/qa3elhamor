@@ -1,0 +1,60 @@
+/*
+ * The language switch. In the dive it floats under the "Credits" button at the inline start
+ * (top left in English, top right in Arabic), on the credits' layer (35): under the landmark
+ * stage (40), which lets the pointer through to it everywhere but over a visit's own bubble and
+ * cards, so the switch never covers what the narrator says.
+ */
+.language-toggle {
+  display: inline-flex;
+  align-items: stretch;
+  padding: 0.1875rem;
+  border: 1px solid rgba(230, 242, 255, 0.14);
+  border-radius: 999px;
+  background: rgba(4, 16, 34, 0.55);
+  backdrop-filter: blur(6px);
+  pointer-events: auto;
+}
+
+.language-toggle[data-placement='chrome'] {
+  position: fixed;
+  inset-block-start: 4.75rem;
+  inset-inline-start: 1.5rem;
+  z-index: 35;
+}
+
+.language-toggle__option {
+  min-width: 2.75rem;
+  min-height: 2.25rem;
+  padding: 0 0.75rem;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #e6f2ff;
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.language-toggle__option[aria-pressed='true'] {
+  background: #7fd3f0;
+  color: #04213a;
+  cursor: default;
+}
+
+.language-toggle__option:not([aria-pressed='true']):hover {
+  background: rgba(127, 211, 240, 0.16);
+}
+
+.language-toggle__option:focus-visible {
+  outline: 3px solid #ffd68c;
+  outline-offset: 2px;
+}
+
+@media (max-width: 40rem) {
+  .language-toggle[data-placement='chrome'] {
+    inset-block-start: 4.5rem;
+    inset-inline-start: 1rem;
+  }
+}

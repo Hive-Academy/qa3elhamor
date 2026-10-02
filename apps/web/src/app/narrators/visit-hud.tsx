@@ -305,9 +305,11 @@ export function VisitHud({
               onClick={() => onPick(object.id, 'tap')}
               onKeyDown={onLabelKeyDown(i)}
             >
-              <span className="visit-object__label">{object.label}</span>
+              <span className="visit-object__label" dir="auto">
+                {object.label}
+              </span>
               {object.caption?.map((line) => (
-                <span key={line} className="visit-object__caption">
+                <span key={line} className="visit-object__caption" dir="auto">
                   {line}
                 </span>
               ))}
@@ -325,9 +327,17 @@ export function VisitHud({
           aria-label={chosen.detailLabel}
         >
           {chosen.notes && chosen.notes.length > 0 && (
-            <ul className="visit-panel__notes">
+            <ul
+              className="visit-panel__notes"
+              // A list left in English (untranslated highlights) is laid out as English, its
+              // bullets on the English side; `auto` reads that from the first note.
+              dir="auto"
+            >
               {chosen.notes.map((note) => (
-                <li key={note}>{note}</li>
+                // `auto`: an untranslated (English) highlight keeps its own direction.
+                <li key={note} dir="auto">
+                  {note}
+                </li>
               ))}
             </ul>
           )}
@@ -373,9 +383,11 @@ function BubbleDetail({
       role="group"
       aria-label={object.detailLabel}
     >
-      <ul className="speech__notes">
+      <ul className="speech__notes" dir="auto">
         {object.notes.map((note) => (
-          <li key={note}>{note}</li>
+          <li key={note} dir="auto">
+            {note}
+          </li>
         ))}
       </ul>
       {chips}

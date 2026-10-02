@@ -44,9 +44,8 @@ describe('narration (content/narration.json)', () => {
     expect(Object.isFrozen(narration.landmarks.pineapple.lines)).toBe(true);
   });
 
-  // The parser validates each file on its own (skill groups are optional, and hint ids are
-  // generic object ids), so the pairing of pineapple hints with the shipped skill groups is
-  // pinned here, against the real content.
+  // The parser enforces the pairing (`checkSkillHints`, a build gate through `validate`); this
+  // pins it against the real content too.
   it('has exactly one pineapple hint per skill group, keyed by the group id', () => {
     const hintIds = Object.keys(narration.landmarks.pineapple.hints ?? {}).sort();
     expect(hintIds).toEqual(profile.skills.map((group) => group.id).sort());

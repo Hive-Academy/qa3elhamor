@@ -8,7 +8,7 @@
   left: 0;
   overflow: hidden;
   pointer-events: none;
-  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-family: var(--font-ui);
 }
 
 /*
@@ -245,4 +245,9 @@
   .visit-panel {
     animation: none;
   }
+}
+
+/* As `.in-world-card-anchor`: drei's wrapper stays left to right; the HUD sets its own `dir`. */
+.visit-hud-anchor {
+  direction: ltr;
 }

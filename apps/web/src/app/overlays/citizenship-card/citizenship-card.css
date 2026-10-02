@@ -154,7 +154,7 @@
   border: 2px solid currentColor;
   border-radius: 0.25rem;
   color: var(--citizen-sea-deep);
-  font-family: 'Courier New', ui-monospace, monospace;
+  font-family: 'IBM Plex Sans Arabic', 'Courier New', ui-monospace, monospace;
   font-size: 0.8125rem;
   font-weight: 700;
   letter-spacing: 0.04em;
@@ -204,7 +204,7 @@
 }
 
 .citizen-card__motto {
-  font-family: 'Noto Naskh Arabic', 'Segoe UI', Tahoma, serif;
+  font-family: var(--font-ui);
   font-weight: 700;
 }
 

@@ -1,12 +1,12 @@
-import type { Locale } from '@qa3elhamor/content-domain';
+import type { Locale, LocalizedText } from '@qa3elhamor/content-domain';
+import { bilingual } from '../i18n/ui-strings';
 import type { NarratorChoice } from '../narrators.config';
 
 /**
  * Words the narrator's bubble needs around the narration itself (which is content, in
- * `content/narration.json`). Kept here for the prototype; they move into `content/site.json`
- * copy keys once the owner signs the experience off.
+ * `content/narration.json`). Interface words, not content: see `i18n/ui-strings.ts`.
  */
-export const NARRATOR_COPY = {
+export const NARRATOR_COPY = bilingual({
   en: {
     bubbleRole: 'speech bubble',
     next: 'Next',
@@ -25,16 +25,17 @@ export const NARRATOR_COPY = {
     leave: 'رجوع للغطسة',
     backToGuide: 'رجوع للمرشد',
   },
-} as const satisfies Record<Locale, Record<string, string>>;
+});
 
-const NAMES = {
+/** Who plays each narrator, by cast or bundled asset id. Every name has both languages. */
+export const NARRATOR_NAMES = {
   hamour: { en: 'The Hamour', ar: 'الهامور' },
-  'sardine-president': { en: 'The Sardine President', ar: 'رئيس السردين' },
+  'sardine-president': { en: 'The Sardine President', ar: 'الرئيس السرديني' },
   'crab-clerk': { en: 'The Crab Clerk', ar: 'الكاتب السلطعون' },
   'spongebob-narrator': { en: 'SpongeBob', ar: 'سبونج بوب' },
   'patrick-narrator': { en: 'Patrick', ar: 'باتريك' },
-} as const;
+} as const satisfies Record<string, Required<LocalizedText>>;
 
 /** The name on the bubble's tag for whoever plays `choice`. */
 export const narratorName = (choice: NarratorChoice, locale: Locale): string =>
-  NAMES[choice.kind === 'cast' ? choice.cast : choice.asset][locale];
+  NARRATOR_NAMES[choice.kind === 'cast' ? choice.cast : choice.asset][locale];

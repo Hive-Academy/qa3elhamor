@@ -100,12 +100,13 @@ export function SpeechBubble({
           <span className="speech__name">{speaker}</span>
           {topic && <span className="speech__topic">{topic}</span>}
         </p>
-        <p className="speech__line" aria-hidden="true">
+        {/* `auto`: a line without a translation is English, and keeps its own direction. */}
+        <p className="speech__line" aria-hidden="true" dir="auto">
           <span>{typed}</span>
           {typing && !reducedMotion && <span className="speech__caret" />}
           <span className="speech__rest">{rest}</span>
         </p>
-        <p className="speech__spoken" aria-live="polite">
+        <p className="speech__spoken" aria-live="polite" dir="auto">
           {text}
         </p>
         {children && <div className="speech__footer">{children}</div>}

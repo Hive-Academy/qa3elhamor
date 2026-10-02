@@ -7,13 +7,16 @@
         "ar": "مخ الرئيس السرديني"
       },
       "title": {
-        "en": "AI agent & MCP architecture"
+        "en": "AI agent & MCP architecture",
+        "ar": "معمارية وكلاء الذكاء الاصطناعي وMCP"
       },
       "description": {
-        "en": "Design and ship multi-agent systems, Model Context Protocol servers and provider-agnostic LLM harnesses that actually work in production."
+        "en": "Design and ship multi-agent systems, Model Context Protocol servers and provider-agnostic LLM harnesses that actually work in production.",
+        "ar": "تصميم وإطلاق أنظمة متعددة الوكلاء، وخوادم بروتوكول سياق النماذج (MCP)، وأدوات تشغيل نماذج لغوية مستقلة عن المزوّد تعمل فعلًا في بيئة الإنتاج."
       },
       "price": {
-        "en": "Three pearls and a whitepaper"
+        "en": "Three pearls and a whitepaper",
+        "ar": "تلات حبات لولي وورقة بيضاء"
       },
       "tags": [
         "LangChain",
@@ -30,10 +33,12 @@
         "ar": "ميلك شيك الطحالب"
       },
       "title": {
-        "en": "SaaS platform architecture"
+        "en": "SaaS platform architecture",
+        "ar": "معمارية منصات SaaS"
       },
       "description": {
-        "en": "End-to-end architecture on Nx, NestJS and Angular: multi-tenant backends, policy-based access control, SSR frontends and enforced module boundaries."
+        "en": "End-to-end architecture on Nx, NestJS and Angular: multi-tenant backends, policy-based access control, SSR frontends and enforced module boundaries.",
+        "ar": "معمارية متكاملة على Nx وNestJS وAngular: خلفيات متعددة المستأجرين، وتحكم في الوصول قائم على السياسات، وواجهات SSR، وحدود وحدات مُلزِمة."
       },
       "price": {
         "en": "Priced in kelp, negotiable",
@@ -54,13 +59,16 @@
         "ar": "باقة مكتب الشكاوى المميزة"
       },
       "title": {
-        "en": "Technical leadership & team building"
+        "en": "Technical leadership & team building",
+        "ar": "القيادة التقنية وبناء الفرق"
       },
       "description": {
-        "en": "Lead engineering teams, set architecture standards, run code reviews and mentor senior engineers so the team ships reliably."
+        "en": "Lead engineering teams, set architecture standards, run code reviews and mentor senior engineers so the team ships reliably.",
+        "ar": "قيادة الفرق الهندسية، ووضع معايير المعمارية، وإدارة مراجعات الكود، وتوجيه كبار المهندسين حتى يُسلّم الفريق بثبات."
       },
       "price": {
-        "en": "A seat at the reef council"
+        "en": "A seat at the reef council",
+        "ar": "كرسي في مجلس الشعاب"
       },
       "tags": [
         "Team mentoring",
@@ -76,13 +84,16 @@
         "ar": "صيدة اليوم ثنائية اللغة"
       },
       "title": {
-        "en": "Arabic-first bilingual product delivery"
+        "en": "Arabic-first bilingual product delivery",
+        "ar": "تسليم منتجات ثنائية اللغة بالعربية أولًا"
       },
       "description": {
-        "en": "Ship RTL/LTR products with real bilingual content modelling, from CMS schema to UI copy, without letting one language drift behind the other."
+        "en": "Ship RTL/LTR products with real bilingual content modelling, from CMS schema to UI copy, without letting one language drift behind the other.",
+        "ar": "إطلاق منتجات RTL/LTR بنمذجة محتوى ثنائية اللغة حقيقية، من مخطط نظام إدارة المحتوى إلى نصوص الواجهة، دون أن تتأخر لغة عن الأخرى."
       },
       "price": {
-        "en": "Two sand dollars and a dictionary"
+        "en": "Two sand dollars and a dictionary",
+        "ar": "اتنين دولار رمل وقاموس"
       },
       "tags": [
         "i18n",

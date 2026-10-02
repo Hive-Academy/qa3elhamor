@@ -71,7 +71,7 @@ createNarratedVisitScene<MySlot>({
   shape: 'round',                     // label shape over the objects: 'round' | 'slab'
   doorHeight: 0.16,                   // where objects come from on the model (fraction of height)
   fullView: { render: ({ locale, dir }) => <ServicesMenu … />, icon: <span … /> },
-  words: KRUSTY_VISIT_COPY,           // { en, ar }: { openFull, objectsList }
+  words: KRUSTY_VISIT_COPY,           // bilingual({ en, ar }): { openFull, objectsList }; register it in i18n/ui-strings.spec.ts
 });
 ```
 

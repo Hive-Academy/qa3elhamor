@@ -406,6 +406,23 @@ describe('parseContent', () => {
       message: /must be at most 140 characters/,
     },
     {
+      name: 'a skill group the pineapple narration has no hint for',
+      mutate: (f) =>
+        (f.site.profile['skills'] = [
+          { id: 'frontend', label: 'Frontend', skills: ['TypeScript'] },
+          { id: 'backend', label: 'Backend', skills: ['NestJS'] },
+        ]),
+      path: 'narration.landmarks.pineapple.hints',
+      message: /no hint for skill group "backend"/,
+    },
+    {
+      name: 'a pineapple hint that names no skill group',
+      mutate: (f) =>
+        f.narration.landmarks.pineapple.hints.push({ id: 'databases', text: 'Fish.' }),
+      path: 'narration.landmarks.pineapple.hints',
+      message: /hint "databases" matches no skill group/,
+    },
+    {
       name: 'an unknown narration landmark key',
       mutate: (f) =>
         (f.narration.landmarks['chum-bucket'] = {
@@ -442,5 +459,6 @@ describe('localize', () => {
   it('prefers the requested locale and falls back to English', () => {
     expect(localize({ en: 'Hello', ar: 'مرحبا' }, 'ar')).toBe('مرحبا');
     expect(localize({ en: 'Hello' }, 'ar')).toBe('Hello');
+    expect(localize({ en: 'Hello', ar: '  ' }, 'ar')).toBe('Hello');
   });
 });

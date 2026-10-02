@@ -1,3 +1,32 @@
+/*
+ * The Arabic face (public/fonts/ibm-plex-sans-arabic, OFL 1.1). Limited to the Arabic ranges:
+ * Latin keeps the system font, and a file downloads only when the page shows Arabic.
+ */
+@font-face {
+  font-family: 'IBM Plex Sans Arabic';
+  src: url('/fonts/ibm-plex-sans-arabic/IBMPlexSansArabic-Regular.woff2') format('woff2');
+  font-weight: 100 500;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+200C-200F, U+FB50-FDFF, U+FE70-FEFF;
+}
+
+@font-face {
+  font-family: 'IBM Plex Sans Arabic';
+  src: url('/fonts/ibm-plex-sans-arabic/IBMPlexSansArabic-SemiBold.woff2') format('woff2');
+  font-weight: 501 900;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+200C-200F, U+FB50-FDFF, U+FE70-FEFF;
+}
+
+:root {
+  /* Arabic glyphs from Plex (it only covers Arabic here), everything else from the system. */
+  --font-ui: 'IBM Plex Sans Arabic', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  /* The paper overlays' serif: Plex carries the Arabic, Georgia the Latin. */
+  --font-paper: Georgia, 'IBM Plex Sans Arabic', 'Times New Roman', serif;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -7,7 +36,21 @@ body {
   margin: 0;
   background: #0a1e3f;
   color: #e6f2ff;
-  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-family: var(--font-ui);
+}
+
+/*
+ * Arabic is cursive: tracking pulls its joined letters apart (and in a form field Chromium
+ * draws every letter in its isolated form). No letter-spacing in Arabic text, whatever a
+ * component sets for its Latin small caps; `!important` because those rules come later.
+ */
+:lang(ar) {
+  letter-spacing: normal !important;
+}
+
+/* `SiteCredits` wraps the credits trigger and dialog only to reach them; it takes no space. */
+.site-credits {
+  display: contents;
 }
 
 /* The canvas stays put while the document scrolls underneath it: the scroll is the dive. */
@@ -24,8 +67,8 @@ body {
 
 .scene-note {
   position: fixed;
-  bottom: 1.5rem;
-  left: 1.5rem;
+  inset-block-end: 1.5rem;
+  inset-inline-start: 1.5rem;
   max-width: 22rem;
   padding: 0.875rem 1.125rem;
   border: 1px solid rgba(230, 242, 255, 0.14);
@@ -57,8 +100,8 @@ body {
 
 .depth-gauge {
   position: fixed;
-  top: 1.5rem;
-  right: 1.5rem;
+  inset-block-start: 1.5rem;
+  inset-inline-end: 1.5rem;
   display: grid;
   grid-template-columns: auto auto;
   column-gap: 0.625rem;

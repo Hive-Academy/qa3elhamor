@@ -1,11 +1,12 @@
 import type { Locale } from '@qa3elhamor/content-domain';
+import { bilingual } from '../i18n/ui-strings';
 import type { VisitWords } from '../narrators/visit-types';
 
 /**
- * Words only the Pineapple visit needs. Kept here for the prototype; they move into
- * `content/site.json` copy keys once the owner signs the experience off.
+ * Words only the Pineapple visit needs. Interface words, not content: see
+ * `i18n/ui-strings.ts`.
  */
-export const PINEAPPLE_VISIT_COPY = {
+export const PINEAPPLE_VISIT_COPY = bilingual({
   en: {
     openFull: 'Open the full Citizenship Card',
     objectsList: 'His specialties, as bubbles',
@@ -16,4 +17,4 @@ export const PINEAPPLE_VISIT_COPY = {
     objectsList: 'تخصصاته، فقاعات',
     skillsOf: '{group}: المهارات',
   },
-} as const satisfies Record<Locale, VisitWords & Record<string, string>>;
+}) satisfies Readonly<Record<Locale, VisitWords>>;

@@ -33,6 +33,11 @@ export interface LocalizedText {
   readonly ar?: string;
 }
 
-/** Resolves a text for `locale`, falling back to English when no translation exists. */
-export const localize = (text: LocalizedText, locale: Locale): string =>
-  text[locale] ?? text.en;
+/**
+ * Resolves a text for `locale`, falling back to English when no translation exists. A blank
+ * translation counts as none (the parser rejects one, but a value built in code may carry it).
+ */
+export function localize(text: LocalizedText, locale: Locale): string {
+  const translated = text[locale];
+  return translated !== undefined && translated.trim() !== '' ? translated : text.en;
+}

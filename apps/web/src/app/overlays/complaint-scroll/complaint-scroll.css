@@ -97,7 +97,18 @@
   background: rgba(255, 255, 255, 0.55);
   color: var(--scroll-ink);
   font: inherit;
-  font-family: 'Courier New', ui-monospace, monospace;
+  /* Typewriter Latin; Arabic from Plex, since Courier New's Arabic does not join. */
+  font-family: 'IBM Plex Sans Arabic', 'Courier New', ui-monospace, monospace;
+  letter-spacing: normal;
+}
+
+/*
+ * In an Arabic scroll the fields drop the typewriter: if Plex has not loaded (or is blocked),
+ * the fallback must still be a face whose Arabic joins, never Courier New's.
+ */
+.complaint-scroll:lang(ar) input:not([type='email']),
+.complaint-scroll:lang(ar) textarea {
+  font-family: var(--font-paper);
 }
 
 .complaint-scroll textarea {
@@ -250,7 +261,7 @@
 /* Stamp art: the legend and eye are ink; the sardine body is a pale wash. */
 .sardine-stamp__legend {
   stroke: none;
-  font-family: 'Courier New', ui-monospace, monospace;
+  font-family: 'IBM Plex Sans Arabic', 'Courier New', ui-monospace, monospace;
   font-weight: 700;
   text-transform: uppercase;
 }

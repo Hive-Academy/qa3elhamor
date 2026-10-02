@@ -6,7 +6,9 @@ import {
   CreditsUnavailable,
   type CreditsPlaqueProps,
 } from '@qa3elhamor/world-ui';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
+import { useLocale } from './i18n/locale-context';
+import { CHROME_COPY } from './i18n/ui-strings';
 
 /** Where the credits come from. Tests inject a failing source; the site uses the manifest. */
 export type CreditsSource = () => readonly ShippedCredit[];
@@ -45,14 +47,38 @@ export interface SiteCreditsProps {
 /**
  * Page chrome: the always-visible "Credits" button and its dialog listing every credit with
  * working links. Mount outside the canvas; it needs no WebGL, so it is what guarantees the
- * credits are reachable on every device.
+ * credits are reachable on every device. Its words follow the site's language; the licence
+ * lines themselves stay in English (`lang="en"` on each), as the licences word them.
  */
 export function SiteCredits({ source = shippedCredits }: SiteCreditsProps) {
   const result = useCredits(source);
-  return result.ok ? (
-    <CreditsDialog credits={result.credits} />
-  ) : (
-    <CreditsUnavailable />
+  const { locale, dir } = useLocale();
+  const words = CHROME_COPY[locale];
+  const host = useRef<HTMLDivElement>(null);
+
+  // `CreditsDialog` (world-ui) marks its dialog `lang="en" dir="ltr"` and takes no props for
+  // them; the dialog is re-marked here so Arabic words read right to left. React leaves the
+  // attributes alone afterwards, since the props it set them from never change.
+  useLayoutEffect(() => {
+    const dialog = host.current?.querySelector('dialog');
+    dialog?.setAttribute('lang', locale);
+    dialog?.setAttribute('dir', dir);
+  }, [locale, dir, result.ok]);
+
+  return (
+    <div ref={host} className="site-credits">
+      {result.ok ? (
+        <CreditsDialog
+          credits={result.credits}
+          triggerLabel={words.creditsTrigger}
+          title={words.creditsTitle}
+          intro={words.creditsIntro}
+          closeLabel={words.creditsClose}
+        />
+      ) : (
+        <CreditsUnavailable message={words.creditsUnavailable} />
+      )}
+    </div>
   );
 }
 
@@ -70,10 +96,11 @@ export function SiteCreditsList({
   label,
 }: SiteCreditsListProps) {
   const result = useCredits(source);
+  const { locale } = useLocale();
   return result.ok ? (
     <CreditsList credits={result.credits} label={label} />
   ) : (
-    <CreditsUnavailable />
+    <CreditsUnavailable message={CHROME_COPY[locale].creditsUnavailable} />
   );
 }
 

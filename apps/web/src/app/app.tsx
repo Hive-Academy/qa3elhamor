@@ -51,6 +51,11 @@ import {
   usePresentation,
 } from './page-view';
 import { SiteTelemetry, trackQualityTier } from './telemetry';
+import { LanguageToggle } from './i18n/language-toggle';
+import { formatNumber } from './i18n/locale';
+import { LocaleProvider, useLocale } from './i18n/locale-context';
+import { CHROME_COPY } from './i18n/ui-strings';
+import { fillCopy } from './overlays/overlay-copy';
 
 /** Resolved once: the manifest owns the path, Vite owns the deploy base. */
 const ENVIRONMENT_URL = assetUrl('environment', import.meta.env.BASE_URL);
@@ -84,10 +89,12 @@ function Landmarks({
   readonly children: ReactNode;
 }) {
   const camera = useDiveLandmarkCamera();
+  const { locale } = useLocale();
   return (
     <LandmarkProvider
       registry={LANDMARK_REGISTRY}
       camera={camera}
+      locale={locale}
       inWorld={inWorld}
       onLandmarkEvent={reportLandmarkEvent}
     >
@@ -106,7 +113,17 @@ function Landmarks({
  * kernel drives the camera through the dive and opens overlays in the DOM, outside the canvas.
  */
 export function App() {
+  return (
+    <LocaleProvider>
+      <Views />
+    </LocaleProvider>
+  );
+}
+
+/** Dive or page (`page-view/presentation.ts`), both in the site's language. */
+function Views() {
   const view = usePresentation(hasWebgl);
+  const { locale } = useLocale();
 
   // No WebGL, `?view=page`, the "read it as a page" link, or a dive that broke: the same
   // content as a readable 2D page (`page-view/`).
@@ -118,6 +135,7 @@ export function App() {
         diveHref={hrefFor(window.location, 'dive')}
         onReturnToDive={view.returnToDive}
         focusOnMount={view.switched}
+        locale={locale}
       />
     );
   }
@@ -150,10 +168,12 @@ function Site({
   /** The dive was just switched back to from the page: focus its "read it as a page" link. */
   readonly returnedFromPage: boolean;
 }) {
-  const budgetMb = (initialLoadBudgetBytes() / (1024 * 1024)).toFixed(1);
+  const budgetMb = initialLoadBudgetBytes() / (1024 * 1024);
   const reducedMotion = usePrefersReducedMotion();
   const quality = useQuality();
   const canvasGuard = useCanvasGuard(onDiveFailure);
+  const { locale } = useLocale();
+  const words = CHROME_COPY[locale];
 
   return (
     <DiveProvider path={DIVE_PATH} reducedMotion={reducedMotion}>
@@ -217,26 +237,38 @@ function Site({
         </div>
 
         <aside className="scene-note">
+          {/* The district's own name, always Arabic, whatever the site's language. */}
           <h1 lang="ar" dir="rtl">
             قاع الهامور
           </h1>
-          <p>Scroll to dive.</p>
+          <p>{words.sceneNoteLead}</p>
           <ReadAsPageLink
             onActivate={onReadAsPage}
             focusOnMount={returnedFromPage}
+            locale={locale}
           />
           <p className="scene-note__meta">
-            {WEB_ASSETS.length} assets manifested, {budgetMb} MB initial-load
-            budget.
+            {fillCopy(words.sceneNoteMeta, {
+              count: formatNumber(WEB_ASSETS.length, locale),
+              budget: formatNumber(budgetMb, locale, {
+                minimumFractionDigits: 1,
+                maximumFractionDigits: 1,
+              }),
+            })}
           </p>
         </aside>
 
         <DepthGauge />
         <SiteCredits />
-        <LandmarkNav />
+        <LanguageToggle />
+        <LandmarkNav label={words.landmarksNav} />
         <DiveScroll screens={DIVE_CONFIG.screens} />
         <InWorldAtmosphere />
-        <LandmarkOverlays overlays={LANDMARK_OVERLAYS} />
+        <LandmarkOverlays
+          overlays={LANDMARK_OVERLAYS}
+          closeLabel={words.dialogClose}
+          returnLabel={words.returnToDive}
+        />
         {import.meta.env.DEV && <QualityReadout />}
       </Landmarks>
     </DiveProvider>

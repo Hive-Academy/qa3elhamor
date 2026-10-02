@@ -1,9 +1,10 @@
 import type { Locale, LocalizedText } from '@qa3elhamor/content-domain';
+import { bilingual } from '../i18n/ui-strings';
 
 /**
  * The Bureau visit's own words, around the narration (`content/narration.json`) and the form's
- * copy (`content/site.json`). Hard-coded en/ar like the other visits' (`tiki/tiki-copy.ts`);
- * they move into `content/site.json` copy keys once the owner signs the visit off.
+ * copy (`content/site.json`). Interface words, not content, like the other
+ * visits' (`i18n/ui-strings.ts`).
  */
 export interface BureauWords {
   /** The last line's action: the scroll comes out of the tube. */
@@ -14,7 +15,7 @@ export interface BureauWords {
   readonly scrollLabel: string;
 }
 
-export const BUREAU_VISIT_COPY = {
+export const BUREAU_VISIT_COPY = bilingual({
   en: {
     openScroll: 'File a complaint',
     rollUp: 'Roll it back up',
@@ -25,7 +26,7 @@ export const BUREAU_VISIT_COPY = {
     rollUp: 'لفّها تاني',
     scrollLabel: 'ورقة الشكوى',
   },
-} as const satisfies Record<Locale, BureauWords>;
+}) satisfies Readonly<Record<Locale, BureauWords>>;
 
 /**
  * What the Sardine President says once the bottle is on its way: one line per delivery outcome,
@@ -40,6 +41,6 @@ export const FILED_LINES = {
     en: "Stamped and bottled, but between us: the Bureau's post office has not opened yet, so this bottle is going nowhere. The links on the Citizenship Card reach him.",
     ar: 'اتختمت واتقفلت في إزازة، بس بيني وبينك: مكتب بريد البلدية لسه ما فتحش، فالإزازة دي مش رايحة في حتة. روابط بطاقة المواطن بتوصله.',
   },
-} as const satisfies Record<string, LocalizedText>;
+} as const satisfies Record<string, Required<LocalizedText>>;
 
 export type FiledLineId = keyof typeof FILED_LINES;

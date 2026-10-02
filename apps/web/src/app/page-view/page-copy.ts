@@ -3,9 +3,8 @@ import { fillCopy } from '../overlays/overlay-copy';
 
 /**
  * Words only the page view needs: its chrome, plain section names and the notice explaining
- * why the visitor is reading a page. Kept here, like the in-world card's copy, until the owner
- * signs them off; they then move into `content/site.json` (`SITE_COPY_KEYS`), which needs a
- * content-domain change. Arabic is provided so the page is ready the day the locale switches.
+ * why the visitor is reading a page. Interface words, not content (`i18n/ui-strings.ts`); the
+ * `PageViewCopy` type keeps the Arabic table's keys in step with the English one's.
  */
 const EN = {
   skipToContent: 'Skip to content',

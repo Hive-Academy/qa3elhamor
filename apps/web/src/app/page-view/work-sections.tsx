@@ -6,7 +6,7 @@ import {
   type ServiceItem,
   type SiteCopy,
 } from '@qa3elhamor/content-domain';
-import { copyReader } from '../overlays/overlay-copy';
+import { copyReader, textProps } from '../overlays/overlay-copy';
 import { resolveAvatarSrc } from '../overlays/citizenship-card';
 import type { PageViewCopyKey } from './page-copy';
 import {
@@ -47,7 +47,7 @@ export function ExperienceSection({
                 <h3
                   id={`page-resume-${entry.id}`}
                   className="page-entry__title"
-                  dir="auto"
+                  {...textProps(entry.role, lang)}
                 >
                   {localize(entry.role, lang)}
                 </h3>
@@ -61,14 +61,14 @@ export function ExperienceSection({
                       {localize(entry.company, lang)}
                     </OutboundLink>
                   ) : (
-                    <span className="page-entry__org" dir="auto">
+                    <span className="page-entry__org" {...textProps(entry.company, lang)}>
                       {localize(entry.company, lang)}
                     </span>
                   )}
                   {entry.location && (
                     <>
                       <span aria-hidden="true"> · </span>
-                      <span dir="auto">{localize(entry.location, lang)}</span>
+                      <span {...textProps(entry.location, lang)}>{localize(entry.location, lang)}</span>
                     </>
                   )}
                   <span aria-hidden="true"> · </span>
@@ -76,7 +76,7 @@ export function ExperienceSection({
                 </p>
               </header>
               {entry.summary && (
-                <p dir="auto">{localize(entry.summary, lang)}</p>
+                <p {...textProps(entry.summary, lang)}>{localize(entry.summary, lang)}</p>
               )}
               <Highlights items={entry.highlights} lang={lang} />
               <TagList label={t('tech')} items={entry.tech} />
@@ -85,7 +85,7 @@ export function ExperienceSection({
                   <span className="page-entry__quip-label">
                     {t('review')}:{' '}
                   </span>
-                  <q dir="auto">{localize(entry.quip, lang)}</q>
+                  <q {...textProps(entry.quip, lang)}>{localize(entry.quip, lang)}</q>
                 </p>
               )}
             </article>
@@ -138,7 +138,7 @@ export function ProjectsSection({
                 <h3
                   id={`page-project-${project.id}`}
                   className="page-entry__title"
-                  dir="auto"
+                  {...textProps(project.title, lang)}
                 >
                   {localize(project.title, lang)}
                 </h3>
@@ -161,11 +161,11 @@ export function ProjectsSection({
                   </p>
                 )}
               </header>
-              <p className="page-entry__lead" dir="auto">
+              <p className="page-entry__lead" {...textProps(project.summary, lang)}>
                 {localize(project.summary, lang)}
               </p>
               {project.description && (
-                <p dir="auto">{localize(project.description, lang)}</p>
+                <p {...textProps(project.description, lang)}>{localize(project.description, lang)}</p>
               )}
               <Highlights items={project.highlights} lang={lang} />
               <TagList label={t('tech')} items={project.tech} />
@@ -216,24 +216,24 @@ export function ServicesSection({
           >
             <article aria-labelledby={`page-service-${service.id}`}>
               <header className="page-entry__header">
-                <p className="page-entry__eyebrow" dir="auto">
+                <p className="page-entry__eyebrow" {...textProps(service.menuName, lang)}>
                   {localize(service.menuName, lang)}
                 </p>
                 <h3
                   id={`page-service-${service.id}`}
                   className="page-entry__title"
-                  dir="auto"
+                  {...textProps(service.title, lang)}
                 >
                   {localize(service.title, lang)}
                 </h3>
               </header>
-              <p dir="auto">{localize(service.description, lang)}</p>
+              <p {...textProps(service.description, lang)}>{localize(service.description, lang)}</p>
               {service.price && (
                 <p className="page-entry__price">
                   <span className="page-view__visually-hidden">
                     {t('price')}:{' '}
                   </span>
-                  <span dir="auto">{localize(service.price, lang)}</span>
+                  <span {...textProps(service.price, lang)}>{localize(service.price, lang)}</span>
                 </p>
               )}
               <TagList label={t('tags')} items={service.tags} />

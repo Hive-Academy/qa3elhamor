@@ -1,4 +1,5 @@
 import type { LocalizedText } from '../localized-text.js';
+import type { SkillGroup } from '../site-profile.js';
 import {
   NARRATION_LANDMARKS,
   NARRATION_LIMITS,
@@ -93,4 +94,36 @@ export function readNarrationFile(r: ContentReader, value: unknown, path: string
       readLandmark(r, landmarks, childPath(path, 'landmarks'))
     ),
   };
+}
+
+/**
+ * Cross-file: the pineapple's hints are keyed by skill group id (`site.profile.skills`), one per
+ * group. A group without a hint leaves the narrator silent when the visitor picks its bubble; a
+ * hint naming no group is never said. Both are errors, so the build stops on them.
+ *
+ * Both sides are optional (a site may have no skill groups, or no pineapple hints at all, and
+ * the narrator then says nothing about the bubbles); once both exist, they must pair up.
+ *
+ * Run only once every file has read cleanly: a malformed id is then reported once, as itself,
+ * rather than again as a pairing problem.
+ */
+export function checkSkillHints(
+  r: ContentReader,
+  skills: readonly SkillGroup[],
+  narration: Narration
+): void {
+  const path = 'narration.landmarks.pineapple.hints';
+  const hints = narration.landmarks.pineapple.hints;
+  if (skills.length === 0 || hints === undefined) return;
+  const groups = new Set<string>(skills.map((group) => group.id));
+  for (const group of skills) {
+    if (!Object.hasOwn(hints, group.id)) {
+      r.fail(path, `no hint for skill group "${group.id}" (site.profile.skills)`);
+    }
+  }
+  for (const id of Object.keys(hints)) {
+    if (!groups.has(id)) {
+      r.fail(path, `hint "${id}" matches no skill group in site.profile.skills`);
+    }
+  }
 }

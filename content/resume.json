@@ -10,13 +10,15 @@
         "ar": "شريك مؤسس"
       },
       "location": {
-        "en": "Giza, Egypt"
+        "en": "Giza, Egypt",
+        "ar": "الجيزة، مصر"
       },
       "period": {
         "start": "2020-01"
       },
       "summary": {
-        "en": "Co-founded the company and lead its technical direction, building the engineering team behind its AI-native SaaS platforms."
+        "en": "Co-founded the company and lead its technical direction, building the engineering team behind its AI-native SaaS platforms.",
+        "ar": "شارك في تأسيس الشركة ويقود توجهها التقني، ويبني الفريق الهندسي وراء منصاتها السحابية القائمة على الذكاء الاصطناعي."
       },
       "highlights": [
         {
@@ -38,7 +40,8 @@
         "TypeScript"
       ],
       "quip": {
-        "en": "Built the team, then built the robots that argue with the team. Productive chaos."
+        "en": "Built the team, then built the robots that argue with the team. Productive chaos.",
+        "ar": "بنى الفريق، وبعدين بنى الروبوتات اللي بتتخانق مع الفريق. فوضى منتجة."
       }
     },
     {
@@ -52,14 +55,16 @@
         "ar": "مهندس برمجيات رائد"
       },
       "location": {
-        "en": "Remote"
+        "en": "Remote",
+        "ar": "عن بُعد"
       },
       "period": {
         "start": "2019-01",
         "end": "2024-10"
       },
       "summary": {
-        "en": "Directed the SDLC for key enterprise products, owning architecture and deployment."
+        "en": "Directed the SDLC for key enterprise products, owning architecture and deployment.",
+        "ar": "أدار دورة حياة تطوير البرمجيات لمنتجات مؤسسية رئيسية، مسؤولًا عن المعمارية والنشر."
       },
       "highlights": [
         {
@@ -80,27 +85,31 @@
         "CI/CD"
       ],
       "quip": {
-        "en": "Left the codebase stricter than it started. The types are grateful."
+        "en": "Left the codebase stricter than it started. The types are grateful.",
+        "ar": "ساب الكود أصرم مما استلمه. والأنواع شاكرة فضله."
       }
     },
     {
       "id": "freelance",
       "company": {
-        "en": "Freelance / self-employed"
+        "en": "Freelance / self-employed",
+        "ar": "عمل حر"
       },
       "role": {
         "en": "Senior Full Stack Developer",
         "ar": "مطوّر برمجيات متكامل أول"
       },
       "location": {
-        "en": "Remote"
+        "en": "Remote",
+        "ar": "عن بُعد"
       },
       "period": {
         "start": "2016-08",
         "end": "2022-05"
       },
       "summary": {
-        "en": "Delivered high-performance web applications and modernised legacy systems for international startups."
+        "en": "Delivered high-performance web applications and modernised legacy systems for international startups.",
+        "ar": "قدّم تطبيقات ويب عالية الأداء وحدّث أنظمة قديمة لشركات ناشئة دولية."
       },
       "highlights": [
         {
@@ -121,7 +130,8 @@
         "RxJS"
       ],
       "quip": {
-        "en": "Remote since before remote was a personality."
+        "en": "Remote since before remote was a personality.",
+        "ar": "شغّال عن بُعد من قبل ما الشغل عن بُعد يبقى موضة."
       }
     },
     {
@@ -134,14 +144,16 @@
         "ar": "مطوّر ويب متكامل"
       },
       "location": {
-        "en": "Egypt"
+        "en": "Egypt",
+        "ar": "مصر"
       },
       "period": {
         "start": "2015-05",
         "end": "2015-12"
       },
       "summary": {
-        "en": "Built data-intensive web applications and real-time tracking automation for enterprise systems."
+        "en": "Built data-intensive web applications and real-time tracking automation for enterprise systems.",
+        "ar": "بنى تطبيقات ويب كثيفة البيانات وأتمتة للتتبع اللحظي لأنظمة مؤسسية."
       },
       "highlights": [
         {
@@ -157,7 +169,8 @@
         "Windows services"
       ],
       "quip": {
-        "en": "Started before signals existed. Survived anyway."
+        "en": "Started before signals existed. Survived anyway.",
+        "ar": "ابتدى قبل ما الـ signals تظهر. وعدّاها برضه."
       }
     }
   ]

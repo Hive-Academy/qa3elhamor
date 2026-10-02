@@ -10,10 +10,12 @@
     },
     "bio": [
       {
-        "en": "Expert software architect and founder with 12+ years designing scalable SaaS platforms and intelligent AI systems. I specialise in agentic AI, context engineering and Model Context Protocol (MCP) implementations, and I have recently shipped two production AI-native platforms — Pro-Estate and Ptah — while leading engineering teams across the full stack."
+        "en": "Expert software architect and founder with 12+ years designing scalable SaaS platforms and intelligent AI systems. I specialise in agentic AI, context engineering and Model Context Protocol (MCP) implementations, and I have recently shipped two production AI-native platforms — Pro-Estate and Ptah — while leading engineering teams across the full stack.",
+        "ar": "مهندس برمجيات ومؤسس بخبرة تزيد على ١٢ عامًا في تصميم منصات SaaS قابلة للتوسع وأنظمة ذكاء اصطناعي ذكية. أتخصص في الذكاء الاصطناعي الوكيلي وهندسة السياق وتطبيقات بروتوكول سياق النماذج (MCP)، وأطلقت مؤخرًا منصتين أصليتين للذكاء الاصطناعي في بيئة الإنتاج — برو إستيت وبتاح — مع قيادة فرق هندسية عبر كامل طبقات البرمجيات."
       },
       {
-        "en": "Registered resident of Qaa El-Hamour: I settled at the bottom, built a NestJS monorepo there, and kept the sardines as stakeholders."
+        "en": "Registered resident of Qaa El-Hamour: I settled at the bottom, built a NestJS monorepo there, and kept the sardines as stakeholders.",
+        "ar": "مقيم رسمي في قاع الهامور: استقرّيت في القاع، وبنيت هناك مستودعًا موحّدًا بـ NestJS، وأبقيت السردين من أصحاب المصلحة."
       }
     ],
     "location": {

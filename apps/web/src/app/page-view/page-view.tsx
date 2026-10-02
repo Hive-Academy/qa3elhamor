@@ -1,7 +1,8 @@
 import { localize, type Locale } from '@qa3elhamor/content-domain';
 import { useCallback, useEffect, useRef, type MouseEvent } from 'react';
 import type { CreditsSource } from '../credits';
-import { copyReader } from '../overlays/overlay-copy';
+import { LanguageToggle } from '../i18n/language-toggle';
+import { copyReader, textProps } from '../overlays/overlay-copy';
 import { pageText, type PageText, type PageViewCopyKey } from './page-copy';
 import type { PageContent } from './page-content';
 import { PAGE_SECTION_IDS, type PageSectionKey } from './page-parts';
@@ -155,21 +156,24 @@ export function PageView({
 
       <header id="page-top" className="page-view__masthead">
         <div className="page-view__masthead-inner">
-          <p className="page-view__place">
-            {/* The district's own name, always Arabic: isolated from the page direction. */}
-            <bdi lang="ar" dir="rtl">
-              قاع الهامور
-            </bdi>
-          </p>
+          <div className="page-view__topline">
+            <p className="page-view__place">
+              {/* The district's own name, always Arabic: isolated from the page direction. */}
+              <bdi lang="ar" dir="rtl">
+                قاع الهامور
+              </bdi>
+            </p>
+            <LanguageToggle placement="inline" />
+          </div>
           <h1
             ref={headingRef}
             tabIndex={-1}
             className="page-view__name"
-            dir="auto"
+            {...textProps(content.profile.name, lang)}
           >
             {localize(content.profile.name, lang)}
           </h1>
-          <p className="page-view__headline" dir="auto">
+          <p className="page-view__headline" {...textProps(content.profile.headline, lang)}>
             {localize(content.profile.headline, lang)}
           </p>
           <p className="page-view__description" dir="auto">

@@ -179,7 +179,8 @@ See `.ptah/scope-decisions.md` for the full discovery record and the asset/IP co
       **Charter.** Audit and close the gap between "our site" and "a template": every string, colour, asset path, landmark position, and provider key resolves from config, with a documented swap procedure and a working example of replacing a landmark model. The template framing was the primary audience answer in discovery, so this item is where that answer is actually cashed in rather than assumed. Success: a fresh clone can be rebranded end to end by editing config and assets only, verified by doing it.
       **Depends on:** landmark-pineapple, landmark-bureau, content-model
 
-- [ ] i18n-bilingual: Arabic and English with RTL
+- [x] i18n-bilingual: Arabic and English with RTL
+      **Outcome.** Locale from `?lang` → localStorage → navigator (always mirrored to `?lang` via replaceState), `EN | عربي` toggle in the dive and page view, `<html lang dir>` set before first render; RTL across overlays, speech bubbles (mirrored tails), panels, page view and the Bureau form (Arabic joins, letter-spacing off for Arabic); typed bilingual UI tables per feature (compile-time completeness) — moving them into content is a follow-up; `ar` added to content (narration, hints, bio, reviews, services, …); IBM Plex Sans Arabic (OFL) for Arabic glyphs only; build gate pairs pineapple hints with skill groups. agy APPROVED 9/10 r2. Open: world/ui credits dialog + canvas plaque still English-directed; landmark dialog titles use a serif without Plex.
       **Charter.** Add bilingual content support with correct RTL layout for Arabic overlays, since the trend is Egyptian and much of its comedy — "بقينا في القاع", the Sardine President — only lands in Arabic. Success: switching locale flips overlay direction correctly and both locales render from the same content entries.
       **Depends on:** content-model
 
@@ -211,7 +212,8 @@ See `.ptah/scope-decisions.md` for the full discovery record and the asset/IP co
       **Charter.** Provide a genuine alternative path: honour `prefers-reduced-motion` by disabling the dive animation, and serve a readable 2D version of all content to visitors without WebGL or on failing hardware. A site whose only navigation is a scroll-driven 3D dive excludes people with vestibular sensitivity and anyone on unsupported hardware, and the content is a portfolio those visitors still need. Success: every piece of site content is reachable with WebGL disabled.
       **Depends on:** landmark-pineapple, landmark-bureau
 
-- [ ] qa-smoke: End-to-end smoke and visual regression
+- [x] qa-smoke: End-to-end smoke and visual regression
+      **Outcome.** `apps/web-e2e` (Playwright): smoke + console/CSP guard on every test, dive to all four landmarks (dialogue, object selection, full view, Esc + focus), Bureau delivered/failed (exact Web3Forms POST interception + body shape) and unconfigured builds, reduced motion, `?view=page`, a no-WebGL Chromium project, Arabic locale smoke, wall-absent, canvas visual regression (SwiftShader). Two `vite preview` builds (4510 wired / 4511 bare) or `E2E_BASE_URL`. CI `.github/workflows/e2e.yml` with an `update_snapshots` dispatch. 37/37 locally (Windows); agy APPROVED 9/10 r2. Open: Linux visual baselines must be generated once via the dispatch job (visual tests skip on CI until then); app hooks requested — a stable visit-ready signal, a fish-freeze switch.
       **Charter.** Add Playwright coverage of the critical paths — dive to each landmark, open each overlay, submit a private complaint, post to the wall — plus screenshot comparison on the canvas at a fixed camera position to catch shader and asset regressions. Canvas rendering is invisible to conventional assertions, so without visual regression a broken material ships silently. Success: the suite runs green in CI against a preview deployment.
       **Depends on:** deploy-static, complaints-wall
 

@@ -161,12 +161,24 @@ describe('CitizenshipCard', () => {
     const motto = screen.getByText(siteCopy.citizenStatusMotto.en);
     expect(motto.tagName).toBe('BDI');
     expect(motto.getAttribute('dir')).toBe('rtl');
-    expect(screen.getByText(profile.name.en).getAttribute('dir')).toBe('auto');
+    // A translated field follows the card's direction; nothing is forced on it.
+    expect(screen.getByText(profile.name.en).hasAttribute('dir')).toBe(false);
     for (const link of profile.links) {
       expect(
         screen.getByRole('link', { name: link.label.en }).getAttribute('dir'),
       ).toBe('auto');
     }
+  });
+});
+
+describe('CitizenshipCard in Arabic', () => {
+  it('marks a field without a translation as English, left to right, and leaves the rest alone', () => {
+    renderCard('ar', { ...profile, headline: { en: 'Only in English' } });
+    const headline = screen.getByText('Only in English');
+    expect(headline.getAttribute('lang')).toBe('en');
+    expect(headline.getAttribute('dir')).toBe('ltr');
+    const name = screen.getByText(profile.name.ar ?? profile.name.en);
+    expect(name.hasAttribute('lang')).toBe(false);
   });
 });
 

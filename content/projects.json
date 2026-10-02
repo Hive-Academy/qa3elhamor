@@ -111,7 +111,8 @@
         "ar": "أنوبيس MCP"
       },
       "summary": {
-        "en": "Open-source MCP-compliant guidance system that steers AI agents (Cursor, Claude) to follow enforced architectural patterns."
+        "en": "Open-source MCP-compliant guidance system that steers AI agents (Cursor, Claude) to follow enforced architectural patterns.",
+        "ar": "نظام إرشاد مفتوح المصدر متوافق مع MCP، يوجّه وكلاء الذكاء الاصطناعي (Cursor وClaude) لاتباع أنماط معمارية مُلزِمة."
       },
       "description": {
         "en": "Creator & Lead Architect of a NestJS + Prisma backend with a structured anti-hallucination workflow that verifies agent output against codebase facts."
