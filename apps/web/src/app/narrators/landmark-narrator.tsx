@@ -4,27 +4,38 @@ import {
   NARRATOR_SPEECH_HEADROOM,
   Narrator,
   assetUrl,
+  createNarratorSnapshot,
+  takeNarratorSnapshot,
   useCompressedModel,
   useQuality,
   type NarratorCastId,
   type NarratorClipHold,
   type NarratorProps,
   type NarratorRigSpec,
+  type NarratorSnapshot,
 } from '@qa3elhamor/world-feature';
 import { useFrame } from '@react-three/fiber';
 import {
   Component,
   Suspense,
+  lazy,
   useEffect,
   useRef,
   useState,
+  useSyncExternalStore,
   type ReactNode,
 } from 'react';
-import { Vector3 } from 'three';
-import { NARRATOR_RIGS, type NarratorChoice } from '../narrators.config';
+import { Vector3, type Group, type Object3D } from 'three';
+import {
+  NARRATOR_RIGS,
+  type NarratorChoice,
+  type ResidentPlacement,
+} from '../narrators.config';
+import { PLACEMENT_EDITS, UNPLACED, placeModeFor } from './placement-edit';
 import { createResidentState, stepResident } from './resident';
-import { addScaled, type Vec3 } from './view-layout';
+import { addScaled, yawTowards, type Vec3 } from './view-layout';
 import type { NarratorPlacement } from './visit-layout';
+import { landmarkFrameOf } from './world-frame';
 
 /** Everything a landmark tells its narrator, whoever plays it. */
 export type LandmarkNarratorProps = Omit<NarratorProps, 'cast' | 'scale'> & {
@@ -84,10 +95,57 @@ export function mouthOf(
 }
 
 /**
+ * What a landmark's resident and its guide share, so one takes over from the other where it
+ * stands: the resident's spot and height (world units) once it has been placed, and the last
+ * frame of whichever of the two was on screen (`NarratorSnapshot`). One per narrator choice.
+ */
+export interface ResidentLink {
+  spot: Vec3 | null;
+  /** Its resting heading there, world radians. */
+  restYaw: number;
+  height: number;
+  readonly snapshot: NarratorSnapshot;
+}
+
+const LINKS = new WeakMap<NarratorChoice, ResidentLink>();
+
+export function residentLinkOf(choice: NarratorChoice): ResidentLink {
+  let link = LINKS.get(choice);
+  if (!link) {
+    link = { spot: null, restYaw: 0, height: 0, snapshot: createNarratorSnapshot() };
+    LINKS.set(choice, link);
+  }
+  return link;
+}
+
+/**
+ * The guide's way in from (and back to) the resident's spot, relative to its post in multiples
+ * of its rendered height, and the resident's size as a fraction of the guide's. Null before the
+ * resident has been placed (or for a zero-size guide).
+ */
+export function residentTravel(
+  link: Pick<ResidentLink, 'spot' | 'height'>,
+  post: Vec3,
+  renderedHeight: number,
+): { readonly offset: Vec3; readonly scale: number } | null {
+  const { spot } = link;
+  if (!spot || !(renderedHeight > 0) || !(link.height > 0)) return null;
+  return {
+    offset: [
+      (spot[0] - post[0]) / renderedHeight,
+      (spot[1] - post[1]) / renderedHeight,
+      (spot[2] - post[2]) / renderedHeight,
+    ],
+    scale: link.height / renderedHeight,
+  };
+}
+
+/**
  * A landmark's narrator as configured (`NARRATOR_CAST` in `site.config.ts`, `narrators.config.ts`): one of the original cast, or a
  * bundled character model. The model is lazy and tier-gated (`assetAllowed`): where the tier
  * does not allow it, or it fails to load, the original cast plays instead; while it loads,
- * nothing shows and it swims in once it arrives.
+ * nothing shows and it swims in once it arrives. A model with a resident hops out from where
+ * the resident stood (taking over its pose) and back there when it leaves.
  */
 export function LandmarkNarrator({
   choice,
@@ -104,6 +162,12 @@ export function LandmarkNarrator({
   useEffect(() => {
     if (choice.kind === 'cast' || gated) report.current?.(fallbackOf(choice));
   }, [choice, gated]);
+  // Read once, at mount: the resident's last frame, if it was on screen.
+  const [handOver] = useState(() =>
+    choice.kind === 'model' && !gated
+      ? takeNarratorSnapshot(residentLinkOf(choice).snapshot)
+      : null,
+  );
 
   if (choice.kind === 'cast' || gated) {
     const cast = choice.kind === 'cast' ? choice.cast : choice.fallback;
@@ -112,6 +176,9 @@ export function LandmarkNarrator({
   const fallback = (
     <CastNarrator cast={choice.fallback} height={height} {...props} />
   );
+  const link = residentLinkOf(choice);
+  const rendered = height * choice.heightFactor;
+  const home = residentTravel(link, props.position, rendered);
   return (
     <NarratorModelBoundary
       fallback={fallback}
@@ -121,9 +188,20 @@ export function LandmarkNarrator({
         <ModelNarrator
           url={assetUrl(choice.asset, import.meta.env.BASE_URL)}
           rig={NARRATOR_RIGS[choice.asset]}
-          height={height * choice.heightFactor}
+          height={rendered}
           onLoaded={() => report.current?.(choice)}
           {...props}
+          {...(home
+            ? {
+                // Out from the resident's spot (from nothing there if it was not on screen),
+                // and back to it, at its size, where the resident takes over again.
+                enterFrom: home.offset,
+                exitTo: home.offset,
+                exitScale: home.scale,
+              }
+            : {})}
+          handOver={handOver}
+          snapshot={link.snapshot}
         />
       </Suspense>
     </NarratorModelBoundary>
@@ -135,9 +213,16 @@ const RESIDENT_ENTER_FROM: Vec3 = [-0.9, 0, -0.5];
 const RESIDENT_EXIT_TO: Vec3 = [0.9, 0, -0.5];
 const NOTHING = (): void => undefined;
 
+/** Development only (`?place=resident`): the placement tool, a lazy chunk never built for production. */
+const PLACE_MODE = import.meta.env.DEV
+  ? placeModeFor(typeof window === 'undefined' ? '' : window.location.search, true)
+  : null;
+const ResidentPlacementTool =
+  import.meta.env.DEV && PLACE_MODE ? lazy(() => import('./placement-tool')) : null;
+
 export interface ResidentNarratorProps {
   readonly choice: NarratorChoice;
-  /** Its post, as the visit would place it (`useNarratorPost`), world units. */
+  /** The visit's narrator post (`useNarratorPost`), world units: its size, and its spot when unplaced. */
   readonly placement: NarratorPlacement;
   /** The landmark's stop eye, world units: distances are measured against the stop's. */
   readonly eye: Vec3;
@@ -150,12 +235,13 @@ export interface ResidentNarratorProps {
 }
 
 /**
- * The landmark's narrator idling at its post before the visit, while the visitor dives past
+ * The landmark's narrator idling at home before the visit, while the visitor dives past
  * (`resident.ts`): only a rigged bundled model, only where the tier allows the model (medium and
- * up). It loads when the camera comes near, unmounts when it goes far, and waves as the camera
+ * up). It stands where `RESIDENT_PLACEMENTS` puts it (beside the landmark; the visit's post when
+ * unplaced), loads when the camera comes near, unmounts when it goes far, and waves as the camera
  * passes close. A click or tap on it only makes it react (`onPoke`): it never opens the visit,
  * and has nothing to focus (the visit's "Say hi" is the keyboard's way). A model that fails to
- * load shows nothing here (the visit has its own fallback).
+ * load shows nothing here (the visit has its own fallback). Rendered inside a `WorldFrame`.
  */
 export function ResidentNarrator(props: ResidentNarratorProps) {
   const { tier } = useQuality();
@@ -166,18 +252,68 @@ export function ResidentNarrator(props: ResidentNarratorProps) {
   return (
     <ResidentPresence
       {...props}
+      choice={choice}
       url={assetUrl(choice.asset, import.meta.env.BASE_URL)}
       rig={rig}
-      heightFactor={choice.heightFactor}
     />
   );
 }
 
 const cameraAt = new Vector3();
-const postAt = new Vector3();
+const spotAt = new Vector3();
+const DEG = Math.PI / 180;
+
+const subscribeEdits = (listener: () => void) => PLACEMENT_EDITS.subscribe(listener);
+
+/** Where it stands and faces, world units: from the landmark's frame, or the visit's post. */
+interface ResidentPose {
+  readonly spot: Vec3;
+  readonly restYaw: number;
+  /** Its resting heading in the landmark's frame, degrees (for the placement tool). */
+  readonly facingInFrame: number;
+}
+
+const samePose = (a: ResidentPose | null, b: ResidentPose): boolean =>
+  !!a &&
+  Math.abs(a.spot[0] - b.spot[0]) < 1e-5 &&
+  Math.abs(a.spot[1] - b.spot[1]) < 1e-5 &&
+  Math.abs(a.spot[2] - b.spot[2]) < 1e-5 &&
+  Math.abs(a.restYaw - b.restYaw) < 1e-5;
+
+/** The heading (about +y, world) the frame's own +z points along. */
+const frameYawOf = (frame: Object3D): number => {
+  const e = frame.matrixWorld.elements;
+  return Math.atan2(e[8] ?? 0, e[10] ?? 1);
+};
+
+function residentPoseOf(
+  placement: ResidentPlacement | null,
+  frame: Object3D | null,
+  fallback: NarratorPlacement,
+  eye: Vec3,
+): ResidentPose {
+  if (!placement || !frame) {
+    return {
+      spot: fallback.post,
+      restYaw: fallback.restYaw,
+      facingInFrame: frame ? (fallback.restYaw - frameYawOf(frame)) / DEG : 0,
+    };
+  }
+  frame.updateWorldMatrix(true, false);
+  const [x, y, z] = placement.offset;
+  frame.localToWorld(spotAt.set(x, y, z));
+  const spot: Vec3 = [spotAt.x, spotAt.y, spotAt.z];
+  const frameYaw = frameYawOf(frame);
+  const restYaw =
+    placement.facing === 'camera'
+      ? yawTowards(spot, eye)
+      : frameYaw + placement.facing * DEG;
+  return { spot, restYaw, facingInFrame: (restYaw - frameYaw) / DEG };
+}
 
 function ResidentPresence({
-  placement,
+  choice,
+  placement: post,
   eye,
   reducedMotion,
   hold,
@@ -185,55 +321,99 @@ function ResidentPresence({
   onPoke,
   url,
   rig,
-  heightFactor,
 }: ResidentNarratorProps & {
+  readonly choice: Extract<NarratorChoice, { kind: 'model' }>;
   readonly url: string;
   readonly rig: NarratorRigSpec;
-  readonly heightFactor: number;
 }) {
-  const { post } = placement;
-  const stopDistance = Math.hypot(
-    eye[0] - post[0],
-    eye[1] - post[1],
-    eye[2] - post[2],
+  const { landmark } = choice.resident;
+  const edit = useSyncExternalStore(subscribeEdits, () =>
+    PLACEMENT_EDITS.get(landmark),
+  );
+  const configured = choice.resident.placement;
+  const placing = PLACE_MODE === 'resident';
+  const placement = placing ? (edit ?? configured ?? UNPLACED) : configured;
+  const height = post.height * choice.heightFactor * (placement?.scale ?? 1);
+
+  const link = residentLinkOf(choice);
+  // The guide that just left (hopping back here) hands over: it is shown from the first frame.
+  const [handOver] = useState(() => takeNarratorSnapshot(link.snapshot));
+  const probe = useRef<Group>(null);
+  // Where it stood last time (known once it has been placed): no blank first frame on return.
+  const [pose, setPose] = useState<ResidentPose | null>(() =>
+    link.spot
+      ? { spot: link.spot, restYaw: link.restYaw, facingInFrame: 0 }
+      : null,
   );
   const resident = useRef(createResidentState());
-  const [view, setView] = useState({ shown: false, waving: false });
+  const [view, setView] = useState({
+    shown: handOver !== null || placing,
+    waving: false,
+  });
+
   useFrame(({ camera }, delta) => {
+    const frame = landmarkFrameOf(probe.current);
+    const next = residentPoseOf(placement, frame, post, eye);
+    if (!samePose(pose, next)) setPose(next);
+    link.spot = next.spot;
+    link.restYaw = next.restYaw;
+    link.height = height;
+    const [sx, sy, sz] = next.spot;
     camera.getWorldPosition(cameraAt);
-    const next = stepResident(
+    const step = stepResident(
       resident.current,
-      cameraAt.distanceTo(postAt.set(post[0], post[1], post[2])),
-      stopDistance,
+      cameraAt.distanceTo(spotAt.set(sx, sy, sz)),
+      Math.hypot(eye[0] - sx, eye[1] - sy, eye[2] - sz),
       delta,
     );
+    const shown = placing || step.shown;
+    // Hidden by distance: its last frame is stale for a hand-over.
+    if (!shown) link.snapshot.fresh = false;
     // React state only on a change (show / hide, wave on / off), never per frame.
-    if (next.shown !== view.shown || next.waving !== view.waving)
-      setView(next);
+    if (shown !== view.shown || step.waving !== view.waving)
+      setView({ shown, waving: step.waving });
   });
-  if (!view.shown) return null;
+
   return (
-    <NarratorModelBoundary fallback={null} onFallback={NOTHING}>
-      <Suspense fallback={null}>
-        <ModelNarrator
-          url={url}
-          rig={rig}
-          height={placement.height * heightFactor}
-          onLoaded={NOTHING}
-          position={post}
-          restYaw={placement.restYaw}
-          enterFrom={RESIDENT_ENTER_FROM}
-          exitTo={RESIDENT_EXIT_TO}
-          talking={false}
-          present
-          waving={view.waving}
-          reducedMotion={reducedMotion}
-          hold={hold}
-          poke={poke}
-          onPoke={onPoke}
-        />
-      </Suspense>
-    </NarratorModelBoundary>
+    <>
+      <group ref={probe} />
+      {view.shown && pose && (
+        <NarratorModelBoundary fallback={null} onFallback={NOTHING}>
+          <Suspense fallback={null}>
+            <ModelNarrator
+              url={url}
+              rig={rig}
+              height={height}
+              onLoaded={NOTHING}
+              position={pose.spot}
+              restYaw={pose.restYaw}
+              enterFrom={RESIDENT_ENTER_FROM}
+              exitTo={RESIDENT_EXIT_TO}
+              talking={false}
+              present
+              waving={view.waving}
+              reducedMotion={reducedMotion}
+              hold={hold}
+              poke={poke}
+              onPoke={onPoke}
+              handOver={handOver}
+              snapshot={link.snapshot}
+            />
+          </Suspense>
+        </NarratorModelBoundary>
+      )}
+      {ResidentPlacementTool && pose && placement && (
+        <Suspense fallback={null}>
+          <ResidentPlacementTool
+            landmark={landmark}
+            placement={placement}
+            frame={landmarkFrameOf(probe.current)}
+            spot={pose.spot}
+            facingNow={pose.facingInFrame}
+          />
+        </Suspense>
+      )}
+    </>
   );
 }
 

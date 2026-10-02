@@ -24,6 +24,7 @@ describe('voiceOf', () => {
         asset: 'spongebob-narrator',
         heightFactor: 1.4,
         fallback: 'hamour',
+        resident: { landmark: 'pineapple', placement: null },
       }),
     ).toBe('spongebob');
     expect(
@@ -32,6 +33,7 @@ describe('voiceOf', () => {
         asset: 'patrick-narrator',
         heightFactor: 1.4,
         fallback: 'crab-clerk',
+        resident: { landmark: 'tiki', placement: null },
       }),
     ).toBe('patrick');
   });

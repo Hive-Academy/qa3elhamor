@@ -120,11 +120,61 @@ createNarratedVisitScene<MySlot>({
   talk gestures, wave while `waving` (the farewell), react on `poke`, hop away. The GLB is
   unchanged. If rigging fails the model plays as before (static), with a console error. Patrick is
   a data addition: a spec, and its entry in `NARRATOR_RIGS`.
-- **The resident.** Before a visit opens (and after it ends), a rigged narrator idles at its post
-  while the visitor dives past (`ResidentNarrator`, `resident.ts`): it loads when the camera comes
+- **How it moves (`narrator-animator.ts`).** Nothing switches. Every layer has a weight: idle,
+  listen, talk, fidget, wave, react and hop. Each weight is a critically damped spring with its own
+  in and out times (`BLEND`), so motion starts and stops without a jolt.
+  - **Talk.** The talk beat follows an envelope with a fast attack (0.15 s) and a slow release
+    (0.6 s). The gesturing posture eases out over 0.65 s.
+  - **Between lines.** It eases into a **listening** pose: arms a little forward, a lean, a head
+    tilt, a nod now and then. It holds that for 5 s after its last line, then relaxes into the idle.
+  - **Idle.** Breathing at a drifting rate, a slow weight shift from hip to hip, arms drifting,
+    and glances between the camera and a look aside. All of it is noise that never visibly loops.
+  - **Fidgets.** A fidget plays every 4 to 9 s of free time: scratch, bounce, look or hips. It is
+    never the same one twice running, and it is picked by a seeded generator. The seed comes from
+    the post, so the choice is deterministic and never uses `Math.random`.
+  - **Landing.** It lands with a damped settle, and the greeting wave waits for the settle.
+  - **Jumps.** Some changes cannot be smoothed by a spring: a hop that reverses, a new `?pose`, a
+    hand-over. These blend from the last pose shown over 0.45 s.
+  - **Reduced motion.** It is still the rest pose.
+- **The resident.** Before a visit opens (and after it ends), a rigged narrator idles at home
+  while the visitor dives past (`ResidentNarrator`, `resident.ts`). It loads when the camera comes
   within 4 stop-distances, goes beyond 5, and waves when the camera passes within 1.6. Only where
   the tier allows the model; decorative (no events, no focus). The visit's flow and
   `data-visit-state` are unchanged.
-- **Preview a clip (development only).** `?pose=idle|wave|talk|hop|react`, optionally frozen with
-  `&poseAt=0..1`, holds that clip on every rigged narrator, resident or visiting: for example
-  `/?quality=high&pose=wave&poseAt=0.75`. Production builds ignore it.
+- **Where the resident stands.** Set it per landmark in `RESIDENT_PLACEMENTS`
+  (`narrators.config.ts`), for example
+  `pineapple: { offset: [0.016, 0, 0.138], facing: 'camera', scale: 0.62 }`.
+  - `offset` is measured from the landmark's origin (its base, on the seabed), in the landmark's
+    own frame. That is scene-world units, as in `LANDMARK_PLACEMENTS`.
+  - `facing` is degrees about up in that frame (0 faces its +z), or `'camera'`, which faces the
+    stop's eye. It still turns its head and body toward the camera within the usual limit.
+  - `scale` multiplies its height: the visit narrator's height times the model's `heightFactor`.
+    It is clamped to 0.2 to 3.
+  - An invalid entry is ignored, with a console warning. A landmark without an entry keeps its
+    resident at the visit's narrator post.
+- **The hand-over.** The resident and the visit's guide share one link per narrator
+  (`residentLinkOf`).
+  - **Opening.** When the landmark opens, the guide starts exactly where the resident stood: at
+    its size and heading, blending from its pose. It then hops to its post. If the resident was not
+    on screen, the guide grows in from the resident's spot instead.
+  - **Leaving.** After the farewell, the guide hops back to that spot at the resident's size, and
+    the resident takes over in place. No one disappears, and no one hops in from the side.
+- **Place it live (development only): `?place=resident`.** For example
+  `/?quality=high&place=resident`. Dive to the landmark: the resident is always shown, with a
+  panel at the top right.
+  - **Arrows** move it on the ground: up is away from the camera, left and right are the screen's.
+  - **PageUp / PageDown** raise and lower it.
+  - **Q / E** turn it, starting from the heading it shows when it faces the camera.
+  - **+ / -** scale it.
+  - **Shift** takes fine steps on any of these.
+  - **Alt + drag** on the canvas puts it under the pointer, on the ground.
+  - **Face camera** goes back to `'camera'`.
+  - **Copy config** copies the exact line to paste into `RESIDENT_PLACEMENTS`. The line is also
+    shown in the panel, ready to select.
+
+  Keys are ignored while typing in a field. Production builds never read the URL, and the tool is
+  a lazy chunk that is never built for them (`placement-edit.ts`, `placement-tool.tsx`).
+- **Preview a clip (development only).** `?pose=` holds one clip on every rigged narrator,
+  resident or visiting: `idle`, `wave`, `talk`, `hop`, `react`, `listen`, or a fidget (`scratch`,
+  `bounce`, `look`, `hips`). Add `&poseAt=0..1` to freeze it partway through, for example
+  `/?quality=high&pose=hips&poseAt=0.5`. Production builds ignore it.

@@ -63,6 +63,87 @@ export const NARRATORS_CONFIG: NarratorsConfig = {
 };
 
 /**
+ * Where a landmark's resident narrator stands (`ResidentNarrator`) while the visitor dives past,
+ * and where its guide hops out from when the landmark opens (and back to when it closes).
+ */
+export interface ResidentPlacement {
+  /**
+   * From the landmark's origin (its base), in the landmark's own frame: scene-world units for an
+   * unscaled landmark, as in `LANDMARK_PLACEMENTS`. x and z along the ground, y up (0 is the
+   * landmark's base, on the seabed).
+   */
+  readonly offset: readonly [number, number, number];
+  /** Degrees about up in the landmark's frame (0 faces its +z), or 'camera': the stop's eye. */
+  readonly facing: number | 'camera';
+  /** Multiplies its height (the visit narrator's height x the model's `heightFactor`). Default 1. */
+  readonly scale?: number;
+}
+
+/** A resident's scale is kept within this (a typo of 10 must not make a giant). */
+export const RESIDENT_SCALE_RANGE = { min: 0.2, max: 3 } as const;
+
+/**
+ * Where each rigged narrator stands at home. A landmark without an entry keeps its resident at
+ * the visit's narrator post. Tune one live with `?place=resident` (development only,
+ * `narrators/README.md`), then paste its "Copy config" snippet here.
+ */
+export const RESIDENT_PLACEMENTS: Readonly<
+  Partial<Record<NarrationLandmarkId, ResidentPlacement>>
+> = {
+  // Beside the Pineapple's door, on the side the dive comes from, facing the camera.
+  pineapple: { offset: [0.016, 0, 0.138], facing: 'camera', scale: 0.62 },
+};
+
+const finiteNumber = (value: unknown): value is number =>
+  typeof value === 'number' && Number.isFinite(value);
+
+/**
+ * `value` as a resident placement, or null (with a console warning naming `where`) when it is
+ * not one: an offset of three finite numbers, a finite facing or 'camera', a finite positive
+ * scale (clamped to `RESIDENT_SCALE_RANGE`).
+ */
+export function residentPlacementOf(
+  value: unknown,
+  where = 'resident placement',
+): ResidentPlacement | null {
+  if (value === undefined) return null;
+  const v = value as Partial<Record<keyof ResidentPlacement, unknown>> | null;
+  const offset = v?.offset;
+  const facing = v?.facing;
+  const scale = v?.scale ?? 1;
+  const valid =
+    Array.isArray(offset) &&
+    offset.length === 3 &&
+    offset.every(finiteNumber) &&
+    (facing === 'camera' || finiteNumber(facing)) &&
+    finiteNumber(scale) &&
+    scale > 0;
+  if (!valid) {
+    console.warn(
+      `Narrators: ignoring an invalid ${where} (it stands at the visit's post instead).`,
+      value,
+    );
+    return null;
+  }
+  const [x, y, z] = offset as number[];
+  return {
+    offset: [x ?? 0, y ?? 0, z ?? 0],
+    facing: facing as number | 'camera',
+    scale: Math.min(
+      RESIDENT_SCALE_RANGE.max,
+      Math.max(RESIDENT_SCALE_RANGE.min, scale),
+    ),
+  };
+}
+
+/** The resident's setup a bundled narrator carries: its landmark, and where it stands. */
+export interface ResidentSetup {
+  readonly landmark: NarrationLandmarkId;
+  /** Null: at the visit's narrator post. */
+  readonly placement: ResidentPlacement | null;
+}
+
+/**
  * What a landmark's narrator is: one of the original cast, or a bundled model, which keeps
  * the original cast as its `fallback` for tiers that do not allow the model, and for a model
  * that fails to load.
@@ -74,12 +155,16 @@ export type NarratorChoice =
       readonly asset: BundledCharacter['asset'];
       readonly heightFactor: number;
       readonly fallback: NarratorCastId;
+      readonly resident: ResidentSetup;
     };
 
-/** The narrator for `landmark` under `config`. */
+/** The narrator for `landmark` under `config`, its resident placed from `residents`. */
 export function narratorFor(
   landmark: NarrationLandmarkId,
   config: NarratorsConfig = NARRATORS_CONFIG,
+  residents: Readonly<
+    Partial<Record<NarrationLandmarkId, unknown>>
+  > = RESIDENT_PLACEMENTS,
 ): NarratorChoice {
   const cast = config.cast[landmark];
   const bundled = config.useBundledCharacters
@@ -87,7 +172,17 @@ export function narratorFor(
     : undefined;
   if (!bundled) return { kind: 'cast', cast };
   const { asset, heightFactor } = bundled;
-  return { kind: 'model', asset, heightFactor, fallback: cast };
+  const placement = residentPlacementOf(
+    residents[landmark],
+    `RESIDENT_PLACEMENTS.${landmark}`,
+  );
+  return {
+    kind: 'model',
+    asset,
+    heightFactor,
+    fallback: cast,
+    resident: { landmark, placement },
+  };
 }
 
 /**
@@ -121,7 +216,7 @@ export const NARRATOR_RIGS: Readonly<
 
 /**
  * A development-only preview of one clip on every rigged narrator, from the page URL:
- * `?pose=idle|wave|talk|hop|react`, optionally frozen with `&poseAt=0..1` (how far through the
+ * `?pose=idle|wave|talk|hop|react|listen|scratch|bounce|look|hips`, optionally frozen with `&poseAt=0..1` (how far through the
  * clip). Production builds ignore the URL (null).
  */
 export function narratorPosePreviewFor(

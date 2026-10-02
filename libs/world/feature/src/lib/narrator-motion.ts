@@ -210,6 +210,13 @@ export interface NarratorFrameInput {
   readonly enterFrom: Vec3;
   /** Where it swims away to, relative to its post, x height (parent axes). */
   readonly exitTo: Vec3;
+  /**
+   * Its size at `enterFrom` / `exitTo`, as a fraction of its own. 0 (the default): it grows from
+   * and shrinks to nothing, swimming fast off the far end. Above 0: the far end is a standing
+   * spot (a hand-over with a resident there), so it eases out of and into it at that size.
+   */
+  readonly enterScale?: number;
+  readonly exitScale?: number;
 }
 
 /** Written every frame by `stepNarrator`; the component copies it onto its groups. */
@@ -372,10 +379,12 @@ export function stepNarrator(
     return event;
   }
 
-  const away = 1 - easeOutCubic(presence);
+  const endScale = clamp(finiteOr((input.present ? input.enterScale : input.exitScale) ?? 0, 0), 0, 4);
+  const standingEnd = endScale > 0;
+  const away = 1 - (standingEnd ? smoothstep(0, 1, presence) : easeOutCubic(presence));
   const beat = talkPulse(t) * envelope;
   const squash = squashStretch(talkPulse(t), envelope, tuning.talkStretch);
-  const appear = smoothstep(0, 0.35, presence);
+  const appear = standingEnd ? endScale + (1 - endScale) * smoothstep(0, 1, presence) : smoothstep(0, 0.35, presence);
   const bob = Math.sin(t * 1.6) * tuning.bob * height;
 
   out.offsetX = state.sideX * away * height;

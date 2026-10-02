@@ -38,10 +38,22 @@ export function WorldFrame({
   useLayoutEffect(sync, [sync]);
   useFrame(sync, -1);
   return (
-    <group ref={ref} matrixAutoUpdate={false}>
+    <group ref={ref} name={WORLD_FRAME_NAME} matrixAutoUpdate={false}>
       {children}
     </group>
   );
+}
+
+const WORLD_FRAME_NAME = 'world-frame';
+
+/**
+ * The landmark's own frame (its model's space, scene-world units) that `object`'s `WorldFrame`
+ * sits in, or null outside one: for placing things relative to the landmark itself.
+ */
+export function landmarkFrameOf(object: Object3D | null): Object3D | null {
+  for (let at = object; at; at = at.parent)
+    if (at.name === WORLD_FRAME_NAME) return at.parent;
+  return null;
 }
 
 const local = new Vector3();

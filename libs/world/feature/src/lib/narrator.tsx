@@ -21,11 +21,12 @@ import {
 } from './narrator-motion.js';
 import {
   createNarratorAnimator,
+  seedNarratorAnimator,
   stepNarratorAnimator,
   type NarratorAnimatorState,
   type NarratorClipHold,
 } from './narrator-animator.js';
-import { createRigPose } from './narrator-rig.js';
+import { copyRigPose, createRigPose, rigPoseFinite, type RigPose } from './narrator-rig.js';
 import { rigNarratorModel, type RiggedNarrator } from './narrator-skinning.js';
 import { createNarratorUniforms } from './narrator-uniforms.js';
 import { usePrefersReducedMotion } from './use-prefers-reduced-motion.js';
@@ -79,7 +80,67 @@ export interface NarratorProps {
    * it does not open), and the cursor is a pointer over it. Omitted: it takes no pointer events.
    */
   readonly onPoke?: () => void;
+  /** Its size at `enterFrom` / `exitTo`, a fraction of its own (see `NarratorFrameInput`). */
+  readonly enterScale?: number;
+  readonly exitScale?: number;
+  /**
+   * Another narrator's last frame (`snapshot`, same parent space) to take over from, read once
+   * at mount: it starts where that one stood, at its size and heading, and (rigged) blends from
+   * its pose. Within a few percent of its own height of `position`, it starts already there.
+   */
+  readonly handOver?: NarratorSnapshot | null;
+  /** Written every frame it is shown: where it stands, its heading, size and pose. */
+  readonly snapshot?: NarratorSnapshot;
+  /** Seeds the idle's variety (fidgets, glances). Default: from `position`. */
+  readonly seed?: number;
 }
+
+/** A narrator's frame, for handing over to another narrator (`snapshot` / `handOver`). */
+export interface NarratorSnapshot {
+  /** Its feet, parent units. */
+  readonly position: [number, number, number];
+  yaw: number;
+  /** Its rendered height as shown (its travel scale included), parent units. */
+  height: number;
+  /** The bones' pose (a rigged model), when `hasPose`. */
+  readonly pose: RigPose;
+  hasPose: boolean;
+  /** Set on every write; cleared by `takeNarratorSnapshot` (or by the owner, when it is stale). */
+  fresh: boolean;
+}
+
+export const createNarratorSnapshot = (): NarratorSnapshot => ({
+  position: [0, 0, 0],
+  yaw: 0,
+  height: 0,
+  pose: createRigPose(),
+  hasPose: false,
+  fresh: false,
+});
+
+/** A copy of `snapshot` if it is fresh (and finite), consuming it; otherwise null. */
+export function takeNarratorSnapshot(snapshot: NarratorSnapshot | null | undefined): NarratorSnapshot | null {
+  if (!snapshot?.fresh) return null;
+  snapshot.fresh = false;
+  const [x, y, z] = snapshot.position;
+  if (![x, y, z, snapshot.yaw, snapshot.height].every(Number.isFinite) || !(snapshot.height > 0)) return null;
+  const copy = createNarratorSnapshot();
+  copy.position[0] = x;
+  copy.position[1] = y;
+  copy.position[2] = z;
+  copy.yaw = snapshot.yaw;
+  copy.height = snapshot.height;
+  copyRigPose(snapshot.pose, copy.pose);
+  copy.hasPose = snapshot.hasPose && rigPoseFinite(snapshot.pose);
+  return copy;
+}
+
+/** Within this much of its height of its post, a hand-over starts it already there. */
+const IN_PLACE = 0.08;
+
+/** A stable seed from a post (no `Math.random`): two narrators at different posts differ. */
+const seedOf = (p: Vec3): number =>
+  (Math.imul(Math.round(p[0] * 1000), 73856093) ^ Math.imul(Math.round(p[1] * 1000), 19349663) ^ Math.imul(Math.round(p[2] * 1000), 83492791)) >>> 0;
 
 /**
  * A narrator: any character, procedural cast or a loaded model. It swims in, turns to the
@@ -138,6 +199,11 @@ function NarratorBody({
   poke = 0,
   hold = null,
   onPoke,
+  enterScale,
+  exitScale,
+  handOver,
+  snapshot,
+  seed,
 }: NarratorProps) {
   const prefersReduced = usePrefersReducedMotion();
   const reduced = reducedMotion ?? prefersReduced;
@@ -200,11 +266,37 @@ function NarratorBody({
   const post: Vec3 = [finite(position[0]), finite(position[1]), finite(position[2])];
   const from = enterFrom ?? motion.enterFrom;
   const to = exitTo ?? motion.exitTo;
+  // A hand-over is read once, at mount: later changes to the prop are ignored.
+  const arrival = useRef(handOver ?? null);
+  /** The first entry after a hand-over: from where the other narrator stood, at its size. */
+  const handEntry = useRef<{ readonly from: Vec3; readonly scale: number } | null>(null);
+  const firstSeed = useRef(seed ?? seedOf(post));
 
   useFrame((frame, delta) => {
     const anchor = root.current;
     const animated = body.current;
     if (!anchor || !animated) return;
+
+    // Made once per rig (a new model or spec starts a fresh animator).
+    if (rigged && animator.current?.rig !== rigged)
+      animator.current = { rig: rigged, state: createNarratorAnimator(rigged.spec, firstSeed.current) };
+    const handed = arrival.current;
+    if (handed) {
+      arrival.current = null;
+      const s = state.current;
+      s.yaw.x = handed.yaw;
+      s.yaw.v = 0;
+      s.initialised = true;
+      const rel: Vec3 = [
+        (handed.position[0] - post[0]) / height,
+        (handed.position[1] - post[1]) / height,
+        (handed.position[2] - post[2]) / height,
+      ];
+      if (Math.hypot(rel[0], rel[1], rel[2]) <= IN_PLACE) s.presence = present ? 1 : 0;
+      else handEntry.current = { from: rel, scale: Math.max(0.05, handed.height / height) };
+      if (handed.hasPose && animator.current) seedNarratorAnimator(animator.current.state, handed.pose);
+    }
+    const entry = handEntry.current;
 
     const eye = frame.camera.getWorldPosition(camera.current);
     if (anchor.parent) anchor.parent.worldToLocal(eye);
@@ -215,10 +307,24 @@ function NarratorBody({
     const p = pose.current;
     const event = stepNarrator(
       state.current,
-      { dt: delta, present, talking, reducedMotion: reduced, cameraYaw, restYaw, maxTurn, height, enterFrom: from, exitTo: to },
+      {
+        dt: delta,
+        present,
+        talking,
+        reducedMotion: reduced,
+        cameraYaw,
+        restYaw,
+        maxTurn,
+        height,
+        enterFrom: entry?.from ?? from,
+        exitTo: to,
+        enterScale: entry?.scale ?? enterScale,
+        exitScale,
+      },
       motion,
       p
     );
+    if (event === 'settled') handEntry.current = null;
 
     animated.visible = p.visible;
     animated.position.set(p.offsetX, p.offsetY, p.offsetZ);
@@ -229,9 +335,7 @@ function NarratorBody({
     if (!reduced) tickAmbientClock(uniforms.time, Math.min(Math.max(delta, 0), NARRATOR_MAX_FRAME));
 
     // The bones, in the same frame as the body (so the first visible frame is never the T-pose).
-    if (rigged) {
-      // Made once per rig (a new model or spec starts a fresh animator).
-      if (animator.current?.rig !== rigged) animator.current = { rig: rigged, state: createNarratorAnimator(rigged.spec) };
+    if (rigged && animator.current) {
       stepNarratorAnimator(
         animator.current.state,
         {
@@ -248,6 +352,17 @@ function NarratorBody({
         rigPose.current
       );
       rigged.apply(rigPose.current);
+    }
+
+    if (snapshot && p.visible) {
+      snapshot.position[0] = post[0] + p.offsetX;
+      snapshot.position[1] = post[1] + p.offsetY;
+      snapshot.position[2] = post[2] + p.offsetZ;
+      snapshot.yaw = p.yaw;
+      snapshot.height = height * Math.cbrt(Math.max(0, p.scaleX * p.scaleY * p.scaleZ));
+      snapshot.hasPose = rigged !== null && animator.current !== null;
+      if (snapshot.hasPose) copyRigPose(rigPose.current, snapshot.pose);
+      snapshot.fresh = true;
     }
 
     if (event === 'settled') onSettled?.();

@@ -3,7 +3,7 @@ import { BoxGeometry, Group, Mesh, MeshStandardMaterial, type SkinnedMesh } from
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { NarratorCastId } from './narrator-cast.js';
 import { SPONGEBOB_RIG } from './narrator-rig.js';
-import { Narrator } from './narrator.js';
+import { Narrator, createNarratorSnapshot, takeNarratorSnapshot } from './narrator.js';
 
 // No WebGL here: the frame loop is stubbed and the R3F intrinsics render as inert DOM elements,
 // which is enough to see what `<Narrator>` mounts (and that it does not throw).
@@ -71,5 +71,24 @@ describe('<Narrator> at the config boundary', () => {
     render(<Narrator cast={{ object: cached, clone: true }} position={[0, 0, 0]} talking={false} present />);
     expect(cloneSpy).toHaveBeenCalledWith(true);
     expect(cached.parent).toBeNull();
+  });
+});
+
+describe('takeNarratorSnapshot', () => {
+  it('copies a fresh snapshot once, and nothing stale or corrupt', () => {
+    const snapshot = createNarratorSnapshot();
+    expect(takeNarratorSnapshot(snapshot)).toBeNull();
+    snapshot.position[0] = 2;
+    snapshot.height = 1.5;
+    snapshot.yaw = 0.3;
+    snapshot.fresh = true;
+    const copy = takeNarratorSnapshot(snapshot);
+    expect(copy).toMatchObject({ position: [2, 0, 0], height: 1.5, yaw: 0.3 });
+    expect(copy).not.toBe(snapshot);
+    expect(takeNarratorSnapshot(snapshot)).toBeNull();
+    snapshot.fresh = true;
+    snapshot.height = Number.NaN;
+    expect(takeNarratorSnapshot(snapshot)).toBeNull();
+    expect(takeNarratorSnapshot(null)).toBeNull();
   });
 });

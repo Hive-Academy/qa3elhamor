@@ -339,3 +339,37 @@ describe('stepNarrator', () => {
     });
   });
 });
+
+describe('travel to and from a standing spot (a hand-over)', () => {
+  it('starts at the far end at that size, visible, and eases out of it', () => {
+    const state = createNarratorMotionState();
+    const pose = createNarratorPose();
+    run(state, pose, 1 / 60, { enterScale: 0.6 });
+    expect(pose.visible).toBe(true);
+    expect(pose.scaleX).toBeGreaterThan(0.55);
+    expect(pose.offsetX).toBeCloseTo(-3, 2);
+    // Eased, not thrown: the first frames barely move.
+    const x0 = pose.offsetX;
+    run(state, pose, 1 / 60, { enterScale: 0.6 });
+    expect(Math.abs(pose.offsetX - x0)).toBeLessThan(0.01);
+    run(state, pose, 1.2, { enterScale: 0.6 });
+    expect(pose.scaleX).toBeCloseTo(1, 1);
+  });
+
+  it('arrives back at the far end at that size, not shrunk to nothing', () => {
+    const state = createNarratorMotionState();
+    const pose = createNarratorPose();
+    run(state, pose, 1.5);
+    run(state, pose, 0.98, { present: false, exitScale: 0.6 });
+    expect(pose.visible).toBe(true);
+    expect(pose.scaleX).toBeGreaterThan(0.55);
+    expect(pose.offsetX).toBeCloseTo(3, 1);
+  });
+
+  it('keeps the old swim (grow from nothing) by default', () => {
+    const state = createNarratorMotionState();
+    const pose = createNarratorPose();
+    run(state, pose, 1 / 60);
+    expect(pose.scaleX).toBeLessThan(0.05);
+  });
+});

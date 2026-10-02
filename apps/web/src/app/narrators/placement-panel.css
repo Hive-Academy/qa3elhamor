@@ -1,0 +1,92 @@
+/* The resident placement tool's panel (`?place=resident`, development only). */
+.placement-panel-host {
+  position: fixed;
+  top: 84px;
+  right: 16px;
+  z-index: 60;
+  width: 300px;
+}
+
+.placement-panel {
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: rgba(8, 20, 40, 0.92);
+  border: 1px solid rgba(160, 200, 255, 0.35);
+  color: #e8f1ff;
+  font: 13px/1.4 system-ui, sans-serif;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.4);
+}
+
+.placement-panel h2 {
+  margin: 0 0 8px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.placement-panel dl {
+  display: grid;
+  grid-template-columns: 56px 1fr;
+  gap: 2px 8px;
+  margin: 0 0 10px;
+}
+
+.placement-panel dt {
+  color: #9fb6d6;
+}
+
+.placement-panel dd {
+  margin: 0;
+  font-family: ui-monospace, monospace;
+}
+
+.placement-panel-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.placement-panel button {
+  flex: 1;
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(160, 200, 255, 0.5);
+  background: #1d3b66;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.placement-panel button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.placement-panel button:focus-visible,
+.placement-panel textarea:focus-visible {
+  outline: 2px solid #ffd27a;
+  outline-offset: 2px;
+}
+
+.placement-panel-status {
+  display: block;
+  min-height: 1.4em;
+  margin: 6px 0 2px;
+  color: #ffd27a;
+}
+
+.placement-panel textarea {
+  box-sizing: border-box;
+  width: 100%;
+  resize: none;
+  padding: 6px;
+  border-radius: 6px;
+  border: 1px solid rgba(160, 200, 255, 0.35);
+  background: rgba(0, 0, 0, 0.35);
+  color: inherit;
+  font: 12px/1.35 ui-monospace, monospace;
+}
+
+.placement-panel-help {
+  margin: 8px 0 0;
+  color: #9fb6d6;
+  font-size: 12px;
+}

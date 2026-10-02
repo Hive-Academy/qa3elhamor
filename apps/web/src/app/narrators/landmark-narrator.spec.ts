@@ -1,7 +1,14 @@
 import { NARRATOR_SPEECH_HEADROOM } from '@qa3elhamor/world-feature';
 import { describe, expect, it } from 'vitest';
 import type { NarratorChoice } from '../narrators.config';
-import { fallbackOf, mouthOf, narratorRenderedHeight, speechAnchorOf } from './landmark-narrator';
+import {
+  fallbackOf,
+  mouthOf,
+  narratorRenderedHeight,
+  residentLinkOf,
+  residentTravel,
+  speechAnchorOf,
+} from './landmark-narrator';
 
 const hamour: NarratorChoice = { kind: 'cast', cast: 'hamour' };
 const spongebob: NarratorChoice = {
@@ -9,6 +16,7 @@ const spongebob: NarratorChoice = {
   asset: 'spongebob-narrator',
   heightFactor: 1.9,
   fallback: 'hamour',
+  resident: { landmark: 'pineapple', placement: null },
 };
 
 describe('narrator sizing', () => {
@@ -36,5 +44,24 @@ describe('narrator sizing', () => {
   it('names the cast member standing in for a model that cannot play', () => {
     expect(fallbackOf(spongebob)).toEqual(hamour);
     expect(fallbackOf(hamour)).toBe(hamour);
+  });
+});
+
+describe('the resident and guide hand-over', () => {
+  it('sends the guide out from the resident spot, and back, at the resident size', () => {
+    const travel = residentTravel({ spot: [4, 0, 2], height: 1 }, [2, 0, 1], 2);
+    expect(travel?.offset).toEqual([1, 0, 0.5]);
+    expect(travel?.scale).toBe(0.5);
+  });
+
+  it('has nothing to travel from before the resident is placed', () => {
+    expect(residentTravel({ spot: null, height: 1 }, [0, 0, 0], 2)).toBeNull();
+    expect(residentTravel({ spot: [1, 0, 0], height: 0 }, [0, 0, 0], 2)).toBeNull();
+    expect(residentTravel({ spot: [1, 0, 0], height: 1 }, [0, 0, 0], 0)).toBeNull();
+  });
+
+  it('shares one link per narrator choice', () => {
+    expect(residentLinkOf(spongebob)).toBe(residentLinkOf(spongebob));
+    expect(residentLinkOf(hamour)).not.toBe(residentLinkOf(spongebob));
   });
 });

@@ -27,7 +27,13 @@ export * from './lib/narrator.js';
 export * from './lib/narrator-cast.js';
 export { DEFAULT_NARRATOR_MOTION, type NarratorMotionTuning } from './lib/narrator-motion.js';
 export { SPONGEBOB_RIG, NARRATOR_BONES, type NarratorRigSpec, type NarratorBoneName, type RigCapsule } from './lib/narrator-rig.js';
-export { NARRATOR_CLIP_IDS, isNarratorClipId, type NarratorClipId } from './lib/narrator-clips.js';
+export {
+  NARRATOR_CLIP_IDS,
+  NARRATOR_FIDGET_IDS,
+  isNarratorClipId,
+  type NarratorClipId,
+  type NarratorFidgetId,
+} from './lib/narrator-clips.js';
 export type { NarratorClipHold } from './lib/narrator-animator.js';
 export { NARRATOR_HIT_PROXY } from './lib/narrator-skinning.js';
 export * from './lib/use-compressed-model.js';

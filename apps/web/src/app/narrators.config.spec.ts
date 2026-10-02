@@ -1,14 +1,17 @@
 import { NARRATION_LANDMARKS } from '@qa3elhamor/content-domain';
 import { findAsset } from '@qa3elhamor/world-domain';
 import { NARRATOR_CAST_IDS } from '@qa3elhamor/world-feature';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import {
   NARRATORS_CONFIG,
   NARRATOR_RIGS,
+  RESIDENT_PLACEMENTS,
+  RESIDENT_SCALE_RANGE,
   bundledCharactersFromEnv,
   narratorFor,
   narratorPosePreviewFor,
   narratorsConfigFor,
+  residentPlacementOf,
 } from './narrators.config';
 import { narratorName } from './narrators/narrator-copy';
 import { NARRATOR_CAST } from '../site.config';
@@ -39,7 +42,13 @@ describe('narrators config', () => {
       const model = NARRATOR_CAST.bundled[landmark];
       expect(narratorFor(landmark, bundled), landmark).toEqual(
         model
-          ? { kind: 'model', asset: model.asset, heightFactor: model.heightFactor, fallback: cast }
+          ? {
+              kind: 'model',
+              asset: model.asset,
+              heightFactor: model.heightFactor,
+              fallback: cast,
+              resident: { landmark, placement: residentPlacementOf(RESIDENT_PLACEMENTS[landmark]) },
+            }
           : { kind: 'cast', cast },
       );
     }
@@ -54,7 +63,13 @@ describe('narrators config', () => {
 
   it('names whoever plays the narrator', () => {
     const model = (asset: 'spongebob-narrator' | 'patrick-narrator') =>
-      ({ kind: 'model', asset, heightFactor: 1, fallback: 'hamour' }) as const;
+      ({
+        kind: 'model',
+        asset,
+        heightFactor: 1,
+        fallback: 'hamour',
+        resident: { landmark: 'pineapple', placement: null },
+      }) as const;
     expect(narratorName(model('spongebob-narrator'), 'en')).toBe('SpongeBob');
     expect(narratorName(model('patrick-narrator'), 'en')).toBe('Patrick');
     expect(narratorName({ kind: 'cast', cast: 'hamour' }, 'en')).toBe('The Hamour');
@@ -98,5 +113,58 @@ describe('narrator rigs and the pose preview', () => {
     });
     expect(narratorPosePreviewFor('?pose=dance', true)).toBeNull();
     expect(narratorPosePreviewFor('?pose=wave', false)).toBeNull();
+  });
+});
+
+describe('resident placements', () => {
+  it('places SpongeBob beside the Pineapple, validly', () => {
+    const placement = residentPlacementOf(RESIDENT_PLACEMENTS.pineapple);
+    expect(placement).not.toBeNull();
+    expect(placement?.offset.every(Number.isFinite)).toBe(true);
+    const bundled = { ...NARRATORS_CONFIG, useBundledCharacters: true };
+    expect(narratorFor('pineapple', bundled)).toMatchObject({
+      kind: 'model',
+      resident: { landmark: 'pineapple', placement },
+    });
+  });
+
+  it('keeps a resident at the visit post when its landmark has no placement', () => {
+    const bundled = { ...NARRATORS_CONFIG, useBundledCharacters: true };
+    expect(narratorFor('tiki', bundled, {})).toMatchObject({
+      resident: { landmark: 'tiki', placement: null },
+    });
+  });
+
+  it('accepts finite offsets, a finite facing or camera, and clamps the scale', () => {
+    expect(residentPlacementOf({ offset: [0.1, 0, -0.2], facing: 'camera' })).toEqual({
+      offset: [0.1, 0, -0.2],
+      facing: 'camera',
+      scale: 1,
+    });
+    expect(residentPlacementOf({ offset: [0, 0, 0], facing: -30, scale: 50 })?.scale).toBe(RESIDENT_SCALE_RANGE.max);
+    expect(residentPlacementOf({ offset: [0, 0, 0], facing: 90, scale: 0.01 })?.scale).toBe(RESIDENT_SCALE_RANGE.min);
+    expect(residentPlacementOf(undefined)).toBeNull();
+  });
+
+  it('rejects anything else, with a warning, instead of placing it somewhere odd', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    for (const bad of [
+      null,
+      {},
+      { offset: [0, 0], facing: 'camera' },
+      { offset: [0, Number.NaN, 0], facing: 'camera' },
+      { offset: [0, 0, 0], facing: 'door' },
+      { offset: [0, 0, 0], facing: Number.POSITIVE_INFINITY },
+      { offset: [0, 0, 0], facing: 0, scale: -1 },
+      { offset: ['0', 0, 0], facing: 0 },
+    ])
+      expect(residentPlacementOf(bad), JSON.stringify(bad)).toBeNull();
+    expect(warn).toHaveBeenCalledTimes(8);
+    warn.mockRestore();
+  });
+
+  it('previews the new clips (listening, fidgets) from the URL in development', () => {
+    expect(narratorPosePreviewFor('?pose=scratch&poseAt=0.5', true)).toEqual({ clip: 'scratch', at: 0.5 });
+    expect(narratorPosePreviewFor('?pose=listen', true)).toEqual({ clip: 'listen' });
   });
 });
