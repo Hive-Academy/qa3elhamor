@@ -8,6 +8,7 @@ Budgets live in one file: `tools/perf-budget/budgets.ts`.
 | Check | Measured as | Budget source |
 | --- | --- | --- |
 | Initial JavaScript | gzipped size of the entry chunk plus everything it imports statically (and `modulepreload` links); dynamic imports excluded | `BUDGETS.initialJsGzipBytes` |
+| No 3D up front | `index.html` and `moderation.html` statically import no `vendor-three`, `vendor-r3f` or `vendor-drei` chunk | `FIRST_VIEW_FORBIDDEN_CHUNK` |
 | Initial CSS | gzipped size of stylesheets linked from `index.html` | `BUDGETS.initialCssGzipBytes` |
 | Largest single chunk | raw size of every `.js` file in `dist` | `BUDGETS.maxChunkBytes` |
 | Initial-load models | on-disk size of every non-lazy model in `dist` | the asset manifest's `initialLoadBudgetBytes()` (`libs/world/domain`), not duplicated here |
@@ -28,12 +29,37 @@ the message. Model budgets are changed per asset in the manifest (and `npm run a
 
 ## Code splitting
 
-`apps/web/vite.config.mts` splits `three`, the R3F family and `drei` into `vendor-*` chunks
-(`build.rolldownOptions.output.advancedChunks`). That keeps them cached across deploys and keeps
-every chunk under the single-chunk budget. It does **not** shrink the first-view download while the
-entry statically imports the 3D shell. The remaining step is source-side: lazy-load the 3D scene
-(`React.lazy(() => import(...))`) behind the page-view fallback; when that lands, lower
-`initialJsGzipBytes` to about 250 KiB. See `.ptah/specs/perf-budget/notes.md`.
+The entry (`apps/web/src/main.tsx`, `app/app.tsx`) holds only what every visitor needs: the
+language bootstrap, the dive-or-page decision, the page view and the dive's chrome (scene note
+with the skip link, language switch). The 3D dive (`app/dive-shell.tsx`: canvas, world, landmarks,
+narrators, dive provider) is a separate chunk behind `React.lazy`, imported by
+`app/dive-shell-loader.tsx`:
+
+- `main.tsx` calls `preloadDiveForFirstView()` before the first render, so a visitor who will dive
+  starts fetching it at once. Vite's preload helper fetches the chunk's vendor dependencies in
+  parallel with it (no waterfall). No `<link rel="modulepreload">` for them goes into
+  `index.html`, because the page view would download them too.
+- The page view (no WebGL, `?view=page`) never fetches it. "Back to the dive" imports it then.
+- A chunk that fails to load hands the visitor to the page view (`DiveLoadBoundary`).
+
+`apps/web/vite.config.mts` splits React, `three`, the R3F family and `drei` into `vendor-*` chunks
+(`build.rolldownOptions.output.codeSplitting`). That keeps them cached across deploys and every chunk
+under the single-chunk budget. React has its own group, so pages that only need React (the page
+view's graph, `moderation.html`) don't import the 3D groups.
+
+Keep three/R3F/drei out of the entry's graph:
+
+- Import page-view files directly, not through the `./page-view` barrel (it re-exports the canvas
+  guard, which imports three).
+- `world-feature` and `world-ui` declare `"sideEffects": ["**/*.css"]`, so importing one light
+  export from the barrel doesn't pull in the whole library.
+- Data the page view shares with the dive lives in light modules (`landmark-definitions.ts`,
+  `credits.tsx`, `world-ui`'s `plaque-placement.ts`). The 3D halves live apart
+  (`landmarks.config.ts`, `scene-credits.tsx`, `credits-plaque.tsx`).
+
+The gate checks this. `npm run perf:budget` fails when `index.html` or `moderation.html` loads a
+`vendor-three|vendor-r3f|vendor-drei` chunk up front (`FIRST_VIEW_FORBIDDEN_CHUNK` in
+`budgets.ts`). See `.ptah/specs/lazy-shell/notes.md`.
 
 ## Lighthouse
 

@@ -1,7 +1,8 @@
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import { profile } from '@qa3elhamor/content-data-access';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import App from '../app';
+import { loadDiveShell } from '../dive-shell-loader';
 import { LOCALE_STORAGE_KEY } from './locale';
 
 // jsdom cannot mount the R3F canvas, and reports no WebGL; see app.spec.tsx.
@@ -26,6 +27,12 @@ const html = document.documentElement;
 const languageSwitch = () => screen.getByRole('group', { name: /^(Language|اللغة)$/ });
 const option = (name: 'EN' | 'عربي') =>
   within(languageSwitch()).getByRole('button', { name: new RegExp(`^${name}`) });
+
+// The dive is a lazy chunk; load it once so a test waits only for React to resolve it.
+// Its first import (three, R3F, drei under jsdom) can outlast the 10 s hook default.
+beforeAll(async () => {
+  await loadDiveShell();
+}, 60_000);
 
 beforeEach(() => {
   localStorage.clear();
@@ -75,8 +82,10 @@ describe('the language switch', () => {
     }
   });
 
-  it('flips <html lang dir>, persists, and re-renders the chrome in Arabic', () => {
+  it('flips <html lang dir>, persists, and re-renders the chrome in Arabic', async () => {
     render(<App />);
+    // The depth gauge, credits and landmark list are in the dive's lazy chunk.
+    await screen.findByTestId('canvas');
     fireEvent.click(option('عربي'));
 
     expect(html.lang).toBe('ar');
@@ -111,10 +120,10 @@ describe('the language switch', () => {
     expect(window.location.search).toBe('?lang=en');
   });
 
-  it('opens a landmark dialog right to left in Arabic', () => {
+  it('opens a landmark dialog right to left in Arabic', async () => {
     window.history.replaceState(null, '', '/?lang=ar');
     render(<App />);
-    fireEvent.click(screen.getByRole('button', { name: /مكتب الشكاوى/ }));
+    fireEvent.click(await screen.findByRole('button', { name: /مكتب الشكاوى/ }));
     const dialog = screen.getByRole('dialog', { name: 'مكتب الشكاوى' });
     expect(dialog.getAttribute('dir')).toBe('rtl');
     expect(dialog.getAttribute('lang')).toBe('ar');
@@ -123,10 +132,10 @@ describe('the language switch', () => {
     );
   });
 
-  it('marks the credits dialog right to left in Arabic', () => {
+  it('marks the credits dialog right to left in Arabic', async () => {
     window.history.replaceState(null, '', '/?lang=ar');
     render(<App />);
-    fireEvent.click(screen.getByRole('button', { name: 'شكر وتقدير' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'شكر وتقدير' }));
     const dialog = screen.getByRole('dialog', { name: 'شكر وتقدير', hidden: true });
     expect(dialog.getAttribute('dir')).toBe('rtl');
     expect(dialog.getAttribute('lang')).toBe('ar');

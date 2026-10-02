@@ -423,3 +423,24 @@ describe('the Bureau visit: the phone sheet', () => {
     expect(sheetHeightFor(844, 120)).toBe(220);
   });
 });
+
+describe('the Bureau visit: the public wall', () => {
+  it('offers "Read the public wall" only when the wall is on', () => {
+    const { rerender } = render(<BureauHud {...hudProps()} />);
+    expect(screen.queryByRole('button', { name: words.openWall })).toBeNull();
+
+    const onOpenWall = vi.fn();
+    rerender(<BureauHud {...hudProps({ onOpenWall })} />);
+    fireEvent.click(screen.getByRole('button', { name: words.openWall }));
+    expect(onOpenWall).toHaveBeenCalledTimes(1);
+  });
+
+  it('steps the bubble aside while the board is out, and takes focus back after', () => {
+    const { rerender } = render(
+      <BureauHud {...hudProps({ onOpenWall: vi.fn(), wallOut: true })} />,
+    );
+    expect(screen.queryByRole('button', { name: words.openWall })).toBeNull();
+    rerender(<BureauHud {...hudProps({ onOpenWall: vi.fn(), wallOut: false })} />);
+    expect(document.activeElement?.textContent).toContain(words.openScroll);
+  });
+});

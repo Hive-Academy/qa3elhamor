@@ -1,5 +1,5 @@
 import { expect, test } from './support/fixtures';
-import { DIVE_URL, PAGE_URL } from './support/site';
+import { DIVE_URL, PAGE_URL, canvasReady } from './support/site';
 import { expectEverySection } from './support/page-view';
 
 // The readable page, reached with WebGL available: `?view=page` and the dive's own link. (The
@@ -38,7 +38,7 @@ test.describe('page view', () => {
     await expect(page.getByRole('heading', { level: 1 })).toBeFocused();
 
     await page.getByRole('link', { name: 'Back to the dive' }).first().click();
-    await expect(page.locator('canvas')).toBeVisible();
+    await canvasReady(page);
     await expect(page).not.toHaveURL(/view=page/);
     // And the dive puts focus back on the link the visitor used to leave it.
     await expect(readAsPage).toBeFocused();

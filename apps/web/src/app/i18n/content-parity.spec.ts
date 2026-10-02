@@ -13,7 +13,7 @@ import {
   type LocalizedText,
 } from '@qa3elhamor/content-domain';
 import { describe, expect, it } from 'vitest';
-import { LANDMARKS } from '../landmarks.config';
+import { LANDMARKS } from '../landmark-definitions';
 import { jobObjects } from '../tiki/job-objects';
 import { skillGroupObjects } from '../pineapple/pineapple-scene';
 

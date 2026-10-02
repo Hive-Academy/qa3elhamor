@@ -23,6 +23,7 @@ const EN = {
   projects: 'Projects',
   services: 'Services',
   contact: 'Contact',
+  wall: 'Public wall',
   narration: 'Overheard on the dive',
   narrationIntro:
     'What the narrators say at each landmark, for anyone who skipped the swim.',
@@ -68,6 +69,7 @@ const AR: PageViewCopy = {
   projects: 'المشاريع',
   services: 'الخدمات',
   contact: 'التواصل',
+  wall: 'لوحة الشكاوى العامة',
   narration: 'سُمع أثناء الغوص',
   narrationIntro: 'ما يقوله الرواة عند كل معلم، لمن تخطّى السباحة.',
   credits: 'شكر وتقدير',

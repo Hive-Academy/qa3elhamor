@@ -1,5 +1,5 @@
 import { expect, test } from './support/fixtures';
-import { BUREAU, DIVE_URL, VISITS, landmarkButton } from './support/site';
+import { BUREAU, DIVE_URL, VISITS, landmarkButton, openLandmark } from './support/site';
 
 // With `prefers-reduced-motion: reduce` the camera does not fly and the narrators do not swim:
 // every landmark opens as a modal dialog with its full view, and Escape gives the page back.
@@ -8,7 +8,7 @@ test.use({ reducedMotion: 'reduce' });
 for (const visit of VISITS) {
   test(`reduced motion: ${visit.region} opens as a dialog`, async ({ page }) => {
     await page.goto(DIVE_URL);
-    await landmarkButton(page, visit.nav).click();
+    await openLandmark(page, visit.nav);
 
     const dialog = page.getByRole('dialog', { name: visit.region });
     await expect(dialog).toBeVisible();
@@ -25,7 +25,7 @@ for (const visit of VISITS) {
 
 test('reduced motion: the Complaints Bureau opens its form as a dialog', async ({ page }) => {
   await page.goto(DIVE_URL);
-  await landmarkButton(page, BUREAU.nav).click();
+  await openLandmark(page, BUREAU.nav);
 
   const dialog = page.getByRole('dialog', { name: BUREAU.region });
   await expect(dialog.getByLabel('Subject of the complaint')).toBeVisible();

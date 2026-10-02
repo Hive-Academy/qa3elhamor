@@ -54,12 +54,22 @@ export default defineConfig(() => ({
         // Vendor chunks: three and its React bindings change far less often than app code,
         // so splitting them keeps them cached across deploys (file names are content-hashed).
         // Budgets live in tools/perf-budget/budgets.ts.
-        advancedChunks: {
+        //
+        // React has a group of its own, above the 3D ones: a group also takes the dependencies
+        // of what it matches, so without it React (and the scheduler) landed in vendor-r3f and
+        // vendor-drei, and every page that renders React (the site's page view, moderation.html)
+        // imported the 3D vendor chunks for it. Only the dive's lazy chunk imports those now.
+        codeSplitting: {
           groups: [
+            {
+              name: 'vendor-react',
+              test: /node_modules[\\/](?:react|react-dom|scheduler)[\\/]/,
+              priority: 50,
+            },
             { name: 'vendor-three', test: /node_modules[\\/]three[\\/]/, priority: 40 },
             {
               name: 'vendor-r3f',
-              test: /node_modules[\\/](?:@react-three[\\/](?:fiber|postprocessing)|postprocessing|its-fine|react-reconciler|scheduler|zustand|suspend-react|react-use-measure|use-sync-external-store)[\\/]/,
+              test: /node_modules[\\/](?:@react-three[\\/](?:fiber|postprocessing)|postprocessing|its-fine|react-reconciler|zustand|suspend-react|react-use-measure|use-sync-external-store)[\\/]/,
               priority: 30,
             },
             {

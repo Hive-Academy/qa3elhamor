@@ -1,0 +1,322 @@
+/*
+ * The Municipal Notice Wall: a stone-framed cork board with paper notes pinned on it. Paper and
+ * ink reuse the complaint scroll's palette; logical properties keep it right in RTL.
+ */
+.notice-board {
+  --nb-stone: #6f747a;
+  --nb-stone-dark: #474b51;
+  --nb-cork: #b78552;
+  --nb-cork-dark: #8f6237;
+  --nb-paper: #f7efd9;
+  --nb-paper-edge: #dccb9f;
+  --nb-ink: #2a2118;
+  --nb-ink-soft: #5b4a36;
+  --nb-pin: #b3261e;
+  --nb-focus: #0b6fa4;
+  /* How tall the board may get; the phone's sheet sets it from the visual viewport. */
+  --notice-board-max: calc(100dvh - 12rem);
+
+  display: grid;
+  justify-items: center;
+  gap: 0.75rem;
+  width: min(46rem, calc(100vw - 1.5rem));
+  color: var(--nb-ink);
+  font-family: var(--font-paper);
+  line-height: 1.45;
+  text-align: start;
+}
+
+.notice-board__frame {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 0.625rem;
+  box-sizing: border-box;
+  width: 100%;
+  max-height: var(--notice-board-max);
+  padding: 0.875rem;
+  border-radius: 0.75rem;
+  background:
+    radial-gradient(circle at 20% 15%, rgba(255, 255, 255, 0.12), transparent 40%),
+    linear-gradient(160deg, var(--nb-stone), var(--nb-stone-dark));
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.18),
+    inset 0 -3px 0 rgba(0, 0, 0, 0.25),
+    0 16px 26px rgba(0, 8, 20, 0.5);
+}
+
+.notice-board[data-presentation='page'] {
+  --notice-board-max: none;
+
+  width: 100%;
+}
+
+.notice-board[data-presentation='page'] .notice-board__frame {
+  grid-template-rows: minmax(0, 1fr) auto;
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.18), 0 6px 14px rgba(0, 8, 20, 0.25);
+}
+
+.notice-board[data-presentation='sheet'] {
+  --notice-board-max: var(--bureau-sheet-paper, calc(100dvh - 12rem));
+
+  align-content: start;
+  width: 100%;
+}
+
+.notice-board__header {
+  color: #fffaf0;
+  text-align: center;
+}
+
+.notice-board__title {
+  margin: 0;
+  font-size: 1.25rem;
+  letter-spacing: 0.02em;
+  text-shadow: 0 2px 0 rgba(0, 0, 0, 0.35);
+}
+
+.notice-board__intro {
+  margin: 0.125rem 0 0;
+  font-size: 0.9375rem;
+  opacity: 0.92;
+}
+
+.notice-board__cork {
+  position: relative;
+  min-height: 12rem;
+  padding: 0.75rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border-radius: 0.375rem;
+  background:
+    radial-gradient(circle at 30% 40%, rgba(0, 0, 0, 0.08) 1px, transparent 2px) 0 0 / 9px 9px,
+    radial-gradient(circle at 70% 60%, rgba(255, 255, 255, 0.08) 1px, transparent 2px) 0 0 / 13px 13px,
+    linear-gradient(135deg, var(--nb-cork), var(--nb-cork-dark));
+  box-shadow: inset 0 0 0 3px rgba(60, 38, 18, 0.45), inset 0 4px 10px rgba(0, 0, 0, 0.35);
+  scrollbar-width: thin;
+}
+
+.notice-board__status:empty {
+  display: none;
+}
+
+.notice-board__status,
+.notice-board__failed {
+  margin: 0 0 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.25rem;
+  background: var(--nb-paper);
+  font-size: 0.9375rem;
+}
+
+.notice-board__failed {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.notice-board__failed p {
+  margin: 0;
+}
+
+.notice-board__notes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(12.5rem, 1fr));
+  gap: 0.875rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.notice-board__slot {
+  display: flex;
+}
+
+.notice-note {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  width: 100%;
+  min-height: 9rem;
+  padding: 1rem 0.75rem 0.75rem;
+  border: 1px solid var(--nb-paper-edge);
+  border-radius: 2px;
+  background: var(--nb-paper);
+  color: var(--nb-ink);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  box-shadow: 0 4px 8px rgba(30, 18, 8, 0.4);
+  rotate: -1.2deg;
+  transition:
+    rotate 160ms ease,
+    translate 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.notice-board__slot:nth-child(2n) .notice-note {
+  rotate: 1.4deg;
+}
+
+.notice-board__slot:nth-child(3n) .notice-note {
+  rotate: -0.4deg;
+}
+
+.notice-note:hover,
+.notice-note:focus-visible,
+.notice-note[data-selected] {
+  rotate: 0deg;
+  translate: 0 -2px;
+  box-shadow: 0 8px 14px rgba(30, 18, 8, 0.45);
+}
+
+.notice-note:focus-visible,
+.notice-board__button:focus-visible,
+.notice-detail__subject:focus-visible {
+  outline: 3px solid var(--nb-focus);
+  outline-offset: 2px;
+}
+
+.notice-note__pin {
+  position: absolute;
+  inset-block-start: -0.375rem;
+  inset-inline-start: calc(50% - 0.5rem);
+  width: 1rem;
+  height: 1rem;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #ff8a80, var(--nb-pin) 55%, #6d1510);
+  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.4);
+}
+
+.notice-note__subject {
+  font-weight: 700;
+  font-size: 1rem;
+  overflow-wrap: anywhere;
+}
+
+.notice-note__excerpt {
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: 0.9375rem;
+  overflow-wrap: anywhere;
+  white-space: pre-line;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+  line-clamp: 4;
+}
+
+.notice-note__footer,
+.notice-note__meta {
+  margin: 0;
+  margin-block-start: auto;
+  color: var(--nb-ink-soft);
+  font-size: 0.875rem;
+  overflow-wrap: anywhere;
+}
+
+.notice-note__more {
+  color: var(--nb-focus);
+  font-size: 0.875rem;
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+/* The whole complaint, on a sheet pinned over the board. */
+.notice-detail {
+  position: absolute;
+  z-index: 2;
+  inset: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1.25rem 1rem 1rem;
+  overflow-y: auto;
+  border: 1px solid var(--nb-paper-edge);
+  background: var(--nb-paper);
+  box-shadow: 0 10px 22px rgba(30, 18, 8, 0.5);
+}
+
+.notice-board[data-presentation='page'] .notice-detail {
+  position: relative;
+  inset: auto;
+  margin-block-start: 0.875rem;
+}
+
+.notice-detail__subject {
+  margin: 0;
+  font-size: 1.125rem;
+  overflow-wrap: anywhere;
+}
+
+.notice-detail__body {
+  margin: 0;
+  overflow-wrap: anywhere;
+  white-space: pre-line;
+}
+
+.notice-detail .notice-board__button {
+  align-self: flex-start;
+}
+
+.notice-board__pager {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  color: #fffaf0;
+}
+
+.notice-board__page {
+  font-size: 0.9375rem;
+}
+
+.notice-board__button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-height: 2.75rem;
+  padding: 0 1rem;
+  border: 2px solid var(--nb-ink);
+  border-radius: 999px;
+  background: #fffaf0;
+  color: var(--nb-ink);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.notice-board__button[aria-disabled='true'] {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.notice-board__back {
+  pointer-events: auto;
+}
+
+@media (max-width: 30rem) {
+  .notice-board__notes {
+    grid-template-columns: 1fr;
+  }
+
+  .notice-note {
+    min-height: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .notice-note {
+    transition: none;
+  }
+}
+
+.notice-board__title:focus {
+  outline: none;
+}
+
+.notice-board__title:focus-visible {
+  outline: 3px solid #ffd68c;
+  outline-offset: 2px;
+}

@@ -39,7 +39,7 @@ jobs:
   e2e:
     if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.update_snapshots) }}
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 75
     env:
       E2E_BASE_URL: ${{ inputs.base_url }}
     steps:

@@ -18,9 +18,9 @@ import {
   type SiteCopy,
   type SiteProfile,
 } from '@qa3elhamor/content-domain';
-import { CONTACT_SUBMITTER } from '../contact-submitter';
-import { LANDMARKS } from '../landmarks.config';
+import { LANDMARKS } from '../landmark-definitions';
 import type { ComplaintSubmitter } from '../overlays/complaint-scroll';
+import { COMPLAINT_SUBMITTER, WALL, type WallPort } from '../wall/wall-port';
 
 /** What the narrators say at one landmark, under the landmark's own name. */
 export interface NarrationStop {
@@ -43,6 +43,8 @@ export interface PageContent {
   readonly narration: readonly NarrationStop[];
   /** Delivers the Bureau's complaints: the same provider as the dive's form. */
   readonly submitter: ComplaintSubmitter;
+  /** The public complaints wall, or `null` when it is off (then the page has no wall section). */
+  readonly wall: WallPort | null;
 }
 
 /** Every narrated landmark, labelled as the dive labels it (the id when no landmark matches). */
@@ -59,7 +61,8 @@ export const narrationStops = (): NarrationStop[] =>
 
 /** The page's content, read from the same validated content module as the dive. */
 export function buildPageContent(
-  submitter: ComplaintSubmitter = CONTACT_SUBMITTER,
+  submitter: ComplaintSubmitter = COMPLAINT_SUBMITTER,
+  wall: WallPort | null = WALL,
 ): PageContent {
   return {
     profile,
@@ -70,5 +73,6 @@ export function buildPageContent(
     credits,
     narration: narrationStops(),
     submitter,
+    wall,
   };
 }

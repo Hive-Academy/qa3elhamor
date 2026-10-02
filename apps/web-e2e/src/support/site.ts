@@ -1,4 +1,4 @@
-import { expect, type Page, type Locator } from '@playwright/test';
+import { expect, test, type Page, type Locator } from '@playwright/test';
 import { resumeEntryCount, serviceCount, skillGroupCount } from './content';
 
 /**
@@ -87,14 +87,42 @@ export async function bubblePlaced(page: Page): Promise<void> {
 
 /** Opens `/` and flies to a landmark through its navigation button. */
 export async function dive(page: Page, nav: RegExp, url = DIVE_URL): Promise<void> {
+  // Software GL on a 2-core CI runner needs several times the local time for a camera flight.
+  test.slow(Boolean(process.env['CI']), 'software GL on a 2-core runner');
   await page.goto(url);
-  const button = landmarkButton(page, nav);
-  await expect(button).toBeVisible();
-  await button.click();
+  await openLandmark(page, nav);
   await bubblePlaced(page);
+}
+
+/**
+ * Activates a control inside a narrator's bubble from the keyboard. The bubble follows a
+ * swimming, bobbing narrator, so on a slow software rasteriser its buttons never hold still
+ * for Playwright's "stable" actionability check (the cause of the first CI failures); a
+ * focused button and Enter do what a keyboard visitor does and need no stillness.
+ */
+export async function press(control: Locator, timeout = 30_000): Promise<void> {
+  await expect(control).toBeVisible({ timeout });
+  await control.focus({ timeout });
+  await control.press('Enter', { timeout });
+}
+
+/**
+ * Opens a landmark from its navigation button. The button appears with the React shell, which
+ * on a throttled runner can take a minute; it also pulses, so it is pressed from the keyboard.
+ */
+export async function openLandmark(page: Page, nav: RegExp): Promise<void> {
+  await press(landmarkButton(page, nav), FLIGHT_TIMEOUT);
 }
 
 /** Skips the rest of the narration (the way a hurried visitor would). */
 export async function skipDialogue(page: Page, narrator: string): Promise<void> {
-  await bubble(page, narrator).getByRole('button', { name: 'Skip' }).click();
+  await press(bubble(page, narrator).getByRole('button', { name: 'Skip' }));
+}
+
+/**
+ * The dive's canvas is mounted lazily after the first paint (the 3D shell loads on its own
+ * chunk), and on a slow runner that takes a while: wait for it, never assume it at load.
+ */
+export async function canvasReady(page: Page): Promise<void> {
+  await expect(page.locator('canvas')).toBeVisible({ timeout: FLIGHT_TIMEOUT });
 }

@@ -5,6 +5,7 @@
  *
  * Fails (exit 1) with one line per violation when:
  *   - the JavaScript the first view downloads (entry + static imports) is over budget (gzip),
+ *   - index.html or moderation.html loads a 3D vendor chunk (three, R3F, drei) up front,
  *   - the first view's CSS is over budget (gzip),
  *   - any single JavaScript chunk is over budget (raw),
  *   - the models the first view loads exceed the manifest's `initialLoadBudgetBytes()`,
@@ -21,7 +22,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { gzipSync } from 'node:zlib';
 import { WEB_ASSETS, initialLoadBudgetBytes } from '@qa3elhamor/world-domain';
-import { BUDGETS } from './budgets';
+import { BUDGETS, FIRST_VIEW_FORBIDDEN_CHUNK } from './budgets';
 import { listFiles, pageLoad } from './dist-graph';
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
@@ -67,6 +68,22 @@ if (initialJs > BUDGETS.initialJsGzipBytes) {
         .join(', ')}. Lazy-load code the first view does not need.`,
   );
 }
+// 1b. No 3D vendor code up front. index.html's static graph is what every visitor downloads,
+// including the page view (no WebGL, `?view=page`), which must never fetch three; the dive loads
+// it through its lazy chunk. moderation.html has no 3D at all.
+for (const page of ['index.html', 'moderation.html']) {
+  if (!existsSync(resolve(distDir, page))) continue;
+  const load = page === 'index.html' ? initial : pageLoad(distDir, page, base);
+  const threeChunks = load.js.filter((file) => FIRST_VIEW_FORBIDDEN_CHUNK.test(file));
+  lines.push(`3D up front    ${page}: ${threeChunks.length === 0 ? 'none' : threeChunks.join(', ')}`);
+  if (threeChunks.length > 0) {
+    violations.push(
+      `${page} loads 3D vendor code up front: ${threeChunks.join(', ')}. Keep three/R3F/drei ` +
+        'behind the dive\'s dynamic import (apps/web/src/app/dive-shell-loader.tsx) and out of ' +
+        'barrels the entry imports.',
+    );
+  }
+}
 if (initialCss > BUDGETS.initialCssGzipBytes) {
   violations.push(
     `Initial CSS is ${kib(initialCss)} gzipped, over the ${kib(BUDGETS.initialCssGzipBytes)} budget.`,
@@ -80,7 +97,7 @@ for (const chunk of chunks) {
   if (size > BUDGETS.maxChunkBytes) {
     violations.push(
       `Chunk ${chunk} is ${kib(size)}, over the ${kib(BUDGETS.maxChunkBytes)} single-chunk budget. ` +
-        'Split it (build.rolldownOptions.output.advancedChunks) or lazy-load it.',
+        'Split it (build.rolldownOptions.output.codeSplitting) or lazy-load it.',
     );
   }
 }

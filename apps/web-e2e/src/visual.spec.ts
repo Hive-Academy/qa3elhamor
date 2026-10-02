@@ -1,6 +1,7 @@
 import { existsSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { expect, test } from './support/fixtures';
+import { canvasReady } from './support/site';
 import type { Page } from '@playwright/test';
 
 /**
@@ -75,7 +76,7 @@ for (const tier of TIERS) {
     test(`canvas at ${stop.name}, ${tier} tier`, async ({ page }) => {
       await page.goto(`/?quality=${tier}&lang=en`);
       await expect(page.locator('.stage')).toHaveAttribute('data-quality-tier', tier);
-      await expect(page.locator('canvas')).toBeVisible();
+      await canvasReady(page);
 
       await page.evaluate((progress) => {
         const range = document.documentElement.scrollHeight - window.innerHeight;

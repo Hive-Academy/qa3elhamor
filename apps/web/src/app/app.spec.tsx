@@ -1,7 +1,8 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { WEB_ASSETS } from '@qa3elhamor/world-domain';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeAll, describe, expect, it, vi } from 'vitest';
 import App from './app';
+import { loadDiveShell } from './dive-shell-loader';
 import { siteTelemetry } from './telemetry';
 
 // jsdom has no WebGL context, so the R3F canvas cannot mount here. Stub `Canvas` and assert
@@ -30,9 +31,26 @@ vi.mock('@qa3elhamor/world-feature', async (importOriginal) => {
 });
 
 describe('App', () => {
-  it('renders the ocean canvas', () => {
+  // The dive is a lazy chunk (`dive-shell-loader.tsx`); importing it once up front keeps each
+  // test's wait down to React resolving the already-loaded module.
+  // Its first import (three, R3F, drei under jsdom) can outlast the 10 s hook default.
+  beforeAll(async () => {
+    await loadDiveShell();
+  }, 60_000);
+
+  // Rendered by the entry outside the dive's <Suspense>, so they never wait for the 3D chunk.
+  it('shows the title, the way out and the language switch outside the lazy dive', () => {
     render(<App />);
-    expect(screen.getByTestId('canvas')).toBeTruthy();
+    expect(screen.getByRole('heading', { name: 'قاع الهامور' })).toBeTruthy();
+    expect(
+      screen.getByRole('link', { name: 'Skip the dive: read it as a page' }),
+    ).toBeTruthy();
+    expect(screen.getByRole('group', { name: 'Language' })).toBeTruthy();
+  });
+
+  it('renders the ocean canvas', async () => {
+    render(<App />);
+    expect(await screen.findByTestId('canvas')).toBeTruthy();
   });
 
   it('titles the site in Arabic', () => {
@@ -47,14 +65,14 @@ describe('App', () => {
     ).toBeTruthy();
   });
 
-  it('shows the dive depth, near the surface on arrival', () => {
+  it('shows the dive depth, near the surface on arrival', async () => {
     render(<App />);
-    expect(screen.getByText(/^−\d{1,2} m$/)).toBeTruthy();
+    expect(await screen.findByText(/^−\d{1,2} m$/)).toBeTruthy();
   });
 
-  it('lists every landmark for keyboard users and opens its overlay', () => {
+  it('lists every landmark for keyboard users and opens its overlay', async () => {
     render(<App />);
-    const nav = screen.getByRole('navigation', { name: 'Landmarks' });
+    const nav = await screen.findByRole('navigation', { name: 'Landmarks' });
     expect(nav.querySelectorAll('button')).toHaveLength(4);
     fireEvent.click(screen.getByRole('button', { name: /Complaints Bureau/ }));
     const dialog = screen.getByRole('dialog', { name: 'Complaints Bureau' });
@@ -63,11 +81,12 @@ describe('App', () => {
     expect(screen.queryByRole('dialog')).toBeNull();
   });
 
-  it('pins the quality tier from ?quality= and reports it to analytics once', () => {
+  it('pins the quality tier from ?quality= and reports it to analytics once', async () => {
     const resolved = vi.spyOn(siteTelemetry().session, 'qualityTierResolved');
     window.history.replaceState(null, '', '/?quality=low');
     try {
       const { container } = render(<App />);
+      await screen.findByTestId('canvas');
       const stage = container.querySelector('.stage');
       expect(stage?.getAttribute('data-quality-tier')).toBe('low');
       expect(stage?.getAttribute('data-quality-settled')).toBe('true');

@@ -4,7 +4,7 @@ import {
   DEFAULT_PLAQUE_FACING,
   DEFAULT_PLAQUE_POSITION,
   plaqueYaw,
-} from './credits-plaque.js';
+} from './plaque-placement.js';
 import { NOTICE, layoutNotice, wrapWords, type MeasureText } from './notice-layout.js';
 import { DEFAULT_NOTICE_TEXT, drawNotice } from './notice-texture.js';
 

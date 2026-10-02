@@ -13,78 +13,19 @@ import {
   serviceItems,
   siteCopy,
 } from '@qa3elhamor/content-data-access';
-import { LANDMARK_PLACEMENTS, buildDiveSpec } from './dive.config';
+import { buildDiveSpec } from './dive.config';
+import { LANDMARKS } from './landmark-definitions';
 import { createKrustyScene } from './krusty-krab/krusty-scene';
 import { createServicesMenuOverlay } from './krusty-krab/services-menu';
 import { stopView } from './narrators/stop-view';
 import { narratorFor, narratorsConfigFor } from './narrators.config';
 import { createCitizenshipCardOverlay } from './overlays/citizenship-card';
 import { createBureauScene } from './bureau/bureau-scene';
-import { CONTACT_SUBMITTER } from './contact-submitter';
 import { createComplaintScrollOverlay } from './overlays/complaint-scroll';
 import { createPineappleScene } from './pineapple/pineapple-scene';
 import { createExperienceRecordOverlay } from './tiki/experience-record';
 import { createTikiScene } from './tiki/tiki-scene';
-
-/**
- * The landmarks on the page, in the order the dive meets them. Adding one is an entry here,
- * an overlay below (or, for `presentation: 'in-world'`, a scene component) and (for a camera stop) a `stop` in `dive.config.ts`; see
- * `libs/landmarks/README.md`.
- *
- * `model` is a `WEB_ASSETS` id, resolved to a URL by `useLandmarkModel`. Positions come from
- * the asset pipeline's placements (scene-world units). `waypoint` is the dive stop's id,
- * which `dive.config.ts` names after the placement.
- */
-export const LANDMARKS: readonly LandmarkDefinition[] = [
-  {
-    id: 'pineapple',
-    model: 'landmark-pineapple',
-    position: LANDMARK_PLACEMENTS['landmark-pineapple'],
-    waypoint: 'landmark-pineapple',
-    // A narrator and the skills as bubbles; the dialog card is the fallback where in-world is off.
-    presentation: 'in-world',
-    scene: 'pineapple',
-    overlay: 'pineapple',
-    label: { en: 'The Pineapple', ar: 'بيت الأناناس' },
-    caption: { en: 'About', ar: 'نبذة' },
-  },
-  {
-    id: 'tiki',
-    model: 'landmark-tiki',
-    position: LANDMARK_PLACEMENTS['landmark-tiki'],
-    waypoint: 'landmark-tiki',
-    // A narrator and the jobs as stone tablets; the full record dialog is the fallback.
-    presentation: 'in-world',
-    scene: 'tiki',
-    overlay: 'tiki',
-    label: { en: 'Tiki Head', ar: 'رأس التيكي' },
-    caption: { en: 'Performance reviews', ar: 'تقييمات الأداء' },
-  },
-  {
-    id: 'krusty-krab',
-    model: 'landmark-krusty-krab',
-    position: LANDMARK_PLACEMENTS['landmark-krusty-krab'],
-    waypoint: 'landmark-krusty-krab',
-    // A narrator and the services as a flipping menu board; the full menu dialog is the fallback.
-    presentation: 'in-world',
-    scene: 'krusty-krab',
-    overlay: 'krusty-krab',
-    label: { en: 'The Krusty Krab', ar: 'مطعم كراستي كراب' },
-    caption: { en: 'Services menu', ar: 'قائمة الخدمات' },
-  },
-  {
-    id: 'bureau',
-    model: 'landmark-bureau',
-    position: LANDMARK_PLACEMENTS['landmark-bureau'],
-    waypoint: 'landmark-bureau',
-    // The Sardine President and the complaint scroll out of the tube; the form dialog is the fallback.
-    presentation: 'in-world',
-    scene: 'bureau',
-    overlay: 'bureau',
-    label: { en: 'Complaints Bureau', ar: 'مكتب الشكاوى' },
-    caption: { en: 'File a complaint', ar: 'قدّم شكوى' },
-  },
-];
+import { COMPLAINT_SUBMITTER, WALL } from './wall/wall-port';
 
 /**
  * Overlay components by key, with their content bound here (the landmark libraries never import
@@ -94,7 +35,8 @@ export const LANDMARKS: readonly LandmarkDefinition[] = [
  * The bureau's complaints, in the dialog and in the world alike, go through the site's one
  * contact submitter (`CONTACT_SUBMITTER`, the provider chosen by `VITE_CONTACT_PROVIDER`);
  * unset (or `none`), it falls back to the pending submitter, which sends nothing anywhere and
- * says so to the visitor.
+ * says so to the visitor. With the public wall on (`VITE_WALL_API_URL`, `WALL`), the same
+ * forms also offer pinning a complaint on the wall: `COMPLAINT_SUBMITTER` routes those to it.
  */
 export const LANDMARK_OVERLAYS: LandmarkOverlayRegistry = {
   pineapple: createCitizenshipCardOverlay({ profile, copy: siteCopy }),
@@ -102,7 +44,8 @@ export const LANDMARK_OVERLAYS: LandmarkOverlayRegistry = {
   'krusty-krab': createServicesMenuOverlay({ services: serviceItems, copy: siteCopy }),
   bureau: createComplaintScrollOverlay({
     copy: siteCopy,
-    submitter: CONTACT_SUBMITTER,
+    submitter: COMPLAINT_SUBMITTER,
+    publicWall: WALL?.words,
   }),
 };
 
@@ -148,10 +91,11 @@ export const LANDMARK_SCENES: LandmarkSceneRegistry = {
   // Not an object tour: the Sardine President, the clerk window and the complaint scroll.
   bureau: createBureauScene({
     copy: siteCopy,
-    submitter: CONTACT_SUBMITTER,
+    submitter: COMPLAINT_SUBMITTER,
     narration: narration.landmarks.bureau,
     narrator: narratorFor('bureau', NARRATORS),
     stop: stopView('landmark-bureau'),
+    wall: WALL,
   }),
 };
 

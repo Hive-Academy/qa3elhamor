@@ -1,4 +1,9 @@
-import { useEffect, useState, type CSSProperties } from 'react';
+import {
+  useEffect,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+} from 'react';
 import { BureauScroll, type BureauScrollProps } from './bureau-scroll';
 
 /** The stage's "Back to the dive" bar at the bottom, and a margin at the top (CSS px). */
@@ -67,6 +72,37 @@ export function BureauSheet({
       }
     >
       <BureauScroll {...scroll} state={shown} presentation="sheet" />
+    </div>
+  );
+}
+
+/** The notice wall's "Back to the President" button and the gap above it. */
+const BOARD_CHROME_PX = 64;
+
+/**
+ * On a phone the public notice wall is a sheet over the scene too, sized like the scroll's, so
+ * its cork board scrolls inside itself and its way back stays above the stage bar.
+ */
+export function BureauWallSheet({
+  layoutHeight,
+  children,
+}: {
+  readonly layoutHeight: number;
+  readonly children: ReactNode;
+}) {
+  const visible = useVisibleHeight(layoutHeight);
+  const height = sheetHeightFor(layoutHeight, visible);
+  return (
+    <div
+      className="bureau-sheet"
+      style={
+        {
+          '--bureau-sheet-h': `${height}px`,
+          '--bureau-sheet-paper': `${height - BOARD_CHROME_PX}px`,
+        } as CSSProperties
+      }
+    >
+      {children}
     </div>
   );
 }

@@ -12,6 +12,7 @@ import {
   ContactSection,
   CreditsSection,
   NarrationSection,
+  WallSection,
 } from './site-sections';
 import {
   ExperienceSection,
@@ -139,6 +140,7 @@ export function PageView({
       present: content.services.length > 0,
     },
     { key: 'contact', label: t('contact'), present: true },
+    { key: 'wall', label: t('wall'), present: content.wall !== null },
     {
       key: 'narration',
       label: t('narration'),
@@ -229,9 +231,11 @@ export function PageView({
         <ContactSection
           copy={content.copy}
           submitter={content.submitter}
+          publicWall={content.wall?.words}
           onDone={toTop}
           {...parts}
         />
+        {content.wall && <WallSection wall={content.wall} {...parts} />}
         <NarrationSection
           stops={content.narration}
           profile={content.profile}

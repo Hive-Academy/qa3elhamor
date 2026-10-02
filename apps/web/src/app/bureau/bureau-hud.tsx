@@ -44,6 +44,10 @@ export interface BureauHudProps {
   readonly scrollOut: boolean;
   /** "File a complaint" (and, after one, "File another complaint"). */
   readonly onOpenScroll: () => void;
+  /** "Read the public wall": only when the wall is on. */
+  readonly onOpenWall?: () => void;
+  /** The notice wall is out: the bubble steps aside while the visitor reads. */
+  readonly wallOut?: boolean;
   readonly words: BureauWords;
   /** The action after a complaint is filed (`complaintAnotherLabel`). */
   readonly fileAnother: string;
@@ -52,7 +56,7 @@ export interface BureauHudProps {
 
   /** Positioned by the scene every frame. */
   readonly speechRef: RefObject<HTMLDivElement | null>;
-  /** On a phone: the scroll as a sheet over the scene (null elsewhere, or while it is away). */
+  /** On a phone: the scroll (or the notice wall) as a sheet over the scene (null elsewhere, or while it is away). */
   readonly sheet?: ReactNode;
 }
 
@@ -79,6 +83,8 @@ export function BureauHud({
   onLeave,
   scrollOut,
   onOpenScroll,
+  onOpenWall,
+  wallOut = false,
   words,
   fileAnother,
   filedTopic,
@@ -95,11 +101,13 @@ export function BureauHud({
   const root = useRef<HTMLDivElement>(null);
   const hadFocus = useRef(false);
   const primaryRef = useRef<HTMLButtonElement>(null);
-  const wasOut = useRef(scrollOut);
+  // The scroll or the notice wall: either one puts the bubble aside.
+  const away = scrollOut || wallOut;
+  const wasOut = useRef(away);
   useEffect(() => {
-    const putAway = wasOut.current && !scrollOut;
-    wasOut.current = scrollOut;
-    if (!open || scrollOut) return;
+    const putAway = wasOut.current && !away;
+    wasOut.current = away;
+    if (!open || away) return;
     if (!putAway && !hadFocus.current) return;
     const active = document.activeElement;
     if (!putAway && active && active !== document.body) return;
@@ -123,6 +131,11 @@ export function BureauHud({
           <span className="bureau-scroll-icon" aria-hidden="true" />
           {filed ? fileAnother : words.openScroll}
         </button>
+        {onOpenWall && (
+          <button type="button" className="speech__button" onClick={onOpenWall}>
+            {words.openWall}
+          </button>
+        )}
         <button type="button" className="speech__button" onClick={onLeave}>
           {kit.leave}
         </button>
@@ -165,6 +178,7 @@ export function BureauHud({
       className="visit-hud bureau-hud"
       data-stage={dialogue.stage}
       data-scroll-out={scrollOut ? '' : undefined}
+      data-wall-out={wallOut ? '' : undefined}
       dir={dir}
       lang={lang}
       style={{ width, height } as CSSProperties}
@@ -175,11 +189,11 @@ export function BureauHud({
           hadFocus.current = root.current?.contains(next) ?? false;
       }}
     >
-      {scrollOut && (
+      {away && (
         <div className="visit-full-dim bureau-dim" aria-hidden="true" />
       )}
 
-      {text !== null && !scrollOut && (
+      {text !== null && !away && (
         <SpeechBubble
           boxRef={speechRef}
           speaker={speaker}

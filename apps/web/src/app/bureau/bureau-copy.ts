@@ -13,6 +13,10 @@ export interface BureauWords {
   readonly rollUp: string;
   /** The accessible name of the unrolled scroll. */
   readonly scrollLabel: string;
+  /** The last line's action when the public wall is on: the notice wall comes out. */
+  readonly openWall: string;
+  /** Under the notice wall: back to the President. */
+  readonly closeWall: string;
 }
 
 export const BUREAU_VISIT_COPY = bilingual({
@@ -20,11 +24,15 @@ export const BUREAU_VISIT_COPY = bilingual({
     openScroll: 'File a complaint',
     rollUp: 'Roll it back up',
     scrollLabel: 'Complaint scroll',
+    openWall: 'Read the public wall',
+    closeWall: 'Back to the President',
   },
   ar: {
     openScroll: 'قدّم شكوى',
     rollUp: 'لفّها تاني',
     scrollLabel: 'ورقة الشكوى',
+    openWall: 'اقرا لوحة الشكاوى العامة',
+    closeWall: 'ارجع للرئيس',
   },
 }) satisfies Readonly<Record<Locale, BureauWords>>;
 
@@ -40,6 +48,10 @@ export const FILED_LINES = {
   'filed-unsent': {
     en: "Stamped and bottled, but between us: the Bureau's post office has not opened yet, so this bottle is going nowhere. The links on the Citizenship Card reach him.",
     ar: 'اتختمت واتقفلت في إزازة، بس بيني وبينك: مكتب بريد البلدية لسه ما فتحش، فالإزازة دي مش رايحة في حتة. روابط بطاقة المواطن بتوصله.',
+  },
+  'filed-public': {
+    en: 'Stamped and bottled for the moderators. Once they approve it, it goes up on the public wall for every citizen to read.',
+    ar: 'اتختمت واتقفلت في إزازة رايحة للمشرفين. أول ما يوافقوا عليها، هتتعلّق على اللوحة العامة وكل المواطنين يقروها.',
   },
 } as const satisfies Record<string, Required<LocalizedText>>;
 

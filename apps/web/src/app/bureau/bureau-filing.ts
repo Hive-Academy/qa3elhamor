@@ -136,8 +136,16 @@ export const scrollOut = (filing: Filing): boolean =>
   filing.stage === 'rolling';
 
 /** What the President says once the bottle is afloat. */
-export const filedLineOf = (delivery: ComplaintDelivery): FiledLineId =>
-  delivery.status === 'delivered' ? 'filed' : 'filed-unsent';
+export const filedLineOf = (delivery: ComplaintDelivery): FiledLineId => {
+  switch (delivery.status) {
+    case 'delivered':
+      return 'filed';
+    case 'awaiting-moderation':
+      return 'filed-public';
+    case 'delivery-not-wired':
+      return 'filed-unsent';
+  }
+};
 
 /**
  * The paper's state, from the filing and where it is: in the world, the card's flight (it

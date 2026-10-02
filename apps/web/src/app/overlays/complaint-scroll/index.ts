@@ -6,7 +6,9 @@ export {
   type ComplaintScrollProps,
 } from './complaint-scroll';
 export {
+  ComplaintSendError,
   pendingSubmitter,
+  routeByVisibility,
   singleFlight,
   type ComplaintDelivery,
   type ComplaintDraft,

@@ -21,6 +21,7 @@ export const PAGE_SECTION_IDS = {
   projects: 'page-projects',
   services: 'page-services',
   contact: 'page-contact',
+  wall: 'page-wall',
   narration: 'page-narration',
   credits: 'page-credits',
 } as const;

@@ -10,8 +10,9 @@ const ATTRIBUTE = /(?:src|href)\s*=\s*["']([^"']+)["']/g;
 // Static `import ... from "x"`, `import "x"`, `export ... from "x"`. Dynamic `import("x")` has a
 // parenthesis, so it never matches. Minified output (`import{a}from"./x.js"`) is covered.
 const STATIC_IMPORT = /\b(?:import|export)\s*(?:[\w*${},\s]+?\s*from\s*)?["']([^"']+)["']/g;
-// Dynamic `import("./x.js")`: reachable, but not needed up front.
-const DYNAMIC_IMPORT = /\bimport\s*\(\s*["']([^"']+\.js)["']\s*\)/g;
+// Dynamic `import("./x.js")`: reachable, but not needed up front. Vite writes the specifier as a
+// template literal (import(`./x.js`)), so a backtick counts as a quote here.
+const DYNAMIC_IMPORT = /\bimport\s*\(\s*["'`]([^"'`]+\.js)["'`]\s*\)/g;
 
 /** Every file under `dir`, as POSIX paths relative to it. */
 export function listFiles(dir: string): string[] {

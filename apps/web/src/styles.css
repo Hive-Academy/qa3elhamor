@@ -65,6 +65,34 @@ body {
   width: 100%;
 }
 
+/*
+ * Stands in for the canvas while the dive's 3D chunk downloads (`dive-shell-loader.tsx`): the
+ * water the dive starts in, surface light fading into depth, so the first paint is the scene's
+ * colours rather than a flat fill. A slow breath of light unless motion is reduced.
+ */
+.dive-loading {
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 70% 45% at 50% -10%, rgba(120, 190, 235, 0.28), transparent 70%),
+    linear-gradient(to bottom, #12406e 0%, #0d2c55 45%, #0a1e3f 100%);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .dive-loading {
+    animation: dive-loading-light 3.2s ease-in-out infinite alternate;
+  }
+}
+
+@keyframes dive-loading-light {
+  from {
+    opacity: 0.75;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 .scene-note {
   position: fixed;
   inset-block-end: 1.5rem;
@@ -76,6 +104,9 @@ body {
   background: rgba(4, 16, 34, 0.55);
   backdrop-filter: blur(6px);
   pointer-events: none;
+  /* Precedes the stage in the DOM (it renders before the 3D chunk loads), so it needs a layer
+     of its own to stay above the canvas; below every overlay (in-world-atmosphere.css). */
+  z-index: 1;
 }
 
 .scene-note h1 {

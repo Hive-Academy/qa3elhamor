@@ -1,6 +1,7 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import App from './app';
+import { loadDiveShell } from './dive-shell-loader';
 
 // What the stubbed canvas does on render, and what the WebGL probe reports, per test.
 const stage = vi.hoisted(() => ({ throwOnRender: false, webgl: true }));
@@ -26,6 +27,12 @@ vi.mock('@qa3elhamor/world-feature', async (importOriginal) => {
   };
 });
 
+// The dive is a lazy chunk; load it once so each test waits only for React to resolve it.
+// Its first import (three, R3F, drei under jsdom) can outlast the 10 s hook default.
+beforeAll(async () => {
+  await loadDiveShell();
+}, 60_000);
+
 beforeEach(() => {
   stage.throwOnRender = false;
   stage.webgl = true;
@@ -42,9 +49,9 @@ const pageShown = () =>
   screen.queryByRole('navigation', { name: 'Sections' }) !== null;
 
 describe('App: the page view as the alternative to the dive', () => {
-  it('dives when WebGL is available', () => {
+  it('dives when WebGL is available', async () => {
     render(<App />);
-    expect(screen.getByTestId('canvas')).toBeTruthy();
+    expect(await screen.findByTestId('canvas')).toBeTruthy();
     expect(pageShown()).toBe(false);
   });
 
@@ -63,15 +70,15 @@ describe('App: the page view as the alternative to the dive', () => {
     expect(pageShown()).toBe(true);
   });
 
-  it('falls back to the page when the scene throws', () => {
+  it('falls back to the page when the scene throws', async () => {
     stage.throwOnRender = true;
     vi.spyOn(console, 'error').mockImplementation(() => undefined);
     render(<App />);
+    expect(await screen.findByText(/stopped working on this device/)).toBeTruthy();
     expect(pageShown()).toBe(true);
-    expect(screen.getByText(/stopped working on this device/)).toBeTruthy();
   });
 
-  it('lets anyone skip the dive and come back, recording both in history', () => {
+  it('lets anyone skip the dive and come back, recording both in history', async () => {
     render(<App />);
     const skip = screen.getByRole('link', {
       name: 'Skip the dive: read it as a page',
@@ -86,7 +93,7 @@ describe('App: the page view as the alternative to the dive', () => {
     fireEvent.click(
       screen.getAllByRole('link', { name: 'Back to the dive' })[0],
     );
-    expect(screen.getByTestId('canvas')).toBeTruthy();
+    expect(await screen.findByTestId('canvas')).toBeTruthy();
     expect(window.location.search).toBe('');
     // The link that was clicked is gone; focus lands on the dive's way out, not on <body>.
     expect(document.activeElement).toBe(
@@ -105,7 +112,7 @@ describe('App: the page view as the alternative to the dive', () => {
       window.dispatchEvent(new PopStateEvent('popstate'));
     });
 
-  it('follows Back and Forward between the two, moving focus as a click does', () => {
+  it('follows Back and Forward between the two, moving focus as a click does', async () => {
     render(<App />);
     fireEvent.click(
       screen.getByRole('link', { name: 'Skip the dive: read it as a page' }),
@@ -113,7 +120,7 @@ describe('App: the page view as the alternative to the dive', () => {
     expect(pageShown()).toBe(true);
 
     popTo('/');
-    expect(screen.getByTestId('canvas')).toBeTruthy();
+    expect(await screen.findByTestId('canvas')).toBeTruthy();
     expect(document.activeElement).toBe(
       screen.getByRole('link', { name: 'Skip the dive: read it as a page' }),
     );
@@ -136,10 +143,11 @@ describe('App: the page view as the alternative to the dive', () => {
     expect(window.scrollTo).not.toHaveBeenCalled();
   });
 
-  it('keeps a broken dive on the page when the visitor goes Back', () => {
+  it('keeps a broken dive on the page when the visitor goes Back', async () => {
     stage.throwOnRender = true;
     vi.spyOn(console, 'error').mockImplementation(() => undefined);
     render(<App />);
+    await screen.findByText(/stopped working on this device/);
     popTo('/');
     expect(screen.queryByTestId('canvas')).toBeNull();
     expect(screen.getByText(/stopped working on this device/)).toBeTruthy();

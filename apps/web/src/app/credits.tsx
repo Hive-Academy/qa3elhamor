@@ -2,9 +2,7 @@ import { shippedCredits, type ShippedCredit } from '@qa3elhamor/world-domain';
 import {
   CreditsDialog,
   CreditsList,
-  CreditsPlaque,
   CreditsUnavailable,
-  type CreditsPlaqueProps,
 } from '@qa3elhamor/world-ui';
 import { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import { useLocale } from './i18n/locale-context';
@@ -22,8 +20,11 @@ type CreditsResult =
  * a failure (a shipped asset with no attribution record) to the credit surfaces: the rest of
  * the site keeps working, the surface says the credits are unavailable, and the error is
  * logged. CI still fails loudly on it through the world-domain credits spec.
+ *
+ * The in-world plaque (`scene-credits.tsx`) uses it too; it lives apart because it is 3D and
+ * this module is part of the page view's first download.
  */
-function useCredits(source: CreditsSource): CreditsResult {
+export function useCredits(source: CreditsSource): CreditsResult {
   const result = useMemo<CreditsResult>(() => {
     try {
       return { ok: true, credits: source() };
@@ -102,23 +103,4 @@ export function SiteCreditsList({
   ) : (
     <CreditsUnavailable message={CHROME_COPY[locale].creditsUnavailable} />
   );
-}
-
-export type SceneCreditsProps = Omit<CreditsPlaqueProps, 'credits'> & {
-  readonly source?: CreditsSource;
-};
-
-/**
- * The in-world municipal notice board carrying the same credits. Mount as a child of
- * `<OceanWorld>` (scene-world units); the default spot is at the end of the dive. On a licence
- * error it renders nothing in the scene; `<SiteCredits>` reports the error in the page.
- */
-export function SceneCredits({
-  source = shippedCredits,
-  ...props
-}: SceneCreditsProps) {
-  const result = useCredits(source);
-  return result.ok ? (
-    <CreditsPlaque credits={result.credits} {...props} />
-  ) : null;
 }

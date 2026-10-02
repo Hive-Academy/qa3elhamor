@@ -6,6 +6,7 @@ import {
   type ComplaintFormValues,
   type ComplaintSubmitter,
 } from '../overlays/complaint-scroll';
+import type { WallCopy } from '../wall/wall-copy';
 import type { BureauWords } from './bureau-copy';
 import './bureau-scroll.css';
 
@@ -40,6 +41,8 @@ export interface BureauScrollProps {
   readonly sending?: boolean;
   /** The last attempt failed while the scroll was away: open with the failure notice. */
   readonly initialFailed?: boolean;
+  /** The public wall's words when it is on: the form offers pinning the complaint on it. */
+  readonly publicWall?: WallCopy;
 }
 
 /**
@@ -63,6 +66,7 @@ export function BureauScroll({
   onRollBack,
   sending = false,
   initialFailed = false,
+  publicWall,
 }: BureauScrollProps) {
   const root = useRef<HTMLDivElement>(null);
   // Unrolled: the visitor is here to type, so the first field takes focus (without scrolling
@@ -103,6 +107,7 @@ export function BureauScroll({
         onDraftChange={onDraftChange}
         onStamped={onStamped}
         initialFailed={initialFailed}
+        publicWall={publicWall}
       />
       {state === 'unrolled' && (
         <button

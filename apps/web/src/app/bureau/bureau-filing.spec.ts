@@ -91,6 +91,7 @@ describe('filing a complaint at the Bureau', () => {
   it('says the honest line for each delivery', () => {
     expect(filedLineOf(delivered)).toBe('filed');
     expect(filedLineOf(unsent)).toBe('filed-unsent');
+    expect(filedLineOf({ status: 'awaiting-moderation' })).toBe('filed-public');
   });
 
   it('unrolls the paper only once it has arrived in front of the visitor', () => {

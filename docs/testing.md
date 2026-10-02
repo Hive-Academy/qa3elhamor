@@ -91,6 +91,16 @@ diff in the report before refreshing the baseline.
 - Tests tagged `@desktop-only` (the long camera flights) are skipped on the mobile project to keep the run short.
 - The global test timeout is 5 minutes; a full local run takes about 13 minutes with 2 workers.
 
+## Slow runners
+
+CI runners have two cores and software GL, so a camera flight is several times slower than on a laptop.
+The in-world specs are written for that: controls inside the narrator's bubble and the landmark buttons
+pulse and move every frame, so Playwright's "stable" actionability check never settles; they are
+activated from the keyboard (`press()` and `openLandmark()` in `src/support/site.ts`), the canvas is
+awaited (`canvasReady`, it mounts lazily) and `test.slow()` triples the timeout when `CI` is set.
+To reproduce a slow runner locally: `E2E_CPU_THROTTLE=4 CI=1 npx nx run web-e2e:e2e -- --project=desktop`
+(Chrome DevTools CPU throttling, 4x).
+
 ## CI
 
 `.github/workflows/e2e.yml` runs on pushes to `main` and on pull requests: `npm ci`,

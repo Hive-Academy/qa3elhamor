@@ -4,7 +4,7 @@ import {
   type SiteCopy,
   type SiteProfile,
 } from '@qa3elhamor/content-domain';
-import { useId } from 'react';
+import { Suspense, useId } from 'react';
 import { SiteCreditsList, type CreditsSource } from '../credits';
 import {
   CitizenBio,
@@ -18,6 +18,8 @@ import {
   type ComplaintSubmitter,
 } from '../overlays/complaint-scroll';
 import { copyReader, textProps } from '../overlays/overlay-copy';
+import type { WallCopy } from '../wall/wall-copy';
+import type { WallPort } from '../wall/wall-port';
 import type { NarrationStop } from './page-content';
 import { OutboundLink, PageSection, type PagePartProps } from './page-parts';
 
@@ -58,12 +60,15 @@ export function AboutSection({
 export function ContactSection({
   copy,
   submitter,
+  publicWall,
   onDone,
   t,
   lang,
 }: PagePartProps & {
   readonly copy: SiteCopy;
   readonly submitter: ComplaintSubmitter;
+  /** The public wall's words when it is on: the form offers pinning the complaint on it. */
+  readonly publicWall?: WallCopy;
   readonly onDone: () => void;
 }) {
   return (
@@ -77,8 +82,32 @@ export function ContactSection({
           onClose={onDone}
           copy={copy}
           submitter={submitter}
+          publicWall={publicWall}
         />
       </div>
+    </PageSection>
+  );
+}
+
+/**
+ * The public complaints wall, when it is on: the dive's notice board, read here as a page
+ * section (the board's code and its first request load only when the page shows it).
+ */
+export function WallSection({
+  wall,
+  t,
+  lang,
+}: PagePartProps & { readonly wall: WallPort }) {
+  return (
+    <PageSection section="wall" title={t('wall')} kicker={wall.words[lang].wallIntro}>
+      <Suspense fallback={<p role="status">{wall.words[lang].loading}</p>}>
+        <wall.Board
+          apiUrl={wall.apiUrl}
+          lang={lang}
+          dir={lang === 'ar' ? 'rtl' : 'ltr'}
+          presentation="page"
+        />
+      </Suspense>
     </PageSection>
   );
 }

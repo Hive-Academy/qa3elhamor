@@ -5,8 +5,8 @@ import { describe, expect, it } from 'vitest';
 import { ComingSoonOverlay } from './coming-soon-overlay';
 import { DIVE_CONFIG } from './dive.config';
 import { effectivePresentation } from '@qa3elhamor/landmarks-domain';
+import { LANDMARKS } from './landmark-definitions';
 import {
-  LANDMARKS,
   LANDMARK_OVERLAYS,
   LANDMARK_SCENES,
   buildLandmarkRegistry,

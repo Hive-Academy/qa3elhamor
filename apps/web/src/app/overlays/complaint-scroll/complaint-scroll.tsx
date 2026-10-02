@@ -27,9 +27,11 @@ import {
   type ComplaintFormField,
   type ComplaintFormValues,
 } from './complaint-form-rules';
-import type {
-  ComplaintDelivery,
-  ComplaintSubmitter,
+import type { WallCopy } from '../../wall/wall-copy';
+import {
+  ComplaintSendError,
+  type ComplaintDelivery,
+  type ComplaintSubmitter,
 } from './complaint-submitter';
 import { SardineStamp } from './sardine-stamp';
 import './complaint-scroll.css';
@@ -38,6 +40,12 @@ import './complaint-scroll.css';
 export interface ComplaintScrollContent {
   readonly copy: SiteCopy;
   readonly submitter: ComplaintSubmitter;
+  /**
+   * The public complaints wall's words (`WALL.words`) when the wall is on: offer "Pin it on the
+   * public wall" beside the private default. `submitter` must then route public drafts
+   * (`routeByVisibility`). Absent: private only, exactly as without a wall.
+   */
+  readonly publicWall?: WallCopy;
 }
 
 /** How a host other than the landmark dialog presents the scroll (the Bureau's in-world visit). */
@@ -64,8 +72,11 @@ export type ComplaintScrollProps = LandmarkOverlayProps &
   ComplaintScrollContent &
   ComplaintScrollOptions;
 
+/** Why the last attempt failed, when the submitter could say (`ComplaintSendError`). */
+type FailureReason = 'rate-limited' | 'unavailable' | 'failed';
+
 type Phase =
-  | { readonly kind: 'editing'; readonly failed: boolean }
+  | { readonly kind: 'editing'; readonly failed: boolean; readonly reason?: FailureReason }
   | { readonly kind: 'sending' }
   | { readonly kind: 'stamped'; readonly delivery: ComplaintDelivery };
 
@@ -106,8 +117,9 @@ const speciesSuggestions = (text: string): string[] => [
 /**
  * The bureau's overlay: a paper-scroll complaint form (the site's contact form). Each field is
  * validated by the complaints domain's own value objects; a valid draft goes to the injected
- * `ComplaintSubmitter` under the Sardine Municipal Stamp. Private only: nothing here posts to
- * the public wall.
+ * `ComplaintSubmitter` under the Sardine Municipal Stamp. Private by default; with the public
+ * wall on (`publicWall`) the visitor may pin it on the wall instead, which drops the reply
+ * address (the domain allows none on a public complaint) and says it waits for moderation.
  */
 export function ComplaintScroll({
   copy,
@@ -120,8 +132,11 @@ export function ComplaintScroll({
   onDraftChange,
   onStamped,
   initialFailed = false,
+  publicWall,
 }: ComplaintScrollProps) {
-  const t = copyReader(copy, toContentLocale(locale));
+  const lang = toContentLocale(locale);
+  const t = copyReader(copy, lang);
+  const wallWords = publicWall?.[lang];
   const ids = useId();
   const fieldId = (field: ComplaintFormField) => `${ids}-${field}`;
 
@@ -144,7 +159,15 @@ export function ComplaintScroll({
   // Set synchronously: two presses before React re-renders into `sending` must not send twice.
   const sendingNow = useRef(false);
 
-  const issues = useMemo(() => complaintFormIssues(values), [values]);
+  const [visibility, setVisibility] = useState<'private' | 'public'>('private');
+  const pinning = wallWords !== undefined && visibility === 'public';
+  // A public complaint has no reply address: the field is hidden and its text set aside (kept,
+  // should the visitor switch back), never validated nor sent.
+  const sendable = useMemo<ComplaintFormValues>(
+    () => (pinning ? { ...values, replyEmail: '' } : values),
+    [values, pinning],
+  );
+  const issues = useMemo(() => complaintFormIssues(sendable), [sendable]);
   const fieldRefs = useRef(
     new Map<ComplaintFormField, HTMLInputElement | HTMLTextAreaElement>(),
   );
@@ -198,7 +221,8 @@ export function ComplaintScroll({
     setSubmitAttempted(true);
     // Each attempt reports only on itself: a refusal must not stack on the previous failure.
     clearFailure();
-    const draft = toComplaintDraft(values);
+    const valid = toComplaintDraft(sendable);
+    const draft = valid && pinning ? { ...valid, visibility: 'public' as const } : valid;
     if (!draft) {
       setRefusals((count) => count + 1);
       return;
@@ -215,7 +239,8 @@ export function ComplaintScroll({
         // The visitor sees the retry message; the cause is for whoever debugs the adapter.
         console.error('Complaint delivery failed.', error);
         sendingNow.current = false;
-        if (mounted.current) setPhase({ kind: 'editing', failed: true });
+        const reason = error instanceof ComplaintSendError ? error.reason : 'failed';
+        if (mounted.current) setPhase({ kind: 'editing', failed: true, reason });
       },
     );
   };
@@ -243,7 +268,9 @@ export function ComplaintScroll({
       <p role="status">
         {delivery.status === 'delivered'
           ? t('complaintSuccessBody')
-          : t('complaintPendingBody')}
+          : delivery.status === 'awaiting-moderation' && wallWords
+            ? wallWords.publicPending
+            : t('complaintPendingBody')}
       </p>
     </>
   );
@@ -400,8 +427,56 @@ export function ComplaintScroll({
           )}
           {phase.kind === 'editing' && phase.failed && (
             <p role="alert" className="complaint-scroll__summary">
-              {t('complaintFailureBody')}
+              {phase.reason === 'rate-limited' && wallWords
+                ? wallWords.rateLimited
+                : phase.reason === 'unavailable' && wallWords
+                  ? wallWords.wallUnavailable
+                  : t('complaintFailureBody')}
             </p>
+          )}
+
+          {wallWords && (
+            <fieldset className="complaint-scroll__visibility">
+              <legend className="complaint-scroll__label">
+                {wallWords.visibilityLegend}
+              </legend>
+              {(['private', 'public'] as const).map((option) => (
+                // The hint sits beside the label, not in it: it describes the choice (through
+                // aria-describedby) without becoming part of the radio's label text.
+                <div key={option} className="complaint-scroll__choice">
+                  <input
+                    id={`${ids}-visibility-${option}-input`}
+                    type="radio"
+                    name={`${ids}-visibility`}
+                    value={option}
+                    checked={visibility === option}
+                    aria-describedby={`${ids}-visibility-${option}`}
+                    onChange={() => {
+                      setVisibility(option);
+                      clearFailure();
+                    }}
+                  />
+                  <span className="complaint-scroll__choice-text">
+                    <label
+                      htmlFor={`${ids}-visibility-${option}-input`}
+                      className="complaint-scroll__choice-name"
+                    >
+                      {option === 'private'
+                        ? wallWords.visibilityPrivate
+                        : wallWords.visibilityPublic}
+                    </label>
+                    <span
+                      id={`${ids}-visibility-${option}`}
+                      className="complaint-scroll__hint"
+                    >
+                      {option === 'private'
+                        ? wallWords.visibilityPrivateHint
+                        : wallWords.visibilityPublicHint}
+                    </span>
+                  </span>
+                </div>
+              ))}
+            </fieldset>
           )}
 
           <div className="complaint-scroll__field">
@@ -458,6 +533,7 @@ export function ComplaintScroll({
             </div>
           </div>
 
+          {!pinning && (
           <div className="complaint-scroll__field">
             {label('replyEmail')}
             <input
@@ -477,6 +553,7 @@ export function ComplaintScroll({
             {counter('replyEmail')}
             {error('replyEmail')}
           </div>
+          )}
 
           <div className="complaint-scroll__submit-row">
             <button

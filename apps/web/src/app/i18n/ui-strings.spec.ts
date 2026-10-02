@@ -7,6 +7,8 @@ import { IN_WORLD_CARD_COPY } from '../overlays/citizenship-card/citizenship-car
 import { PAGE_VIEW_COPY } from '../page-view/page-copy';
 import { PINEAPPLE_VISIT_COPY } from '../pineapple/pineapple-copy';
 import { TIKI_VISIT_COPY } from '../tiki/tiki-copy';
+import { NOTICE_BOARD_COPY } from '../wall/notice-board-copy';
+import { WALL_COPY } from '../wall/wall-copy';
 import { CHROME_COPY, LOCALE_NAMES } from './ui-strings';
 
 /** Every interface-word table the site renders. A new table is added here. */
@@ -19,6 +21,8 @@ const TABLES = {
   BUREAU_VISIT_COPY,
   IN_WORLD_CARD_COPY,
   PAGE_VIEW_COPY,
+  WALL_COPY,
+  NOTICE_BOARD_COPY,
 } as const;
 
 /** Strings keyed by id, each carrying every locale (`{ en, ar }` per entry). */

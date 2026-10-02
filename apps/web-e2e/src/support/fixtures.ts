@@ -40,6 +40,12 @@ export const test = base.extend<Fixtures>({
         if (message.type() === 'error') errors.push(message.text());
       });
       page.on('pageerror', (error) => errors.push(`pageerror: ${error.message}`));
+      // E2E_CPU_THROTTLE=4 slows the page 4x (CDP), to reproduce a slow CI runner locally.
+      const throttle = Number(process.env['E2E_CPU_THROTTLE'] ?? 1);
+      if (throttle > 1) {
+        const cdp = await page.context().newCDPSession(page);
+        await cdp.send('Emulation.setCPUThrottlingRate', { rate: throttle });
+      }
       await page.addInitScript(() => {
         window.__cspViolations = [];
         document.addEventListener('securitypolicyviolation', (event) => {

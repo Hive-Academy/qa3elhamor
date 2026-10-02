@@ -4,23 +4,13 @@ import type {} from '@react-three/fiber';
 import { useEffect, useMemo } from 'react';
 import { NOTICE } from './notice-layout.js';
 import { DEFAULT_NOTICE_TEXT, createNoticeTexture, type NoticeText } from './notice-texture.js';
-
-export type PlaqueVec3 = readonly [number, number, number];
-
-/**
- * Default spot, in scene-world units (mount inside `<OceanWorld>`/`<WorldSpace>`): on the
- * seabed at the end of the dive. The app derives the dive's final camera pose from this board
- * (`finalePose` in `apps/web/src/app/dive.config.ts`), so moving the board moves the finale.
- */
-export const DEFAULT_PLAQUE_POSITION: PlaqueVec3 = [-1.27, 0.05, 0.9];
-/** Default point the notice turns to face: the dive's final camera position. */
-export const DEFAULT_PLAQUE_FACING: PlaqueVec3 = [-1.1, 0.14, 0.7];
-/** Default board width in scene-world units (5 world units at `WORLD_SCALE` 20). */
-export const DEFAULT_PLAQUE_WIDTH = 0.25;
-
-/** Heading (rotation about +y) that turns the board's front (+z) toward `facing`. */
-export const plaqueYaw = (position: PlaqueVec3, facing: PlaqueVec3): number =>
-  Math.atan2(facing[0] - position[0], facing[2] - position[2]);
+import {
+  DEFAULT_PLAQUE_FACING,
+  DEFAULT_PLAQUE_POSITION,
+  DEFAULT_PLAQUE_WIDTH,
+  plaqueYaw,
+  type PlaqueVec3,
+} from './plaque-placement.js';
 
 export interface CreditsPlaqueProps {
   /** The credits to show; `shippedCredits()` from `@qa3elhamor/world-domain`. */

@@ -5,6 +5,7 @@ import {
   bubble,
   dive,
   landmarkButton,
+  press,
   skipDialogue,
 } from './support/site';
 
@@ -27,7 +28,7 @@ for (const visit of VISITS) {
     // (and a line may advance on its own), so retry until the dots show line 2 or later.
     const next = speech.getByRole('button', { name: /^Next/ });
     await expect(async () => {
-      if (await next.isVisible()) await next.click({ timeout: 2_000 });
+      if (await next.isVisible()) await press(next);
       await expect(speech.getByRole('list', { name: /^Line ([2-9]|\d\d+) of \d+$/ })).toBeVisible({
         timeout: 2_000,
       });
@@ -46,13 +47,13 @@ for (const visit of VISITS) {
     await page.keyboard.press('ArrowRight');
     await expect(objects.nth(1)).toBeFocused();
     await expect(objects.nth(1)).toHaveAttribute('aria-expanded', 'true');
-    await speech.getByRole('button', { name: /^Back to the tour/ }).click();
+    await press(speech.getByRole('button', { name: /^Back to the tour/ }));
     await expect(objects.nth(1)).toHaveAttribute('aria-expanded', 'false');
 
     // The full view, and Escape back to the guide with focus on the button that opened it.
     await skipDialogue(page, visit.narrator).catch(() => undefined);
     const openFull = speech.getByRole('button', { name: visit.openFull });
-    await openFull.click();
+    await press(openFull);
     await expect(page.getByRole('button', { name: 'Back to the guide' })).toBeVisible();
     await expect(page.getByRole('article', { name: visit.fullArticle }).first()).toBeVisible();
     await page.keyboard.press('Escape');
@@ -60,7 +61,7 @@ for (const visit of VISITS) {
     await expect(openFull).toBeFocused();
 
     // Leave: the narrator says goodbye and focus goes back to the landmark's nav button.
-    await speech.getByRole('button', { name: 'Back to the dive' }).click();
+    await press(speech.getByRole('button', { name: 'Back to the dive' }));
     await expect(landmarkButton(page, visit.nav)).toBeFocused();
   });
 }

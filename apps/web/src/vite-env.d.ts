@@ -11,6 +11,11 @@ interface ImportMetaEnv {
   readonly VITE_FORMSPREE_FORM_ID?: string;
   /** `true` swaps in the bundled SpongeBob/Patrick narrators (`narrators.config.ts`). */
   readonly VITE_BUNDLED_CHARACTERS?: string;
+  /**
+   * The complaints wall API root (`/api`, or `https://wall.example.org/api`). Unset = the
+   * public wall is off: nothing of it renders and nothing calls it (`app/wall/wall-env.ts`).
+   */
+  readonly VITE_WALL_API_URL?: string;
 }
 
 interface ImportMeta {

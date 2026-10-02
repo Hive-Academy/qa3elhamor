@@ -6,6 +6,7 @@ import { textDirection } from '@qa3elhamor/landmarks-domain';
 import { isTextEntry } from '@qa3elhamor/landmarks-ui';
 import type { LandmarkSceneProps } from '@qa3elhamor/landmarks-feature';
 import {
+  Suspense,
   useCallback,
   useEffect,
   useMemo,
@@ -54,6 +55,7 @@ import {
   type ComplaintSubmitter,
 } from '../overlays/complaint-scroll';
 import { copyReader, toContentLocale } from '../overlays/overlay-copy';
+import type { WallPort } from '../wall/wall-port';
 import { BUREAU_VISIT_COPY, FILED_LINES } from './bureau-copy';
 import {
   INITIAL_FILING,
@@ -66,7 +68,7 @@ import { BureauHud } from './bureau-hud';
 import { scrollEscape } from './bureau-keys';
 import { bureauLayout } from './bureau-layout';
 import { BureauScroll } from './bureau-scroll';
-import { BureauSheet } from './bureau-sheet';
+import { BureauSheet, BureauWallSheet } from './bureau-sheet';
 import { ClerkWindow } from './clerk-window';
 import { MessageBottle } from './message-bottle';
 
@@ -77,6 +79,11 @@ export interface BureauSceneContent {
   readonly narration: LandmarkNarration;
   readonly narrator: NarratorChoice;
   readonly stop: StopView;
+  /**
+   * The public complaints wall (`WALL`), or `null` when it is off: then the visit offers no
+   * "Read the public wall" and the form no public choice, exactly as before the wall existed.
+   */
+  readonly wall: WallPort | null;
 }
 
 /** Where the clerk window is on the Bureau (fraction of its height): the scroll comes out there. */
@@ -100,6 +107,12 @@ const SHEET_BELOW_HEIGHT_PX = 560;
  * Stamped: the Sardine Municipal Stamp slams down, the paper rolls up into a bottle that floats
  * to the surface, and the President says where it is going (honestly, when no post office is
  * wired up). A failed delivery keeps the text, with the form's own failure notice.
+ *
+ * With the public wall on, the President's last line also offers "Read the public wall": the
+ * Municipal Notice Wall (a stone-framed cork board of approved complaints, `wall/notice-board`)
+ * floats out of the Bureau as the scroll does, a sheet on a phone. It is part of this visit
+ * rather than a fifth dive stop; the camera stays on the Bureau. The board's code and its first
+ * request load only when the visitor asks for it.
  *
  * It composes the narrated-visit kit's parts (`narrators/`) rather than its object tour: its
  * full view is a form, with a performance of its own. The dialog stays the fallback.
@@ -126,7 +139,7 @@ function BureauVisit({
   close,
   content,
 }: LandmarkSceneProps & { readonly content: BureauSceneContent }) {
-  const { copy, submitter, narration, narrator: choice, stop } = content;
+  const { copy, submitter, narration, narrator: choice, stop, wall } = content;
   const open = phase === 'focused';
   const lang = toContentLocale(locale);
   const dir = textDirection(locale);
@@ -185,6 +198,31 @@ function BureauVisit({
     file({ type: 'unroll' });
   }, []);
   const rollBack = useCallback(() => file({ type: 'roll-back' }), []);
+
+  // --- the public notice wall (only when the wall is on) ------------------------------------
+  const [wallOpen, setWallOpen] = useState(false);
+  useEffect(() => {
+    if (!open) setWallOpen(false);
+  }, [open]);
+  const openWall = useCallback(() => {
+    dispatch({ type: 'resume' });
+    setWallOpen(true);
+  }, []);
+  const closeWall = useCallback(() => setWallOpen(false), []);
+  const wallOut = wall !== null && wallOpen && !out;
+  // Esc on the board: back to the President (a note open on it closes first, on its own).
+  useEffect(() => {
+    if (!wallOut) return undefined;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape' || event.isComposing) return;
+      const target = event.target instanceof Element ? event.target : null;
+      if (target?.closest('.notice-detail')) return;
+      event.preventDefault();
+      setWallOpen(false);
+    };
+    window.addEventListener('keydown', onKeyDown, true);
+    return () => window.removeEventListener('keydown', onKeyDown, true);
+  }, [wallOut]);
 
   useEffect(() => {
     if (filing.stage === 'stamped') {
@@ -305,7 +343,22 @@ function BureauVisit({
     onDraftChange,
     onStamped,
     onRollBack: rollBack,
+    publicWall: wall?.words,
   };
+  const board = (presentation: 'in-world' | 'sheet') =>
+    wall && (
+      <Suspense fallback={null}>
+        <wall.Board
+          apiUrl={wall.apiUrl}
+          lang={lang}
+          dir={dir}
+          presentation={presentation}
+          onClose={closeWall}
+          closeLabel={words.closeWall}
+          autoFocus
+        />
+      </Suspense>
+    );
 
   return (
     <>
@@ -378,6 +431,8 @@ function BureauVisit({
           onLeave={close}
           scrollOut={open && out}
           onOpenScroll={openScroll}
+          onOpenWall={wall ? openWall : undefined}
+          wallOut={open && wallOut}
           words={words}
           fileAnother={t('complaintAnotherLabel')}
           filedTopic={t('complaintSuccessTitle')}
@@ -390,10 +445,26 @@ function BureauVisit({
                 state={paperStateOf(filing.stage, 'arrived')}
                 {...scrollProps}
               />
+            ) : sheetMode && open && wallOut ? (
+              <BureauWallSheet layoutHeight={size.height}>
+                {board('sheet')}
+              </BureauWallSheet>
             ) : null
           }
         />
       </Html>
+
+      {!sheetMode && wall && (
+        <InWorldCard
+          open={open && wallOut}
+          sceneLayer={sceneLayer}
+          bounds={bounds}
+          doorHeight={WINDOW_HEIGHT}
+          liftPx={PAPER_LIFT_PX}
+        >
+          {() => board('in-world')}
+        </InWorldCard>
+      )}
 
       {!sheetMode && (
         <InWorldCard

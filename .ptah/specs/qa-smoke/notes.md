@@ -109,3 +109,16 @@ Next button (which completes a half-typed line before advancing); CI `retries: 1
 
 Re-run, twice, desktop+nowebgl+pending projects for smoke, bureau, nowebgl, locale, wall, bureau-pending: 15 passed, 0 failed both times. `nx run-many -t lint,typecheck -p web-e2e --skipSync` passes. The full suite and visual/mobile projects were not re-run (the URL changes there are only `lang=en`).
 - Revision 1 follow-up (i18n URL rewrite and new toggle names): `locale.spec.ts` selects the toggle buttons by `/^EN/` and `/^عربي/` and now also asserts the switch rewrites the URL to `lang=en` while keeping `quality=high`. Locale spec passed twice, lint and typecheck pass.
+
+## Revision 2 — CI (run 36972981488: 6 desktop in-world failures on ubuntu)
+
+Diagnosis (from the failed-run log, `--log-failed`): every failure was Playwright's actionability check, not the app. `Skip`, `Next`, the other bubble buttons and the `LandmarkNav` buttons were "visible, enabled" but `element is not stable`: the bubble follows a bobbing narrator and the nav buttons pulse, and at a few fps (software GL, 2 cores) two consecutive frames never agree, so click retried until 30 s (or 2 s inside `toPass`). The `Timeout 90000ms ... predicate` was the `Next` loop failing the same way. Dialog-variant and mobile specs passed because they have no moving targets.
+
+Fixes (apps/web-e2e only):
+- `press(locator, timeout)`: wait visible, `focus()`, press Enter; used for every bubble control (Skip, Next, Back to the tour/dive, open full view, File a complaint, wall CTAs) and `openLandmark(page, nav)` for nav buttons (waits up to 120 s for the shell). No pointer clicks on moving things; stamp already used the keyboard.
+- `canvasReady(page)` (120 s) replaces `canvas toBeVisible` in smoke, wall, visual, fallback, so nothing assumes the canvas at first paint (lazy 3D shell safe).
+- `test.slow()` inside `dive()` when `CI` is set (3x timeout for in-world flows only); 120 s timeouts on the stamped heading/message; job timeout 75 min.
+- `E2E_CPU_THROTTLE=N` auto-fixture (CDP `Emulation.setCPUThrottlingRate`) to emulate the runner; documented in docs/testing.md ("Slow runners").
+- Also hardened the two in-world clicks in the other agent's new `wall.spec.ts` with `press`.
+
+Verification: at 4x throttle with `CI=1`, retries 0, desktop+pending (dive, bureau, reduced-motion, smoke, pending): before the fix 6 of 7 in-world flows passed/failed intermittently on nav-button clicks; after the fix run 1 had one failure (stamped message timeout 30 s, fixed to 120 s), run 2 18/18, and the in-world bureau pair then passed again. Lint and typecheck pass. Not yet confirmed on the real ubuntu runner; if it still flakes, the documented fallback is to move `@desktop-only` flows to a nightly/dispatch job.

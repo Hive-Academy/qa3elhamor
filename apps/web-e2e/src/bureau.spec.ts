@@ -10,7 +10,7 @@ import {
   stamp,
   stampButton,
 } from './support/contact';
-import { BUREAU, DIVE_URL, bubble, dive, landmarkButton, skipDialogue } from './support/site';
+import { BUREAU, DIVE_URL, bubble, dive, openLandmark, press, skipDialogue } from './support/site';
 
 // Runs against the `wired` build (VITE_CONTACT_PROVIDER=web3forms with a fake key). Against a
 // deployed site (E2E_BASE_URL) it only makes sense when that site is built with a provider.
@@ -26,7 +26,7 @@ test.describe('Complaints Bureau, in the world', { tag: '@desktop-only' }, () =>
     const calls = await mockProvider(page, 'delivered');
     await dive(page, BUREAU.nav);
     await skipDialogue(page, BUREAU.narrator);
-    await bubble(page, BUREAU.narrator).getByRole('button', { name: 'File a complaint' }).click();
+    await press(bubble(page, BUREAU.narrator).getByRole('button', { name: 'File a complaint' }));
 
     const scroll = page.getByRole('group', { name: 'Complaint scroll' });
     await expect(scroll).toHaveAttribute('data-state', 'unrolled', { timeout: 120_000 });
@@ -40,10 +40,12 @@ test.describe('Complaints Bureau, in the world', { tag: '@desktop-only' }, () =>
     await stamp(scroll);
 
     await expect(scroll).toHaveAttribute('data-state', 'stamped', { timeout: 120_000 });
-    await expect(scroll.getByRole('heading', { name: 'Complaint stamped' })).toBeVisible();
+    await expect(scroll.getByRole('heading', { name: 'Complaint stamped' })).toBeVisible({
+      timeout: 120_000,
+    });
     await expect(
       scroll.getByText('The Bureau has your complaint. Expect a reply before the next tide.'),
-    ).toBeVisible();
+    ).toBeVisible({ timeout: 120_000 });
 
     expectProviderCalls(calls, 1);
     expect(calls[0]?.payload).toMatchObject({
@@ -63,7 +65,7 @@ test.describe('Complaints Bureau, in the world', { tag: '@desktop-only' }, () =>
     const calls = await mockProvider(page, 'failed');
     await dive(page, BUREAU.nav);
     await skipDialogue(page, BUREAU.narrator);
-    await bubble(page, BUREAU.narrator).getByRole('button', { name: 'File a complaint' }).click();
+    await press(bubble(page, BUREAU.narrator).getByRole('button', { name: 'File a complaint' }));
 
     const scroll = page.getByRole('group', { name: 'Complaint scroll' });
     await expect(scroll).toHaveAttribute('data-state', 'unrolled', { timeout: 120_000 });
@@ -87,7 +89,7 @@ test.describe('Complaints Bureau, as a dialog', () => {
   test('delivered: the dialog shows the stamped complaint and offers another', async ({ page }) => {
     const calls = await mockProvider(page, 'delivered');
     await page.goto(DIVE_URL);
-    await landmarkButton(page, BUREAU.nav).click();
+    await openLandmark(page, BUREAU.nav);
 
     const dialog = page.getByRole('dialog', { name: BUREAU.region });
     await fillComplaint(dialog);
@@ -106,7 +108,7 @@ test.describe('Complaints Bureau, as a dialog', () => {
     diagnostics.allow(/Complaint delivery failed/);
     await mockProvider(page, 'failed');
     await page.goto(DIVE_URL);
-    await landmarkButton(page, BUREAU.nav).click();
+    await openLandmark(page, BUREAU.nav);
 
     const dialog = page.getByRole('dialog', { name: BUREAU.region });
     await fillComplaint(dialog);
@@ -125,7 +127,7 @@ test.describe('Complaints Bureau, as a dialog', () => {
   test('empty form: validation errors and nothing is sent', async ({ page }) => {
     const calls = await mockProvider(page, 'delivered');
     await page.goto(DIVE_URL);
-    await landmarkButton(page, BUREAU.nav).click();
+    await openLandmark(page, BUREAU.nav);
 
     const dialog = page.getByRole('dialog', { name: BUREAU.region });
     await stampButton(dialog).click();

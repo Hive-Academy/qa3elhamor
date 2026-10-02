@@ -1,5 +1,5 @@
 import { expect, test } from './support/fixtures';
-import { BUREAU, DIVE_URL, bubble, dive, landmarkButton, skipDialogue } from './support/site';
+import { BUREAU, DIVE_URL, bubble, dive, openLandmark, press, skipDialogue } from './support/site';
 import { fillComplaint, forbidProvider, stamp, stampButton } from './support/contact';
 
 // Runs against the `bare` build: no VITE_CONTACT_PROVIDER, the default for a fork or a deploy
@@ -13,7 +13,7 @@ test.describe('as a dialog', () => {
   test('an unconfigured Bureau is honest that the post office is not open', async ({ page }) => {
     const sent = await forbidProvider(page);
     await page.goto(DIVE_URL);
-    await landmarkButton(page, BUREAU.nav).click();
+    await openLandmark(page, BUREAU.nav);
 
     const dialog = page.getByRole('dialog', { name: BUREAU.region });
     await fillComplaint(dialog);
@@ -38,7 +38,7 @@ test('in the world, the unrolled scroll says the same and sends nothing', async 
   const sent = await forbidProvider(page);
   await dive(page, BUREAU.nav);
   await skipDialogue(page, BUREAU.narrator);
-  await bubble(page, BUREAU.narrator).getByRole('button', { name: 'File a complaint' }).click();
+  await press(bubble(page, BUREAU.narrator).getByRole('button', { name: 'File a complaint' }));
 
   const scroll = page.getByRole('group', { name: 'Complaint scroll' });
   await expect(scroll).toHaveAttribute('data-state', 'unrolled', { timeout: 120_000 });

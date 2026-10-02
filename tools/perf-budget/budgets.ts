@@ -13,11 +13,11 @@ export const BUDGETS = {
    * Gzipped size of the JavaScript the first view downloads: the entry chunk plus everything it
    * imports statically (modulepreload links included). Dynamic imports are excluded.
    *
-   * Ceiling today = measured size (389 KiB) + ~15 % headroom. The real target is ~250 KiB once the 3D
-   * shell is lazy-loaded behind the page-view fallback (see .ptah/specs/perf-budget/notes.md);
-   * ratchet this number down when that lands.
+   * The 3D dive is a lazy chunk (`apps/web/src/app/dive-shell-loader.tsx`), so this is React,
+   * the page view and the dive's chrome. Ceiling = measured size (95.7 KiB) + ~10 % headroom.
+   * Before the split it was 415 KiB against a 450 KiB ceiling (.ptah/specs/lazy-shell/notes.md).
    */
-  initialJsGzipBytes: 450 * KiB,
+  initialJsGzipBytes: 105 * KiB,
 
   /** Raw (minified, ungzipped) size of any single JavaScript chunk. */
   maxChunkBytes: 850 * KiB,
@@ -25,3 +25,11 @@ export const BUDGETS = {
   /** Gzipped size of the CSS the first view downloads. */
   initialCssGzipBytes: 20 * KiB,
 } as const;
+
+/**
+ * Chunks no page may load up front: the 3D vendor groups (`codeSplitting` in
+ * apps/web/vite.config.mts). Only the dive's dynamic import reaches them, so the page view (no
+ * WebGL, `?view=page`) and moderation.html never download three, R3F or drei.
+ */
+export const FIRST_VIEW_FORBIDDEN_CHUNK =
+  /(?:^|\/)(?:vendor-(?:three|r3f|drei)|dive-shell)-[^/]*\.js$/;
