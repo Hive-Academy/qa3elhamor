@@ -6,3 +6,4 @@ export * from './lib/credits-plaque.js';
 export * from './lib/credits-list.js';
 export * from './lib/credits-dialog.js';
 export * from './lib/credits-unavailable.js';
+export * from './lib/ocean-text/index.js';

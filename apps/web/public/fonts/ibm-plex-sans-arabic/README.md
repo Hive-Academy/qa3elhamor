@@ -10,4 +10,7 @@ font and a browser downloads a file only when the page shows Arabic).
   `IBMPlexSansArabic-SemiBold.woff2` (weights from 501), shipped **unmodified**. "Plex" is a
   Reserved Font Name under the licence, so the files must not be subset or otherwise altered
   under this name.
+- `IBMPlexSansArabic-SemiBold.ttf` is a lossless container conversion of the SemiBold WOFF2
+  (same glyph tables, nothing subset or edited) for the in-world SDF text, because troika
+  cannot read WOFF2. Converter: `.ptah/specs/ocean-text/tools/woff2-to-ttf.cjs`.
 - Licence: SIL Open Font License 1.1, in `LICENSE.txt` next to the fonts.

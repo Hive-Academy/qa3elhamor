@@ -282,6 +282,8 @@ export function siteTemplate({
       order: 'post',
       handler(html, ctx) {
         const page = ctx.filename.replace(/\\/gu, '/').split('/').pop();
+        // Dev-only preview pages (never in the build inputs) keep their own <head>.
+        if (ctx.server && page?.endsWith('-preview.html')) return html;
         if (page !== 'index.html' && page !== 'moderation.html') {
           throw new SiteConfigError(`no <head> recipe for ${page ?? ctx.filename}`);
         }

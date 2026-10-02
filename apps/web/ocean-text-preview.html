@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <!--
+      DEV-ONLY preview of the underwater 3D text (libs/world/ui/src/lib/ocean-text). Not a build
+      input (vite.config.mts lists index.html and moderation.html only), so it never ships.
+      Serve it with: node .ptah/specs/ocean-text/tools/serve-preview.mjs  (port 4470)
+      Query: ?shot=all|en|ar|title|reveal  &reveal=0..1  &type=1 (typewriter)  &rm=1 (reduced motion)
+    -->
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Ocean text preview</title>
+    <style>
+      html,
+      body,
+      #root {
+        margin: 0;
+        height: 100%;
+        background: #021a2b;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/dev/ocean-text-preview.tsx"></script>
+  </body>
+</html>
