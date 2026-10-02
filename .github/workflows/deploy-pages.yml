@@ -48,6 +48,8 @@ jobs:
       VITE_CONTACT_PROVIDER: ${{ vars.VITE_CONTACT_PROVIDER }}
       VITE_WEB3FORMS_ACCESS_KEY: ${{ secrets.VITE_WEB3FORMS_ACCESS_KEY }}
       VITE_FORMSPREE_FORM_ID: ${{ vars.VITE_FORMSPREE_FORM_ID }}
+      # Mixed narrator cast (SpongeBob/Patrick); off unless the repository variable is 'true'.
+      VITE_BUNDLED_CHARACTERS: ${{ vars.VITE_BUNDLED_CHARACTERS }}
       # The wall stays off on a static host: VITE_WALL_API_URL is deliberately not set here.
     steps:
       # Fail fast and loudly, before spending minutes on a build that cannot be published.

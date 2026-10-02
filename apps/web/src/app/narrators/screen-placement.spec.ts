@@ -122,3 +122,49 @@ describe('placePanel', () => {
     expect(cramped.top + 260).toBeLessThanOrEqual(844 - 86);
   });
 });
+
+describe('placePanel for things that are not round', () => {
+  const size = { width: 300, height: 200 };
+
+  it('clears a tall, narrow tablet by its own half width and half height', () => {
+    const extent = { x: 70, y: 90 };
+    const right = placePanel({
+      centre: { x: 900, y: 600 },
+      radius: 90,
+      extent,
+      hub: { x: 700, y: 600 },
+      size,
+      viewport,
+      insets,
+      gap: 12,
+    });
+    expect(right).toMatchObject({ side: 'right', left: 900 + 70 + 12 });
+    const above = placePanel({
+      centre: { x: 900, y: 600 },
+      radius: 90,
+      extent,
+      hub: { x: 700, y: 600 },
+      size,
+      viewport,
+      insets,
+      gap: 12,
+      prefer: 'above',
+    });
+    expect(above).toMatchObject({ side: 'above', top: 600 - 90 - 12 - 200 });
+  });
+
+  it('falls back from a preferred side that has no room', () => {
+    const place = placePanel({
+      centre: { x: 900, y: 200 },
+      radius: 90,
+      extent: { x: 70, y: 90 },
+      hub: { x: 700, y: 200 },
+      size,
+      viewport,
+      insets,
+      gap: 12,
+      prefer: 'above',
+    });
+    expect(place.side).toBe('right');
+  });
+});

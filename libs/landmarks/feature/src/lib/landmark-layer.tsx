@@ -99,6 +99,8 @@ const HOVER_LIFT = 0.006;
 const BOB_AMPLITUDE = 0.0015;
 const BEACON_GAP = 0.012;
 const HOVER_EMISSIVE_INTENSITY = 0.35;
+/** While open the model is framed and lit for reading; a full hover glow washes it out. */
+const OPEN_EMISSIVE_INTENSITY = 0.08;
 const DEFAULT_BEACON_RANGE = [45, 80] as const;
 const NO_RAYCAST: Mesh['raycast'] = () => undefined;
 
@@ -234,7 +236,12 @@ function LandmarkShell({ definition, model, options }: ShellProps) {
 
   useCursor(phase === 'hovered');
   useInstanceMaterials(model);
-  useHoverTint(model, lit, hoverTint, HOVER_EMISSIVE_INTENSITY);
+  useHoverTint(
+    model,
+    lit,
+    hoverTint,
+    phase === 'hovered' ? HOVER_EMISSIVE_INTENSITY : OPEN_EMISSIVE_INTENSITY,
+  );
   useBeaconVisibility({
     anchor: anchorRef,
     element: beaconRef,

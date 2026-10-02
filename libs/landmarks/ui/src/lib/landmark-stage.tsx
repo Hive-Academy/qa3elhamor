@@ -9,6 +9,42 @@ export const LANDMARK_AUTOFOCUS_ATTRIBUTE = 'data-landmark-autofocus';
 /** Page scroll, in CSS pixels, that counts as "scrolling away" from an open stage. */
 export const DEFAULT_LEAVE_SCROLL_PX = 64;
 
+/**
+ * After a text field in the scene loses focus, page scroll stays "not leaving" this long (ms):
+ * an on-screen keyboard closing scrolls the page back.
+ */
+export const TEXT_ENTRY_SCROLL_GRACE_MS = 1000;
+
+const NOT_TYPED_INTO = new Set([
+  'button',
+  'checkbox',
+  'color',
+  'file',
+  'hidden',
+  'image',
+  'radio',
+  'range',
+  'reset',
+  'submit',
+]);
+
+/** Whether `element` takes typed text (and so may raise an on-screen keyboard or an IME). */
+export function isTextEntry(element: Element | EventTarget | null): boolean {
+  if (!(element instanceof HTMLElement)) return false;
+  if (
+    element instanceof HTMLTextAreaElement ||
+    element instanceof HTMLSelectElement
+  )
+    return true;
+  if (element instanceof HTMLInputElement)
+    return !NOT_TYPED_INTO.has(element.type.toLowerCase());
+  return element.isContentEditable === true;
+}
+
+/** An Escape that belongs to an IME (cancelling a composition), not to the page. */
+export const isComposingKey = (event: KeyboardEvent): boolean =>
+  event.isComposing || event.keyCode === 229;
+
 export interface LandmarkStageProps {
   readonly open: boolean;
   /**
@@ -37,6 +73,9 @@ export interface LandmarkStageProps {
   /**
    * Closes with reason `scroll` once the page has scrolled this many pixels while open, so
    * scrolling on is a way out. `false` turns it off. Default `DEFAULT_LEAVE_SCROLL_PX`.
+   * Suspended while a text field in the scene has focus (and for
+   * `TEXT_ENTRY_SCROLL_GRACE_MS` after): an on-screen keyboard scrolls the page (iOS Safari)
+   * without the visitor meaning to leave.
    */
   readonly leaveOnScroll?: number | false;
 }
@@ -48,8 +87,10 @@ export interface LandmarkStageProps {
  *
  * Focus: on open it moves to the leave button, so keyboard users land somewhere meaningful at
  * once; when the scene's DOM arrives with an element marked `data-landmark-autofocus` and focus
- * has not moved since, focus goes there instead. Esc anywhere on the page closes, as does
- * scrolling the page away (`leaveOnScroll`). On close, focus returns to the opener (or
+ * has not moved since, focus goes there instead. Esc anywhere on the page closes (not one the
+ * scene already handled, nor one cancelling an IME composition), as does scrolling the page
+ * away (`leaveOnScroll`, suspended while the visitor types in the scene, whose on-screen
+ * keyboard may scroll the page). On close, focus returns to the opener (or
  * `returnFocus()`), unless something newer has taken it: a switch to another landmark in this
  * stage, or a modal dialog that opened in its place.
  */
@@ -164,7 +205,12 @@ export function LandmarkStage({
   useEffect(() => {
     if (!open) return;
     const onKeyDown = (event: globalThis.KeyboardEvent) => {
-      if (event.key === 'Escape' && !event.defaultPrevented)
+      // An Escape that cancels an IME composition is the input method's, not a way out.
+      if (
+        event.key === 'Escape' &&
+        !event.defaultPrevented &&
+        !isComposingKey(event)
+      )
         onCloseRef.current('escape');
     };
     window.addEventListener('keydown', onKeyDown);
@@ -173,13 +219,36 @@ export function LandmarkStage({
 
   useEffect(() => {
     if (!open || leaveOnScroll === false) return;
-    const start = window.scrollY;
+    let start = window.scrollY;
+    let typingUntil = 0;
+    const inScene = (target: EventTarget | null): boolean =>
+      target instanceof Node && Boolean(slotRef.current?.contains(target));
+    const typing = (): boolean => {
+      const active = document.activeElement;
+      return (
+        (isTextEntry(active) && inScene(active)) ||
+        performance.now() < typingUntil
+      );
+    };
+    const onFocusOut = (event: FocusEvent) => {
+      if (isTextEntry(event.target) && inScene(event.target))
+        typingUntil = performance.now() + TEXT_ENTRY_SCROLL_GRACE_MS;
+    };
     const onScroll = () => {
+      // The keyboard moved the page, not the visitor: measure from here on.
+      if (typing()) {
+        start = window.scrollY;
+        return;
+      }
       if (Math.abs(window.scrollY - start) >= leaveOnScroll)
         onCloseRef.current('scroll');
     };
     window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
+    document.addEventListener('focusout', onFocusOut, true);
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      document.removeEventListener('focusout', onFocusOut, true);
+    };
   }, [open, leaveOnScroll]);
 
   const setSlot = (element: HTMLDivElement | null) => {

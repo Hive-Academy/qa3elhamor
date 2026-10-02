@@ -24,6 +24,45 @@ export interface ScreenInsets {
 
 export const NO_INSETS: ScreenInsets = { top: 0, right: 0, bottom: 0, left: 0 };
 
+/** The least room a speech bubble keeps from the browser window's edges. */
+export const WINDOW_MARGIN = 12;
+
+/**
+ * `insets` for a layer whose box (`layer`, in window pixels) may not match the window: grown so
+ * that whatever is placed inside them stays `margin` px inside the window as well. A layer
+ * wider than the window, or shifted, would otherwise let a bubble clamped to it touch the
+ * window's edge.
+ */
+export function windowSafeInsets(
+  insets: ScreenInsets,
+  layer: {
+    readonly left: number;
+    readonly top: number;
+    readonly right: number;
+    readonly bottom: number;
+  },
+  window: BoxSize,
+  margin = WINDOW_MARGIN,
+): ScreenInsets {
+  return {
+    top: Math.max(insets.top, margin - layer.top),
+    right: Math.max(insets.right, layer.right - window.width + margin),
+    bottom: Math.max(insets.bottom, layer.bottom - window.height + margin),
+    left: Math.max(insets.left, margin - layer.left),
+  };
+}
+
+/**
+ * The CSS `skewX` angle (degrees) that leans a speech bubble's tail by `tailLean` px over its
+ * `tailLength`. The tail skews about its top edge, and CSS `skewX(a)` moves a point `y` px down
+ * by `y * tan(a)` to the right: a positive lean (the narrator to the right) is a positive angle.
+ */
+export const tailSkewDegrees = (place: {
+  readonly tailLean: number;
+  readonly tailLength: number;
+}): number =>
+  (Math.atan2(place.tailLean, Math.max(place.tailLength, 1)) * 180) / Math.PI;
+
 const clamp = (v: number, lo: number, hi: number): number =>
   hi < lo ? lo : v < lo ? lo : v > hi ? hi : v;
 
@@ -111,19 +150,28 @@ export type PanelSide = 'left' | 'right' | 'above' | 'below';
 export function placePanel({
   centre,
   radius,
+  extent,
   hub,
   size,
   viewport,
   insets = NO_INSETS,
   gap = 10,
+  prefer,
 }: {
   readonly centre: ScreenPoint;
   readonly radius: number;
+  /** Half width and half height of a thing that is not round (a tablet); default `radius`. */
+  readonly extent?: { readonly x: number; readonly y: number };
   readonly hub: ScreenPoint;
   readonly size: BoxSize;
   readonly viewport: BoxSize;
   readonly insets?: ScreenInsets;
   readonly gap?: number;
+  /**
+   * A side to try first, before the outer sides: `above` for things in a row (the Tiki's
+   * tablets), where the outer side would cover a neighbour.
+   */
+  readonly prefer?: PanelSide;
 }): { readonly left: number; readonly top: number; readonly side: PanelSide } {
   const dx = centre.x - hub.x;
   const dy = centre.y - hub.y;
@@ -135,23 +183,25 @@ export function placePanel({
       : [vertical, horizontal];
   for (const side of ['below', 'above', 'right', 'left'] as const)
     if (!order.includes(side)) order.push(side);
+  if (prefer) order.unshift(...order.splice(order.indexOf(prefer), 1));
 
-  const reach = radius + gap;
+  const reachX = (extent?.x ?? radius) + gap;
+  const reachY = (extent?.y ?? radius) + gap;
   const boxAt = (side: PanelSide) => {
     switch (side) {
       case 'right':
-        return { left: centre.x + reach, top: centre.y - size.height / 2 };
+        return { left: centre.x + reachX, top: centre.y - size.height / 2 };
       case 'left':
         return {
-          left: centre.x - reach - size.width,
+          left: centre.x - reachX - size.width,
           top: centre.y - size.height / 2,
         };
       case 'below':
-        return { left: centre.x - size.width / 2, top: centre.y + reach };
+        return { left: centre.x - size.width / 2, top: centre.y + reachY };
       case 'above':
         return {
           left: centre.x - size.width / 2,
-          top: centre.y - reach - size.height,
+          top: centre.y - reachY - size.height,
         };
     }
   };

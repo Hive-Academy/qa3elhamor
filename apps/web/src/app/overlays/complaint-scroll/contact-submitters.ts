@@ -8,8 +8,7 @@ import { pendingSubmitter } from './complaint-submitter';
 const REQUEST_TIMEOUT_MS = 15_000;
 
 const MESSAGES = {
-  network:
-    'Network error. Please check your connection and try again.',
+  network: 'Network error. Please check your connection and try again.',
   timeout: 'The request timed out. Please try again.',
   providerBusy: 'The contact service is busy. Please try again later.',
   unexpected:
@@ -235,8 +234,7 @@ function text(value: unknown): string {
  */
 export function contactConfigProblems(env: ContactEnv): string[] {
   const provider = text(env.VITE_CONTACT_PROVIDER).toLowerCase() as
-    | ContactProviderName
-    | string;
+    ContactProviderName | string;
 
   if (provider === '' || provider === 'none') return [];
 
@@ -276,10 +274,7 @@ function isDev(env: ContactEnv): boolean {
   return env.DEV === true || env.MODE === 'development';
 }
 
-function warnAndFallback(
-  env: ContactEnv,
-  reason: string,
-): ComplaintSubmitter {
+function warnAndFallback(env: ContactEnv, reason: string): ComplaintSubmitter {
   if (isDev(env)) {
     console.warn(`Contact submitter fallback: ${reason}`);
   }

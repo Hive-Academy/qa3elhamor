@@ -1,0 +1,31 @@
+phone delivered a-arrival {"active":"body. \"The PineappleAboutTiki HeadPerformance r\"","stage":null,"speaker":null,"topic":null,"spoken":null,"speech":null,"scroll":null,"status":null,"alert":null,"summary":false,"subject":null,"dialog":null,"scrollY":4845}
+phone delivered b-president-talking {"active":"section.speech \"The Sardine President\"","stage":"tour","speaker":"The Sardine President","topic":null,"spoken":"This is the Municipal Complaints Bureau. Complaints, questions and project ideas all go in","speech":[12,190,366,158],"scroll":null,"status":null,"alert":null,"summary":false,"subject":null,"dialog":null,"scrollY":4845}
+phone delivered c-last-line {"active":"button.speech__button speech__button- \"File a complaint\"","stage":"tour","speaker":"The Sardine President","topic":null,"spoken":"We reached the bottom, and we still answer the mail.","speech":[12,165,366,183],"scroll":null,"status":null,"alert":null,"summary":false,"subject":null,"dialog":null,"scrollY":4845}
+phone delivered d-scroll-unrolled {"active":"input[name=subject]. \"\"","stage":"tour","speaker":null,"topic":null,"spoken":null,"speech":null,"scroll":"unrolled/sheet @8,8 374x742","status":"","alert":null,"summary":false,"subject":"","dialog":null,"scrollY":4845}
+phone delivered e-validation-errors {"active":"div.complaint-scroll__summary \"The Municipality cannot accept this form\"","stage":"tour","speaker":null,"topic":null,"spoken":null,"speech":null,"scroll":"unrolled/sheet @8,8 374x742","status":"","alert":null,"summary":true,"subject":"","dialog":null,"scrollY":4845}
+phone after Enter in subject {"active":"div.complaint-scroll__summary \"The Municipality cannot accept this form\"","stage":"tour","speaker":null,"topic":null,"spoken":null,"speech":null,"scroll":"unrolled/sheet @8,8 374x742","status":"","alert":null,"summary":true,"subject":"The pineapple leaks again","dialog":null,"scrollY":4845}
+phone delivered f-typing {"active":"input[name=replyEmail]. \"\"","stage":"tour","speaker":null,"topic":null,"spoken":null,"speech":null,"scroll":"unrolled/sheet @8,8 374x742","status":"","alert":null,"summary":false,"subject":"The pineapple leaks again","dialog":null,"scrollY":4845}
+phone delivered g1-stamp-slam {"active":"h3.complaint-scroll__title \"Complaint stamped\"","stage":"tour","speaker":null,"topic":null,"spoken":null,"speech":null,"scroll":"stamped/sheet @8,8 374x742","status":"","alert":null,"summary":false,"subject":"The pineapple leaks again","dialog":null,"scrollY":4845}
+phone delivered g2-stamped {"active":"h3.complaint-scroll__title \"Complaint stamped\"","stage":"tour","speaker":null,"topic":null,"spoken":null,"speech":null,"scroll":"stamped/sheet @8,8 374x742","status":"","alert":null,"summary":false,"subject":"The pineapple leaks again","dialog":null,"scrollY":4845}
+phone delivered h1-rolling {"active":"h3.complaint-scroll__title \"Complaint stamped\"","stage":"tour","speaker":null,"topic":null,"spoken":null,"speech":null,"scroll":"rolling/sheet @8,8 374x742","status":"","alert":null,"summary":false,"subject":"The pineapple leaks again","dialog":null,"scrollY":4845}
+phone delivered h2-bottle-floating {"active":"button.speech__button speech__button- \"File another complaint\"","stage":"hint","speaker":"The Sardine President","topic":"Complaint stamped","spoken":"Stamped, bottled and off on the current. It reaches Abdallah's desk before the next tide.","speech":[12,167,366,183],"scroll":null,"status":null,"alert":null,"summary":false,"subject":null,"dialog":null,"scrollY":4845}
+phone delivered h2b-bottle-higher {"active":"button.speech__button speech__button- \"File another complaint\"","stage":"hint","speaker":"The Sardine President","topic":"Complaint stamped","spoken":"Stamped, bottled and off on the current. It reaches Abdallah's desk before the next tide.","speech":[12,167,366,183],"scroll":null,"status":null,"alert":null,"summary":false,"subject":null,"dialog":null,"scrollY":4845}
+phone delivered h3-filed-line {"active":"button.speech__button speech__button- \"File another complaint\"","stage":"hint","speaker":"The Sardine President","topic":"Complaint stamped","spoken":"Stamped, bottled and off on the current. It reaches Abdallah's desk before the next tide.","speech":[12,165,366,183],"scroll":null,"status":null,"alert":null,"summary":false,"subject":null,"dialog":null,"scrollY":4845}
+console [vite] SyntaxError: The requested module '/src/app/narrators/screen-placement.ts?t=1790904002104' does not provide an export named 'tailSkewDegrees'
+console [vite] Failed to reload /src/app/narrators/narrated-visit.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+phone delivered i-farewell {"active":"button.lmk-index__item \"Complaints BureauFile a complaint\"","stage":"farewell","speaker":"The Sardine President","topic":null,"spoken":"Thanks for visiting Qaa El-Hamour. Swim safe, and come back down anytime.","speech":[12,263,366,85],"scroll":null,"status":null,"alert":null,"summary":false,"subject":null,"dialog":null,"scrollY":4845}
+phone delivered provider requests 1
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+locator.click: Timeout 30000ms exceeded.
+Call log:
+[2m  - waiting for locator('[data-landmark-id="bureau"]')[22m
+
+    at D:\projects\qa3elhamor\.ptah\specs\landmark-bureau-narrated\capture.mjs:167:58 {
+  log: [ `  - waiting for locator('[data-landmark-id="bureau"]')` ],
+  name: 'TimeoutError'
+}
+
+Node.js v24.15.0

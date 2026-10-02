@@ -2,13 +2,16 @@ export {
   ComplaintScroll,
   createComplaintScrollOverlay,
   type ComplaintScrollContent,
+  type ComplaintScrollOptions,
   type ComplaintScrollProps,
 } from './complaint-scroll';
 export {
   pendingSubmitter,
+  singleFlight,
   type ComplaintDelivery,
   type ComplaintDraft,
   type ComplaintSubmitter,
+  type SubmissionWatcher,
 } from './complaint-submitter';
 export {
   contactConfigProblems,
@@ -22,6 +25,7 @@ export {
 export {
   COMPLAINT_FIELD_SPECS,
   COMPLAINT_FORM_FIELDS,
+  EMPTY_COMPLAINT_FORM,
   complaintFormIssues,
   toComplaintDraft,
   validateComplaintField,

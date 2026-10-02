@@ -87,6 +87,14 @@ to the bar's button on open, then onto the element marked `data-landmark-autofoc
 (`LANDMARK_AUTOFOCUS_ATTRIBUTE`) once the scene's DOM arrives, unless the visitor has moved it.
 Esc anywhere, the button, or scrolling the page `leaveOnScroll` pixels (default 64, close
 reason `scroll`) closes it; focus then returns to the opener, or the landmark's list button.
+A scene with a form can be typed into safely:
+- Page scroll does not count as leaving while a text field in the scene has focus, nor for
+  `TEXT_ENTRY_SCROLL_GRACE_MS` (1 s) after it loses focus. An on-screen keyboard (iOS Safari)
+  scrolls the page as it opens and closes.
+- An Escape that cancels an IME composition (`isComposingKey`) does not close the stage, and
+  neither does one the scene already handled (`preventDefault`).
+
+`isTextEntry(element)` tells a field that takes typed text from the rest.
 The page chrome can react to it with `useFocusedLandmark()` (the site dims the town and plays
 a bubble curtain).
 

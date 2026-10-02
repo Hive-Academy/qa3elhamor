@@ -269,4 +269,47 @@ describe('ComplaintScroll', () => {
         .getAttribute('dir'),
     ).toBe('ltr');
   });
+
+  it('sends once for two presses before it re-renders', () => {
+    const submit = vi.fn(() => new Promise<ComplaintDelivery>(() => undefined));
+    renderScroll({ submit });
+    fillValid();
+    const form = field('complaintSubjectLabel').closest('form');
+    act(() => {
+      form?.dispatchEvent(
+        new Event('submit', { bubbles: true, cancelable: true }),
+      );
+      form?.dispatchEvent(
+        new Event('submit', { bubbles: true, cancelable: true }),
+      );
+    });
+    expect(submit).toHaveBeenCalledTimes(1);
+  });
+
+  it('can open with the failure notice of an attempt made while it was away', () => {
+    render(
+      <ComplaintScroll
+        landmarkId="bureau"
+        title="Complaints Bureau"
+        locale="en"
+        dir="ltr"
+        onClose={vi.fn()}
+        copy={siteCopy}
+        submitter={pendingSubmitter}
+        variant="in-world"
+        initialFailed
+        initialValues={{
+          subject: 'Kept',
+          body: 'Still here',
+          senderName: 'Sam',
+          senderSpecies: '',
+          replyEmail: '',
+        }}
+      />,
+    );
+    expect(screen.getByRole('alert').textContent).toBe(
+      en('complaintFailureBody'),
+    );
+    expect(field('complaintSubjectLabel').value).toBe('Kept');
+  });
 });

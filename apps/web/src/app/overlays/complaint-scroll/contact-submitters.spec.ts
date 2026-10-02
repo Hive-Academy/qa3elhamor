@@ -106,9 +106,7 @@ describe('web3formsSubmitter', () => {
   });
 
   it('fails safely when the provider reports an error body', async () => {
-    (
-      globalThis.fetch as ReturnType<typeof vi.fn>
-    ).mockResolvedValueOnce(
+    (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
       jsonResponse({
         success: false,
         message: `Invalid access key ${ACCESS_KEY}`,
@@ -120,36 +118,36 @@ describe('web3formsSubmitter', () => {
   });
 
   it('fails safely on a non-2xx response', async () => {
-    (
-      globalThis.fetch as ReturnType<typeof vi.fn>
-    ).mockResolvedValueOnce(jsonResponse({ message: 'Internal error' }, 500));
+    (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
+      jsonResponse({ message: 'Internal error' }, 500),
+    );
     await expect(
       web3formsSubmitter({ accessKey: ACCESS_KEY }).submit(draft),
     ).rejects.toThrow('contact service is busy');
   });
 
   it('fails safely on a 429 response', async () => {
-    (
-      globalThis.fetch as ReturnType<typeof vi.fn>
-    ).mockResolvedValueOnce(jsonResponse({ error: 'rate limit' }, 429));
+    (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
+      jsonResponse({ error: 'rate limit' }, 429),
+    );
     await expect(
       web3formsSubmitter({ accessKey: ACCESS_KEY }).submit(draft),
     ).rejects.toThrow('contact service is busy');
   });
 
   it('fails safely when the response body is not JSON', async () => {
-    (
-      globalThis.fetch as ReturnType<typeof vi.fn>
-    ).mockResolvedValueOnce(new Response('not json', { status: 200 }));
+    (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
+      new Response('not json', { status: 200 }),
+    );
     await expect(
       web3formsSubmitter({ accessKey: ACCESS_KEY }).submit(draft),
     ).rejects.toThrow('contact service could not deliver');
   });
 
   it('fails safely on a network error', async () => {
-    (
-      globalThis.fetch as ReturnType<typeof vi.fn>
-    ).mockRejectedValueOnce(new TypeError('fetch failed'));
+    (globalThis.fetch as ReturnType<typeof vi.fn>).mockRejectedValueOnce(
+      new TypeError('fetch failed'),
+    );
     await expect(
       web3formsSubmitter({ accessKey: ACCESS_KEY }).submit(draft),
     ).rejects.toThrow('Network error');
@@ -171,9 +169,9 @@ describe('web3formsSubmitter', () => {
 
   it('clears the timeout timer after a failed submission', async () => {
     vi.useFakeTimers();
-    (
-      globalThis.fetch as ReturnType<typeof vi.fn>
-    ).mockResolvedValueOnce(jsonResponse({ success: false }));
+    (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
+      jsonResponse({ success: false }),
+    );
     await expect(
       web3formsSubmitter({ accessKey: ACCESS_KEY }).submit(draft),
     ).rejects.toThrow();
@@ -193,9 +191,7 @@ describe('web3formsSubmitter', () => {
       }
     };
 
-    (
-      globalThis.fetch as ReturnType<typeof vi.fn>
-    ).mockResolvedValueOnce(
+    (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
       jsonResponse({
         success: false,
         message: `key ${ACCESS_KEY} rejected`,
@@ -205,16 +201,16 @@ describe('web3formsSubmitter', () => {
     expect(first.message).not.toContain(ACCESS_KEY);
     expect(String(first.cause)).not.toContain(ACCESS_KEY);
 
-    (
-      globalThis.fetch as ReturnType<typeof vi.fn>
-    ).mockResolvedValueOnce(jsonResponse({ error: ACCESS_KEY }, 500));
+    (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
+      jsonResponse({ error: ACCESS_KEY }, 500),
+    );
     const second = await run();
     expect(second.message).not.toContain(ACCESS_KEY);
     expect(String(second.cause)).not.toContain(ACCESS_KEY);
 
-    (
-      globalThis.fetch as ReturnType<typeof vi.fn>
-    ).mockRejectedValueOnce(new TypeError(ACCESS_KEY));
+    (globalThis.fetch as ReturnType<typeof vi.fn>).mockRejectedValueOnce(
+      new TypeError(ACCESS_KEY),
+    );
     const third = await run();
     expect(third.message).not.toContain(ACCESS_KEY);
     expect(String(third.cause)).not.toContain(ACCESS_KEY);
@@ -272,9 +268,7 @@ describe('formspreeSubmitter', () => {
   });
 
   it('fails safely when the provider returns an errors array', async () => {
-    (
-      globalThis.fetch as ReturnType<typeof vi.fn>
-    ).mockResolvedValueOnce(
+    (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
       jsonResponse({ errors: [{ message: `Form ${FORM_ID} not found` }] }),
     );
     await expect(
@@ -283,36 +277,36 @@ describe('formspreeSubmitter', () => {
   });
 
   it('fails safely on a 429 response', async () => {
-    (
-      globalThis.fetch as ReturnType<typeof vi.fn>
-    ).mockResolvedValueOnce(jsonResponse({ error: 'rate limit' }, 429));
+    (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
+      jsonResponse({ error: 'rate limit' }, 429),
+    );
     await expect(
       formspreeSubmitter({ formId: FORM_ID }).submit(draft),
     ).rejects.toThrow('contact service is busy');
   });
 
   it('fails safely on a 5xx response', async () => {
-    (
-      globalThis.fetch as ReturnType<typeof vi.fn>
-    ).mockResolvedValueOnce(jsonResponse({ error: 'server error' }, 503));
+    (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
+      jsonResponse({ error: 'server error' }, 503),
+    );
     await expect(
       formspreeSubmitter({ formId: FORM_ID }).submit(draft),
     ).rejects.toThrow('contact service is busy');
   });
 
   it('fails safely on an HTTP 200 with ok:false', async () => {
-    (
-      globalThis.fetch as ReturnType<typeof vi.fn>
-    ).mockResolvedValueOnce(jsonResponse({ ok: false }));
+    (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
+      jsonResponse({ ok: false }),
+    );
     await expect(
       formspreeSubmitter({ formId: FORM_ID }).submit(draft),
     ).rejects.toThrow('Unexpected response');
   });
 
   it('fails safely when the response body is not JSON', async () => {
-    (
-      globalThis.fetch as ReturnType<typeof vi.fn>
-    ).mockResolvedValueOnce(new Response('thanks', { status: 200 }));
+    (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
+      new Response('thanks', { status: 200 }),
+    );
     await expect(
       formspreeSubmitter({ formId: FORM_ID }).submit(draft),
     ).rejects.toThrow('Unexpected response');
@@ -339,18 +333,16 @@ describe('formspreeSubmitter', () => {
       }
     };
 
-    (
-      globalThis.fetch as ReturnType<typeof vi.fn>
-    ).mockResolvedValueOnce(
+    (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
       jsonResponse({ errors: [{ message: `Form ${FORM_ID} disabled` }] }),
     );
     const first = await run();
     expect(first.message).not.toContain(FORM_ID);
     expect(String(first.cause)).not.toContain(FORM_ID);
 
-    (
-      globalThis.fetch as ReturnType<typeof vi.fn>
-    ).mockResolvedValueOnce(jsonResponse({ error: FORM_ID }, 429));
+    (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
+      jsonResponse({ error: FORM_ID }, 429),
+    );
     const second = await run();
     expect(second.message).not.toContain(FORM_ID);
     expect(String(second.cause)).not.toContain(FORM_ID);
@@ -380,9 +372,9 @@ describe('createContactSubmitter', () => {
   });
 
   it('selects the Formspree adapter with a valid form id', async () => {
-    (
-      globalThis.fetch as ReturnType<typeof vi.fn>
-    ).mockResolvedValueOnce(jsonResponse({ ok: true }));
+    (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
+      jsonResponse({ ok: true }),
+    );
     const submitter = createContactSubmitter({
       VITE_CONTACT_PROVIDER: 'formspree',
       VITE_FORMSPREE_FORM_ID: FORM_ID,
@@ -395,9 +387,9 @@ describe('createContactSubmitter', () => {
 
   it('falls back to pendingSubmitter when provider is none or missing', () => {
     expect(createContactSubmitter({})).toBe(pendingSubmitter);
-    expect(
-      createContactSubmitter({ VITE_CONTACT_PROVIDER: 'none' }),
-    ).toBe(pendingSubmitter);
+    expect(createContactSubmitter({ VITE_CONTACT_PROVIDER: 'none' })).toBe(
+      pendingSubmitter,
+    );
   });
 
   it('falls back to pendingSubmitter and warns in dev on missing credentials', () => {
@@ -476,9 +468,9 @@ describe('createContactSubmitter', () => {
 describe('contactConfigProblems', () => {
   it('returns an empty array when the provider is missing, none, or fully wired', () => {
     expect(contactConfigProblems({})).toEqual([]);
-    expect(
-      contactConfigProblems({ VITE_CONTACT_PROVIDER: 'none' }),
-    ).toEqual([]);
+    expect(contactConfigProblems({ VITE_CONTACT_PROVIDER: 'none' })).toEqual(
+      [],
+    );
     expect(
       contactConfigProblems({
         VITE_CONTACT_PROVIDER: 'web3forms',

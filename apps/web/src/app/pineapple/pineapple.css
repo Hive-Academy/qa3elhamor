@@ -1,0 +1,26 @@
+/* The Pineapple visit's own touches on the narrated-visit kit (`narrators/visit-hud.css`). */
+
+/* A little card glyph on the "Open the full Citizenship Card" button. */
+.pa-card-icon {
+  position: relative;
+  width: 1.1rem;
+  height: 0.8rem;
+  border: 2px solid currentColor;
+  border-radius: 3px;
+}
+
+.pa-card-icon::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 0.3rem;
+  height: 0.3rem;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* Under the full card: the way back to the guide. The card leaves room for it. */
+.visit-full-view .citizen-pass {
+  --pass-max-height: calc(100dvh - 13rem);
+}

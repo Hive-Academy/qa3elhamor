@@ -2,12 +2,12 @@ import { framingScale } from '@qa3elhamor/dive-feature';
 import { describe, expect, it } from 'vitest';
 import { stopView } from '../narrators/stop-view';
 import { screenOf, viewFrame, worldPerPx } from '../narrators/view-layout';
+import { pixelSize } from '../narrators/visit-layout';
 import {
   PINEAPPLE_LANDSCAPE,
   PINEAPPLE_PORTRAIT,
   pineappleLayout,
   pineappleLayoutSpecFor,
-  pixelSize,
   ringSlots,
 } from './pineapple-layout';
 

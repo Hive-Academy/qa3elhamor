@@ -3,7 +3,11 @@ import { useState } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { LandmarkIndex } from './landmark-index.js';
 import { LandmarkOverlayHost } from './landmark-overlay-host.js';
-import { LandmarkStage } from './landmark-stage.js';
+import {
+  LandmarkStage,
+  TEXT_ENTRY_SCROLL_GRACE_MS,
+  isTextEntry,
+} from './landmark-stage.js';
 
 function Harness({
   onClose = vi.fn(),
@@ -328,7 +332,10 @@ describe('LandmarkStage', () => {
     render(<Stage onClose={onClose} leaveOnScroll={64} />);
     open();
     const scrollTo = (y: number) => {
-      Object.defineProperty(window, 'scrollY', { value: y, configurable: true });
+      Object.defineProperty(window, 'scrollY', {
+        value: y,
+        configurable: true,
+      });
       fireEvent.scroll(window);
     };
     scrollTo(30);
@@ -338,5 +345,68 @@ describe('LandmarkStage', () => {
     scrollTo(70);
     expect(onClose).toHaveBeenCalledWith('scroll');
     Object.defineProperty(window, 'scrollY', { value: 0, configurable: true });
+  });
+
+  it('does not leave while the visitor types in the scene: an on-screen keyboard scrolls the page', () => {
+    const onClose = vi.fn();
+    render(<Stage onClose={onClose} leaveOnScroll={64} />);
+    open();
+    const field = document.createElement('input');
+    field.type = 'text';
+    screen.getByTestId('scene-slot').append(field);
+    const scrollTo = (y: number) => {
+      Object.defineProperty(window, 'scrollY', {
+        value: y,
+        configurable: true,
+      });
+      fireEvent.scroll(window);
+    };
+    // iOS Safari scrolls the page to show the field above its keyboard.
+    field.focus();
+    scrollTo(120);
+    expect(onClose).not.toHaveBeenCalled();
+    // The keyboard closing scrolls it back, just after the field lost focus.
+    const now = vi.spyOn(performance, 'now').mockReturnValue(10_000);
+    field.blur();
+    scrollTo(40);
+    expect(onClose).not.toHaveBeenCalled();
+    // Then a real scroll away, measured from where the keyboard left the page.
+    now.mockReturnValue(10_000 + TEXT_ENTRY_SCROLL_GRACE_MS + 1);
+    scrollTo(110);
+    expect(onClose).toHaveBeenCalledWith('scroll');
+    now.mockRestore();
+    Object.defineProperty(window, 'scrollY', { value: 0, configurable: true });
+  });
+
+  it('ignores an Escape that cancels an IME composition, or that the scene handled', () => {
+    const onClose = vi.fn();
+    render(<Stage onClose={onClose} />);
+    open();
+    fireEvent.keyDown(window, { key: 'Escape', isComposing: true });
+    fireEvent.keyDown(window, { key: 'Escape', keyCode: 229 });
+    const handled = new KeyboardEvent('keydown', {
+      key: 'Escape',
+      cancelable: true,
+    });
+    handled.preventDefault();
+    window.dispatchEvent(handled);
+    expect(onClose).not.toHaveBeenCalled();
+    fireEvent.keyDown(window, { key: 'Escape' });
+    expect(onClose).toHaveBeenCalledWith('escape');
+  });
+
+  it('knows which fields take typed text', () => {
+    const make = (html: string) => {
+      const host = document.createElement('div');
+      host.innerHTML = html;
+      return host.firstElementChild;
+    };
+    expect(isTextEntry(make('<input>'))).toBe(true);
+    expect(isTextEntry(make('<input type="email">'))).toBe(true);
+    expect(isTextEntry(make('<textarea></textarea>'))).toBe(true);
+    expect(isTextEntry(make('<select></select>'))).toBe(true);
+    expect(isTextEntry(make('<input type="checkbox">'))).toBe(false);
+    expect(isTextEntry(make('<button>Go</button>'))).toBe(false);
+    expect(isTextEntry(null)).toBe(false);
   });
 });

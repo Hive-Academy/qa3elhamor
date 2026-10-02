@@ -1,0 +1,52 @@
+/* The Bureau visit's own touches on the narrated-visit kit (`narrators/visit-hud.css`). */
+
+/* A little rolled scroll on "File a complaint". */
+.bureau-scroll-icon {
+  position: relative;
+  width: 1.1rem;
+  height: 0.85rem;
+  border-block: 2px solid currentColor;
+  border-radius: 2px;
+}
+
+.bureau-scroll-icon::before,
+.bureau-scroll-icon::after {
+  content: '';
+  position: absolute;
+  inset-inline: -3px;
+  height: 4px;
+  border-radius: 2px;
+  background: currentColor;
+}
+
+.bureau-scroll-icon::before {
+  top: -4px;
+}
+
+.bureau-scroll-icon::after {
+  bottom: -4px;
+}
+
+/* The sea calms behind the paper while the visitor writes; lighter than a full view's. */
+.bureau-dim {
+  background: radial-gradient(
+    ellipse 70% 70% at 50% 46%,
+    rgba(6, 20, 44, 0.25),
+    rgba(4, 14, 32, 0.66)
+  );
+}
+
+/*
+ * A phone: the scroll as a sheet over the scene, from the top of the screen down to what the
+ * stage bar and the on-screen keyboard leave (`--bureau-sheet-h`, from the visual viewport).
+ */
+.bureau-sheet {
+  position: absolute;
+  z-index: 4;
+  inset-block-start: max(0.5rem, env(safe-area-inset-top));
+  inset-inline: 0.5rem;
+  display: flex;
+  justify-content: center;
+  height: var(--bureau-sheet-h, calc(100% - 6.5rem));
+  pointer-events: auto;
+}

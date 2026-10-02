@@ -1,25 +1,13 @@
+import { pointAtScreenAbove, worldPerPx, type Vec3, type ViewFrame } from '../narrators/view-layout';
 import {
-  addScaled,
-  pointAtScreenAbove,
-  worldPerPx,
-  yawTowards,
-  type Vec3,
-  type ViewFrame,
-} from '../narrators/view-layout';
-
-/** A point on the viewport as fractions of its width and height, from the top left. */
-export interface ScreenFraction {
-  readonly x: number;
-  readonly y: number;
-}
-
-/** A pixel size relative to the viewport: the smaller of two fractions, clamped. */
-export interface PixelSize {
-  readonly ofHeight: number;
-  readonly ofWidth: number;
-  readonly min: number;
-  readonly max: number;
-}
+  isPortrait,
+  pixelSize,
+  placeNarrator,
+  type NarratorPlacement,
+  type NarratorSpec,
+  type PixelSize,
+  type ScreenFraction,
+} from '../narrators/visit-layout';
 
 /**
  * The Pineapple visit, composed for the screen at the stop's resting view: the pineapple sits
@@ -28,10 +16,7 @@ export interface PixelSize {
  * pineapple.
  */
 export interface PineappleLayoutSpec {
-  readonly narrator: ScreenFraction & {
-    readonly height: PixelSize;
-    readonly depth: number;
-  };
+  readonly narrator: NarratorSpec;
   readonly bubbles: {
     /** One per bubble, in order; extra bubbles share the last slots' ring (see `ringSlots`). */
     readonly slots: readonly ScreenFraction[];
@@ -84,14 +69,8 @@ export const PINEAPPLE_PORTRAIT: PineappleLayoutSpec = {
   },
 };
 
-/** Below this aspect (width / height) the portrait composition is used. */
-export const PORTRAIT_BELOW_ASPECT = 0.9;
-
 export const pineappleLayoutSpecFor = (aspect: number): PineappleLayoutSpec =>
-  aspect < PORTRAIT_BELOW_ASPECT ? PINEAPPLE_PORTRAIT : PINEAPPLE_LANDSCAPE;
-
-export const pixelSize = (size: PixelSize, width: number, height: number): number =>
-  Math.min(Math.max(Math.min(size.ofHeight * height, size.ofWidth * width), size.min), size.max);
+  isPortrait(aspect) ? PINEAPPLE_PORTRAIT : PINEAPPLE_LANDSCAPE;
 
 /**
  * Slots for `count` bubbles: the spec's slots, then more on an ellipse through the spec's
@@ -111,17 +90,7 @@ export function ringSlots(
 }
 
 export interface PineappleLayout {
-  readonly narrator: {
-    /** Its post: belly (or feet) on this point. */
-    readonly post: Vec3;
-    /** Rendered height, world units. */
-    readonly height: number;
-    /** Facing the eye. */
-    readonly restYaw: number;
-    /** Swims in from off screen left, and away up and left: multiples of its height. */
-    readonly enterFrom: Vec3;
-    readonly exitTo: Vec3;
-  };
+  readonly narrator: NarratorPlacement;
   readonly bubbles: readonly {
     readonly centre: Vec3;
     readonly radius: number;
@@ -140,24 +109,6 @@ export function pineappleLayout(
   spec: PineappleLayoutSpec = pineappleLayoutSpecFor(view.width / view.height),
 ): PineappleLayout {
   const { width, height } = view;
-  const n = spec.narrator;
-  const narratorPx = pixelSize(n.height, width, height);
-  const roughHeight = narratorPx * worldPerPx(view, view.focusDepth * n.depth);
-  // The slot is the narrator's middle on screen; its post is half its height lower.
-  const placed = pointAtScreenAbove(
-    view,
-    n.x * width,
-    n.y * height + narratorPx / 2,
-    view.focusDepth * n.depth,
-    ground + roughHeight * 0.3,
-  );
-  const post = placed.point;
-  const narratorHeight = narratorPx * worldPerPx(view, placed.depth);
-  const away = (lift: number): Vec3 => {
-    const sideways = addScaled([0, 0, 0], view.right, -7);
-    return [sideways[0], lift, sideways[2]];
-  };
-
   const b = spec.bubbles;
   const radiusPx = pixelSize(b.diameter, width, height) / 2;
   const bubbles = ringSlots(b.slots, count).map((slot, i) => {
@@ -167,15 +118,5 @@ export function pineappleLayout(
     const at = pointAtScreenAbove(view, slot.x * width, slot.y * height, depth, ground + clear);
     return { centre: at.point, radius: radiusPx * worldPerPx(view, at.depth) };
   });
-
-  return {
-    narrator: {
-      post,
-      height: narratorHeight,
-      restYaw: yawTowards(post, view.eye),
-      enterFrom: away(0.8),
-      exitTo: away(2.6),
-    },
-    bubbles,
-  };
+  return { narrator: placeNarrator(view, spec.narrator, ground), bubbles };
 }

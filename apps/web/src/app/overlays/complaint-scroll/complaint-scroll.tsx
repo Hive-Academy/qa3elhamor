@@ -40,8 +40,29 @@ export interface ComplaintScrollContent {
   readonly submitter: ComplaintSubmitter;
 }
 
+/** How a host other than the landmark dialog presents the scroll (the Bureau's in-world visit). */
+export interface ComplaintScrollOptions {
+  /**
+   * `dialog` (default): the stamped result replaces the form and offers its own way on.
+   * `in-world`: the stamp lands on the filled-in paper, and the host offers what comes next.
+   */
+  readonly variant?: 'dialog' | 'in-world';
+  /** The text the form starts with: a draft the host kept. Default empty. */
+  readonly initialValues?: ComplaintFormValues;
+  /** Every edit, so the host can keep the draft when the scroll is put away unsent. */
+  readonly onDraftChange?: (values: ComplaintFormValues) => void;
+  /** A stamped delivery. Called even when the scroll was put away while it was being sent. */
+  readonly onStamped?: (delivery: ComplaintDelivery) => void;
+  /**
+   * Opens with the failure notice: the last attempt failed while the scroll was put away (the
+   * host learned it from its submitter), and the draft it brings back is that attempt's text.
+   */
+  readonly initialFailed?: boolean;
+}
+
 export type ComplaintScrollProps = LandmarkOverlayProps &
-  ComplaintScrollContent;
+  ComplaintScrollContent &
+  ComplaintScrollOptions;
 
 type Phase =
   | { readonly kind: 'editing'; readonly failed: boolean }
@@ -94,18 +115,34 @@ export function ComplaintScroll({
   locale,
   dir,
   onClose,
+  variant = 'dialog',
+  initialValues = EMPTY_COMPLAINT_FORM,
+  onDraftChange,
+  onStamped,
+  initialFailed = false,
 }: ComplaintScrollProps) {
   const t = copyReader(copy, toContentLocale(locale));
   const ids = useId();
   const fieldId = (field: ComplaintFormField) => `${ids}-${field}`;
 
-  const [values, setValues] =
-    useState<ComplaintFormValues>(EMPTY_COMPLAINT_FORM);
+  const [values, setValues] = useState<ComplaintFormValues>(initialValues);
+  const hostCallbacks = useRef({ onDraftChange, onStamped });
+  useEffect(() => {
+    hostCallbacks.current = { onDraftChange, onStamped };
+  });
+  useEffect(() => {
+    hostCallbacks.current.onDraftChange?.(values);
+  }, [values]);
   const [touched, setTouched] = useState<ReadonlySet<ComplaintFormField>>(
     () => new Set(),
   );
   const [submitAttempted, setSubmitAttempted] = useState(false);
-  const [phase, setPhase] = useState<Phase>({ kind: 'editing', failed: false });
+  const [phase, setPhase] = useState<Phase>({
+    kind: 'editing',
+    failed: initialFailed,
+  });
+  // Set synchronously: two presses before React re-renders into `sending` must not send twice.
+  const sendingNow = useRef(false);
 
   const issues = useMemo(() => complaintFormIssues(values), [values]);
   const fieldRefs = useRef(
@@ -157,7 +194,7 @@ export function ComplaintScroll({
 
   const onSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (phase.kind === 'sending') return;
+    if (phase.kind === 'sending' || sendingNow.current) return;
     setSubmitAttempted(true);
     // Each attempt reports only on itself: a refusal must not stack on the previous failure.
     clearFailure();
@@ -166,14 +203,18 @@ export function ComplaintScroll({
       setRefusals((count) => count + 1);
       return;
     }
+    sendingNow.current = true;
     setPhase({ kind: 'sending' });
     submitter.submit(draft).then(
       (delivery) => {
+        sendingNow.current = false;
+        hostCallbacks.current.onStamped?.(delivery);
         if (mounted.current) setPhase({ kind: 'stamped', delivery });
       },
       (error: unknown) => {
         // The visitor sees the retry message; the cause is for whoever debugs the adapter.
         console.error('Complaint delivery failed.', error);
+        sendingNow.current = false;
         if (mounted.current) setPhase({ kind: 'editing', failed: true });
       },
     );
@@ -186,25 +227,31 @@ export function ComplaintScroll({
     setPhase({ kind: 'editing', failed: false });
   };
 
-  if (phase.kind === 'stamped') {
+  const result = (delivery: ComplaintDelivery) => (
+    <>
+      <SardineStamp
+        legend={t('complaintStampText')}
+        className="complaint-scroll__seal"
+      />
+      <h3
+        ref={resultHeadingRef}
+        tabIndex={-1}
+        className="complaint-scroll__title"
+      >
+        {t('complaintSuccessTitle')}
+      </h3>
+      <p role="status">
+        {delivery.status === 'delivered'
+          ? t('complaintSuccessBody')
+          : t('complaintPendingBody')}
+      </p>
+    </>
+  );
+
+  if (phase.kind === 'stamped' && variant === 'dialog') {
     return (
       <section className="complaint-scroll complaint-scroll--stamped" dir={dir}>
-        <SardineStamp
-          legend={t('complaintStampText')}
-          className="complaint-scroll__seal"
-        />
-        <h3
-          ref={resultHeadingRef}
-          tabIndex={-1}
-          className="complaint-scroll__title"
-        >
-          {t('complaintSuccessTitle')}
-        </h3>
-        <p role="status">
-          {phase.delivery.status === 'delivered'
-            ? t('complaintSuccessBody')
-            : t('complaintPendingBody')}
-        </p>
+        {result(phase.delivery)}
         <div className="complaint-scroll__actions">
           <button
             type="button"
@@ -226,6 +273,8 @@ export function ComplaintScroll({
   }
 
   const sending = phase.kind === 'sending';
+  // In the world the stamp lands on the filled-in paper, which stays (out of reach) under it.
+  const stamped = phase.kind === 'stamped' ? phase.delivery : null;
   const invalidFields = COMPLAINT_FORM_FIELDS.filter((f) => issues[f]);
 
   const goToField = (
@@ -302,9 +351,17 @@ export function ComplaintScroll({
   );
 
   return (
-    <section className="complaint-scroll" dir={dir}>
+    <section
+      className={
+        variant === 'in-world'
+          ? 'complaint-scroll complaint-scroll--in-world'
+          : 'complaint-scroll'
+      }
+      data-stamped={stamped ? '' : undefined}
+      dir={dir}
+    >
       <div className="complaint-scroll__rod" aria-hidden="true" />
-      <div className="complaint-scroll__sheet">
+      <div className="complaint-scroll__sheet" inert={stamped !== null}>
         <h3 className="complaint-scroll__title">{t('contactTitle')}</h3>
         <p className="complaint-scroll__intro">{t('complaintIntro')}</p>
 
@@ -441,6 +498,9 @@ export function ComplaintScroll({
         className="complaint-scroll__rod complaint-scroll__rod--end"
         aria-hidden="true"
       />
+      {stamped && (
+        <div className="complaint-scroll__stamp-mark">{result(stamped)}</div>
+      )}
     </section>
   );
 }

@@ -357,3 +357,30 @@
     transition: none;
   }
 }
+
+/*
+ * In the world (`variant="in-world"`): the stamp lands on the filled-in paper. The result sits
+ * over the whole scroll, whatever part of the sheet is scrolled into view; the host styles the
+ * paper around it (`bureau/bureau-scroll.css`).
+ */
+.complaint-scroll__stamp-mark {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 0.25rem;
+  padding: 1.5rem;
+  text-align: center;
+  background: radial-gradient(
+    ellipse 60% 55% at 50% 50%,
+    rgba(247, 239, 217, 0.96) 55%,
+    rgba(247, 239, 217, 0.7) 80%,
+    rgba(247, 239, 217, 0)
+  );
+}
+
+.complaint-scroll__stamp-mark p {
+  max-width: 30rem;
+  margin: 0;
+}

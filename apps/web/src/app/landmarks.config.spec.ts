@@ -60,26 +60,27 @@ describe('landmarks config', () => {
     );
   });
 
-  it('binds real overlays to the MVP landmarks; the rest stay placeholders', () => {
+  it('binds real overlays to the finished landmarks; the rest stay placeholders', () => {
     expect(LANDMARK_OVERLAYS['pineapple']).not.toBe(ComingSoonOverlay);
     expect(LANDMARK_OVERLAYS['bureau']).not.toBe(ComingSoonOverlay);
-    expect(LANDMARK_OVERLAYS['tiki']).toBe(ComingSoonOverlay);
-    expect(LANDMARK_OVERLAYS['krusty-krab']).toBe(ComingSoonOverlay);
+    expect(LANDMARK_OVERLAYS['tiki']).not.toBe(ComingSoonOverlay);
+    expect(LANDMARK_OVERLAYS['krusty-krab']).not.toBe(ComingSoonOverlay);
   });
 
-  it('presents the pineapple in the world, with its dialog card as the fallback', () => {
-    const pineapple = LANDMARKS.find((d) => d.id === 'pineapple');
-    expect(pineapple?.scene && LANDMARK_SCENES[pineapple.scene]).toBeDefined();
-    expect(pineapple && effectivePresentation(pineapple, true)).toBe('in-world');
-    expect(pineapple && effectivePresentation(pineapple, false)).toBe('dialog');
-    expect(pineapple?.overlay).toBe('pineapple');
-  });
-
-  it('keeps the other landmarks in their dialogs until their in-world versions are signed off', () => {
-    for (const definition of LANDMARKS.filter((d) => d.id !== 'pineapple')) {
-      expect(effectivePresentation(definition, true), definition.id).toBe(
-        'dialog',
-      );
+  it('presents the narrated landmarks in the world, with their dialogs as the fallback', () => {
+    for (const id of ['pineapple', 'tiki', 'krusty-krab', 'bureau']) {
+      const definition = LANDMARKS.find((d) => d.id === id);
+      expect(definition?.scene && LANDMARK_SCENES[definition.scene], id).toBeDefined();
+      expect(definition && effectivePresentation(definition, true), id).toBe('in-world');
+      expect(definition && effectivePresentation(definition, false), id).toBe('dialog');
+      expect(definition?.overlay, id).toBe(id);
     }
+  });
+
+  it('presents every landmark in the world now that the Bureau is narrated too', () => {
+    for (const definition of LANDMARKS)
+      expect(effectivePresentation(definition, true), definition.id).toBe(
+        'in-world',
+      );
   });
 });

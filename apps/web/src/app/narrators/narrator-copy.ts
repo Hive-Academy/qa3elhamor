@@ -13,6 +13,8 @@ export const NARRATOR_COPY = {
     skip: 'Skip',
     resume: 'Back to the tour',
     lineOf: 'Line {n} of {total}',
+    leave: 'Back to the dive',
+    backToGuide: 'Back to the guide',
   },
   ar: {
     bubbleRole: 'فقاعة كلام',
@@ -20,6 +22,8 @@ export const NARRATOR_COPY = {
     skip: 'تخطَّ',
     resume: 'رجوع للجولة',
     lineOf: 'السطر {n} من {total}',
+    leave: 'رجوع للغطسة',
+    backToGuide: 'رجوع للمرشد',
   },
 } as const satisfies Record<Locale, Record<string, string>>;
 

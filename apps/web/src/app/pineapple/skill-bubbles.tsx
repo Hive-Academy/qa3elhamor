@@ -1,40 +1,18 @@
 import { useFrame, useThree, type ThreeEvent } from '@react-three/fiber';
-import { useEffect, useMemo, useRef, type RefObject } from 'react';
-import { SphereGeometry, Vector3, type Mesh } from 'three';
-import { placePanel, type ScreenInsets } from '../narrators/screen-placement';
+import { useEffect, useMemo, useRef } from 'react';
+import { SphereGeometry, type Mesh } from 'three';
+import { placeObjectDom, screenPointOf } from '../narrators/object-dom';
+import { acceptsPick, type SelectSource } from '../narrators/object-selection';
 import type { Vec3 } from '../narrators/view-layout';
+import type { VisitObjectsProps } from '../narrators/visit-types';
 import {
   SKILL_BUBBLE_TINTS,
   createSkillBubbleMaterial,
 } from './skill-bubble-material';
-import {
-  PICKABLE_FROM,
-  acceptsPick,
-  type SelectSource,
-} from './skill-selection';
 
 export interface SkillBubbleSlot {
   readonly centre: Vec3;
   readonly radius: number;
-}
-
-export interface SkillBubblesProps {
-  /** One bubble per id, in order. */
-  readonly ids: readonly string[];
-  readonly slots: readonly SkillBubbleSlot[];
-  /** Where they come out of, and go back into (world); kept current by the scene. */
-  readonly door: { readonly current: Vec3 };
-  /** True: out in the water around the landmark. False: back inside the door. */
-  readonly out: boolean;
-  readonly selected: string | null;
-  readonly reducedMotion: boolean;
-  readonly onPick: (id: string, source: SelectSource) => void;
-  /** The bubbles' DOM labels, by index: positioned over them every frame. */
-  readonly labels: RefObject<(HTMLElement | null)[]>;
-  /** The selected bubble's skills panel: placed under (or over) it every frame. */
-  readonly panel: RefObject<HTMLElement | null>;
-  /** Screen space kept clear for the page chrome. */
-  readonly insets: ScreenInsets;
 }
 
 /** Seconds out of the door, back in, and between one bubble and the next. */
@@ -51,11 +29,6 @@ const easeOutBack = (t: number): number => {
 };
 const easeInOut = (t: number): number => t * t * (3 - 2 * t);
 const clamp01 = (t: number): number => (t <= 0 ? 0 : t >= 1 ? 1 : t);
-
-const scratch = new Vector3();
-const projected = new Vector3();
-const camSpace = new Vector3();
-const hubVec = new Vector3();
 
 interface BubbleMotion {
   progress: number;
@@ -79,7 +52,7 @@ export function SkillBubbles({
   labels,
   panel,
   insets,
-}: SkillBubblesProps) {
+}: VisitObjectsProps<SkillBubbleSlot>) {
   const geometry = useMemo(() => new SphereGeometry(1, 48, 32), []);
   const materials = useMemo(
     () =>
@@ -109,16 +82,9 @@ export function SkillBubbles({
     const dt = Math.min(Math.max(delta, 0), 0.1);
     if (out && outSince.current === null) outSince.current = now;
     if (!out) outSince.current = null;
-    const focal = camera.projectionMatrix.elements[5] * (size.height / 2);
     const anySelected = selected !== null;
     // The landmark on screen: panels open on a bubble's far side from it.
-    hubVec
-      .set(door.current[0], door.current[1], door.current[2])
-      .project(camera);
-    const hub = {
-      x: ((hubVec.x + 1) / 2) * size.width,
-      y: ((1 - hubVec.y) / 2) * size.height,
-    };
+    const hub = screenPointOf(camera, size, door.current);
 
     ids.forEach((id, i) => {
       const slot = slots[i];
@@ -166,44 +132,25 @@ export function SkillBubbles({
       const u = material.uniforms;
       if (!reducedMotion) u.uTime.value = now;
       u.uHighlight.value = m.highlight;
-      const faded = anySelected && !isSelected ? 0.55 : 1;
-      u.uOpacity.value = clamp01(p * 1.6) * faded;
+      const faded = anySelected && !isSelected;
+      u.uOpacity.value = clamp01(p * 1.6) * (faded ? 0.55 : 1);
 
-      // The label over it, and the skills panel under the selected one.
-      const label = labels.current?.[i];
-      if (!label) return;
-      scratch.set(x, y, z);
-      camSpace.copy(scratch).applyMatrix4(camera.matrixWorldInverse);
-      const depth = -camSpace.z;
-      projected.copy(scratch).project(camera);
-      const px = ((projected.x + 1) / 2) * size.width;
-      const py = ((1 - projected.y) / 2) * size.height;
-      const shown = depth > 0.05 && p > 0.6;
-      label.style.transform = `translate3d(${Math.round(px)}px, ${Math.round(py)}px, 0) translate(-50%, -50%)`;
-      label.style.opacity = shown
-        ? String(clamp01((p - 0.6) / 0.3) * (faded < 1 ? 0.7 : 1))
-        : '0';
-      label.style.visibility = shown ? 'visible' : 'hidden';
-      // Not a target until it is (nearly) out of the door.
-      label.style.pointerEvents = p >= PICKABLE_FROM ? '' : 'none';
-      const pxRadius = depth > 0.05 ? (radius * focal) / depth : 0;
-      label.style.setProperty('--bubble-px', `${Math.round(pxRadius * 2)}px`);
-
-      const box = panel.current;
-      if (isSelected && box) {
-        const place = placePanel({
-          centre: { x: px, y: py },
-          radius: pxRadius,
-          hub,
-          size: { width: box.offsetWidth, height: box.offsetHeight },
-          viewport: size,
-          insets,
-          gap: 12,
-        });
-        box.style.transform = `translate3d(${place.left}px, ${place.top}px, 0)`;
-        box.dataset['side'] = place.side;
-        box.style.visibility = shown ? 'visible' : 'hidden';
-      }
+      // The label over it, and the skills panel beside the selected one.
+      placeObjectDom({
+        camera,
+        size,
+        x,
+        y,
+        z,
+        halfWidth: radius,
+        halfHeight: radius,
+        progress: p,
+        faded,
+        label: labels.current?.[i],
+        panel: isSelected ? panel.current : null,
+        hub,
+        insets,
+      });
     });
   });
 

@@ -89,9 +89,14 @@
 
 :root[data-in-world] .lmk-index,
 :root[data-in-world] .depth-gauge,
-:root[data-in-world] .scene-note,
 :root[data-in-world] .world-credits__trigger {
   opacity: 0.16;
+}
+
+/* Its text sits where the visit's objects land on a phone, so it leaves entirely. */
+:root[data-in-world] .scene-note {
+  opacity: 0;
+  visibility: hidden;
 }
 
 :root[data-in-world] .lmk-index:hover,

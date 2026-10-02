@@ -6,6 +6,7 @@ import {
   trackQualityTier,
   useSiteTelemetry,
 } from './telemetry';
+import { reportLandmarkEvent } from './landmark-ports';
 
 const listeners = new Set<() => void>();
 const state = { maxProgress: 0, nearestWaypointId: null as string | null };
@@ -18,6 +19,15 @@ const fakeDive = {
 };
 
 vi.mock('@qa3elhamor/dive-feature', () => ({ useDive: () => fakeDive }));
+// `landmark-ports` joins the landmark, dive and world libraries; the world's 3D runtime (three,
+// the GLTF and Meshopt loaders, R3F) is not what this test is about, and importing it took up
+// to 15 s under load. Only the event port is exercised here.
+vi.mock('@qa3elhamor/world-feature', () => ({
+  assetUrl: vi.fn(),
+  evictCompressedModel: vi.fn(),
+  useCompressedModel: vi.fn(),
+  useQuality: vi.fn(),
+}));
 
 describe('site telemetry', () => {
   it('is disabled when VITE_ANALYTICS_PROVIDER is unset', () => {
@@ -39,8 +49,7 @@ describe('site telemetry', () => {
     opened.mockRestore();
   });
 
-  it('receives opens through the production landmark port', async () => {
-    const { reportLandmarkEvent } = await import('./landmark-ports');
+  it('receives opens through the production landmark port', () => {
     const clicked = vi.spyOn(siteTelemetry().session, 'landmarkClicked');
     reportLandmarkEvent({ type: 'landmark_open', landmarkId: 'wreck', source: 'keyboard' });
     expect(clicked).toHaveBeenCalledWith('wreck');

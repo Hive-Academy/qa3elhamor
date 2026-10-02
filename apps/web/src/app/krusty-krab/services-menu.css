@@ -1,0 +1,76 @@
+/*
+ * The Krusty Krab's full menu, around the page view's Services section
+ * (`page-view/page-view.css`). That section reads the page's sea colours from `.page-view`;
+ * restated here, where no page wraps it (as the Tiki's record does).
+ */
+.krusty-menu {
+  --page-sea: #0f5e6e;
+  --page-sea-deep: #0a3d4a;
+  --page-link: #0b5874;
+  --lmk-paper: #f3ead3;
+  --lmk-paper-edge: #dccb9f;
+  --lmk-ink: #2a2118;
+  --lmk-ink-soft: #5b4a36;
+  --lmk-rule: #8c3b2a;
+  --lmk-focus: #0b6fa4;
+
+  font-family:
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    sans-serif;
+  line-height: 1.55;
+  text-align: start;
+}
+
+.krusty-menu:focus {
+  outline: none;
+}
+
+.krusty-menu:focus-visible {
+  outline: 3px solid #ffd68c;
+  outline-offset: 4px;
+}
+
+/* In the dialog: the host's paper is the page; the section sits flat on it. */
+.krusty-menu--dialog .page-section {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+
+/* In the world: a paper menu out of the restaurant, scrolling inside itself. */
+.krusty-menu--in-world {
+  width: min(44rem, calc(100vw - 1.5rem));
+}
+
+.krusty-menu--in-world .page-section {
+  max-height: calc(100dvh - 13rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border: 3px solid #0b1f3a;
+  border-top: 0.6rem solid #c8392e;
+  border-radius: 1.25rem;
+  box-shadow:
+    0 5px 0 rgba(11, 31, 58, 0.55),
+    0 18px 40px rgba(0, 8, 20, 0.45);
+}
+
+/* A little menu-card glyph on the "See the full menu" button. */
+.krusty-menu-icon {
+  width: 0.85rem;
+  height: 1rem;
+  border: 2px solid currentColor;
+  border-radius: 0.15rem;
+  background:
+    linear-gradient(currentColor, currentColor) center 35% / 55% 2px no-repeat,
+    linear-gradient(currentColor, currentColor) center 65% / 55% 2px no-repeat;
+}
+
+@media (max-width: 30rem) {
+  .krusty-menu--in-world .page-section {
+    padding-inline: 0.875rem;
+  }
+}

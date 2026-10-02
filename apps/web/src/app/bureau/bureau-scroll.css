@@ -1,0 +1,199 @@
+/*
+ * The Bureau's complaint scroll out in the world: the form's paper (`complaint-scroll.css`)
+ * between its rods, unrolling and rolling up by its sheet's height, so the bottom rod travels.
+ * No overlay host wraps it here, so the host's paper colours are restated.
+ */
+.bureau-scroll {
+  --lmk-paper: #f3ead3;
+  --lmk-paper-edge: #dccb9f;
+  --lmk-ink: #2a2118;
+  --lmk-ink-soft: #5b4a36;
+  --lmk-rule: #8c3b2a;
+  --lmk-focus: #0b6fa4;
+  /* How tall the unrolled sheet may get; the phone's sheet sets it from the visual viewport. */
+  --bureau-paper-max: calc(100dvh - 13rem);
+
+  display: grid;
+  justify-items: center;
+  gap: 0.75rem;
+  width: min(38rem, calc(100vw - 1.5rem));
+  color: var(--lmk-ink);
+  font-family: Georgia, 'Times New Roman', 'Noto Naskh Arabic', serif;
+  line-height: 1.5;
+  text-align: start;
+  transition: opacity 220ms ease;
+}
+
+.bureau-scroll .complaint-scroll {
+  width: 100%;
+  filter: drop-shadow(0 16px 26px rgba(0, 8, 20, 0.5));
+}
+
+.bureau-scroll .complaint-scroll__rod {
+  position: relative;
+  z-index: 2;
+  height: 1.125rem;
+  transition: margin 700ms cubic-bezier(0.3, 0.7, 0.2, 1);
+}
+
+.bureau-scroll .complaint-scroll__sheet {
+  max-height: var(--bureau-paper-max);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(122, 82, 48, 0.55) transparent;
+  /* Unrolls by its height (the bottom rod travels down), not by the dialog's clip. */
+  animation: none;
+  transition:
+    max-height 760ms cubic-bezier(0.3, 0.7, 0.2, 1),
+    padding 760ms cubic-bezier(0.3, 0.7, 0.2, 1);
+}
+
+/* Rolled: the two rods meet, one roll of paper. */
+.bureau-scroll:is(
+    [data-state='rolled'],
+    [data-state='rolling'],
+    [data-state='gone']
+  )
+  .complaint-scroll__sheet {
+  max-height: 0;
+  padding-block: 0;
+  overflow: hidden;
+}
+
+.bureau-scroll:is(
+    [data-state='rolled'],
+    [data-state='rolling'],
+    [data-state='gone']
+  )
+  .complaint-scroll__rod--end {
+  margin-block-start: -0.5rem;
+}
+
+.bureau-scroll[data-state='gone'] {
+  opacity: 0;
+}
+
+/* The stamp: it slams down out of the water above, squashes the paper, and leaves its ink. */
+.bureau-scroll .complaint-scroll__stamp-mark {
+  z-index: 3;
+  transition: opacity 260ms ease;
+}
+
+.bureau-scroll:is([data-state='rolling'], [data-state='gone'])
+  .complaint-scroll__stamp-mark {
+  opacity: 0;
+}
+
+.bureau-scroll .complaint-scroll__seal {
+  width: 10rem;
+  height: 10rem;
+  animation: bureau-stamp-slam 620ms cubic-bezier(0.55, 0, 0.75, 0.2) both;
+}
+
+.bureau-scroll[data-state='stamped'] .complaint-scroll {
+  animation: bureau-thump 420ms 340ms both;
+}
+
+.bureau-scroll .complaint-scroll__stamp-mark::before {
+  content: '';
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: 50%;
+  width: 12rem;
+  height: 12rem;
+  margin: -8.5rem 0 0 -6rem;
+  border: 3px solid rgba(140, 59, 42, 0.4);
+  border-radius: 50%;
+  opacity: 0;
+  pointer-events: none;
+  animation: bureau-ink-ring 600ms 340ms ease-out both;
+}
+
+.bureau-scroll__back {
+  pointer-events: auto;
+}
+
+/* While the complaint travels it cannot be rolled back: the visitor will see how it went. */
+.bureau-scroll__back[aria-disabled='true'] {
+  cursor: progress;
+  opacity: 0.55;
+}
+
+/* A phone: the paper fills the sheet over the scene, scrolling inside itself. */
+.bureau-scroll[data-presentation='sheet'] {
+  --bureau-paper-max: var(--bureau-sheet-paper, calc(100dvh - 12rem));
+
+  align-content: start;
+  width: 100%;
+  max-width: 34rem;
+}
+
+@keyframes bureau-stamp-slam {
+  0% {
+    opacity: 0;
+    transform: translateY(-4rem) scale(2.4) rotate(-26deg);
+  }
+  55% {
+    opacity: 0.95;
+    transform: translateY(0) scale(1) rotate(-9deg);
+  }
+  66% {
+    transform: scale(0.9, 0.86) rotate(-8deg);
+  }
+  100% {
+    opacity: 0.9;
+    transform: scale(1) rotate(-8deg);
+  }
+}
+
+/* The counter shakes under the blow: a few pixels, quickly damped. */
+@keyframes bureau-thump {
+  0% {
+    transform: none;
+  }
+  12% {
+    transform: translate(0, 5px) scale(1, 0.985);
+  }
+  30% {
+    transform: translate(-4px, -2px);
+  }
+  48% {
+    transform: translate(3px, 1px);
+  }
+  66% {
+    transform: translate(-2px, 0);
+  }
+  84% {
+    transform: translate(1px, 0);
+  }
+  100% {
+    transform: none;
+  }
+}
+
+@keyframes bureau-ink-ring {
+  0% {
+    opacity: 0.9;
+    transform: scale(0.6);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.35);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bureau-scroll,
+  .bureau-scroll .complaint-scroll__rod,
+  .bureau-scroll .complaint-scroll__sheet,
+  .bureau-scroll .complaint-scroll__stamp-mark {
+    transition: none;
+  }
+
+  .bureau-scroll .complaint-scroll__seal,
+  .bureau-scroll[data-state='stamped'] .complaint-scroll,
+  .bureau-scroll .complaint-scroll__stamp-mark::before {
+    animation: none;
+  }
+}
