@@ -94,7 +94,9 @@ jobs:
 
       - run: npx playwright install --with-deps chromium
 
-      - run: npx nx run web-e2e:e2e -- --project=desktop --project=pending --grep @nightly
+      # The `pending` project (the unconfigured local build) does not exist against a deployed
+      # URL (playwright.config.ts), so it is only passed for local runs.
+      - run: npx nx run web-e2e:e2e -- --project=desktop ${{ !inputs.base_url && '--project=pending' || '' }} --grep @nightly
 
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
