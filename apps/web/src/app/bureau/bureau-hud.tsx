@@ -11,6 +11,7 @@ import {
   canAdvance,
   dialogueText,
   showsActions,
+  visitStateOf,
   type DialogueScript,
   type DialogueState,
 } from '../narrators/dialogue';
@@ -177,6 +178,7 @@ export function BureauHud({
       ref={root}
       className="visit-hud bureau-hud"
       data-stage={dialogue.stage}
+      data-visit-state={visitStateOf(dialogue)}
       data-scroll-out={scrollOut ? '' : undefined}
       data-wall-out={wallOut ? '' : undefined}
       dir={dir}

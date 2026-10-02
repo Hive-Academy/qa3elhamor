@@ -11,6 +11,7 @@ import {
   canAdvance,
   dialogueText,
   showsActions,
+  visitStateOf,
   type DialogueScript,
   type DialogueState,
 } from './dialogue';
@@ -233,6 +234,7 @@ export function VisitHud({
       ref={root}
       className="visit-hud"
       data-stage={dialogue.stage}
+      data-visit-state={visitStateOf(dialogue)}
       data-full-open={fullOpen ? '' : undefined}
       dir={dir}
       lang={lang}

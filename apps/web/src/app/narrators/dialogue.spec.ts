@@ -5,6 +5,7 @@ import {
   dialogueReducer,
   dialogueText,
   showsActions,
+  visitStateOf,
   type DialogueEvent,
   type DialogueScript,
   type DialogueState,
@@ -180,5 +181,22 @@ describe('dialogue', () => {
   it('ignores a second arrival while talking', () => {
     const talking = run([arrive, typed, advance]);
     expect(run([arrive], talking)).toBe(talking);
+  });
+});
+
+describe('visitStateOf', () => {
+  it('follows the dialogue: arriving, talking, ready, leaving', () => {
+    expect(visitStateOf(INITIAL_DIALOGUE)).toBe('arriving');
+    const talking = run([arrive]);
+    expect(visitStateOf(talking)).toBe('talking');
+    expect(visitStateOf(run([typed], talking))).toBe('ready');
+    expect(visitStateOf(run([{ type: 'farewell' }], talking))).toBe('leaving');
+  });
+
+  it('is talking again while a hint types, ready once it is typed', () => {
+    const hinted = run([arrive, typed, { type: 'select', id: 'frontend' }]);
+    expect(hinted.stage).toBe('hint');
+    expect(visitStateOf(hinted)).toBe('talking');
+    expect(visitStateOf(run([typed], hinted))).toBe('ready');
   });
 });

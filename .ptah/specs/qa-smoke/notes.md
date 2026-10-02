@@ -122,3 +122,12 @@ Fixes (apps/web-e2e only):
 - Also hardened the two in-world clicks in the other agent's new `wall.spec.ts` with `press`.
 
 Verification: at 4x throttle with `CI=1`, retries 0, desktop+pending (dive, bureau, reduced-motion, smoke, pending): before the fix 6 of 7 in-world flows passed/failed intermittently on nav-button clicks; after the fix run 1 had one failure (stamped message timeout 30 s, fixed to 120 s), run 2 18/18, and the in-world bureau pair then passed again. Lint and typecheck pass. Not yet confirmed on the real ubuntu runner; if it still flakes, the documented fallback is to move `@desktop-only` flows to a nightly/dispatch job.
+
+## Revision 3 — ready hook
+
+Run 36984383736 left 3 failures on the `.speech-box` inline-opacity wait (placement is an animation-driven signal). Added, additive and minimal, in the narrated-visit kit:
+- `visitStateOf(dialogue)` and the `VisitState` type in `apps/web/src/app/narrators/dialogue.ts`: `arriving` (narrator swimming in), `talking` (text typing, including a hint), `ready` (text complete), `leaving` (farewell). Pure, from the dialogue state only.
+- `data-visit-state` on the root of `visit-hud.tsx` (Pineapple, Tiki, Krusty) and `bureau/bureau-hud.tsx` (next to the existing `data-stage`). Unit spec: `visitStateOf` cases in `narrators/dialogue.spec.ts`.
+- e2e `bubblePlaced` now waits for `[data-visit-state]` to be `talking|ready` (120 s); no CSS opacity assertions remain in the suite.
+
+Verification: dialogue spec 15/15; `npx nx run-many -t lint,typecheck,test -p web web-e2e --skipSync` passes; Pineapple, Krusty Krab and Bureau dive specs at `E2E_CPU_THROTTLE=4 CI=1`, retries 0: 3/3 passed in two consecutive runs. Not touched: i18n tables, configs, content.

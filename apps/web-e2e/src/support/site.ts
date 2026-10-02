@@ -75,14 +75,16 @@ export const bubble = (page: Page, narrator: string): Locator =>
   page.getByRole('region', { name: narrator });
 
 /**
- * Waits until the narrator's bubble has been placed over the scene (a software rasteriser
- * takes tens of seconds to fly the camera in). Opacity is the only signal the page gives; see
- * notes.md for the test id this wants.
+ * Waits until the narrator has arrived and is talking: the visit's root carries
+ * `data-visit-state` (arriving | talking | ready | leaving), derived from the dialogue state,
+ * not from animation. A software rasteriser takes tens of seconds to fly the camera in.
  */
 export async function bubblePlaced(page: Page): Promise<void> {
-  await expect(page.locator('.speech-box')).toHaveCSS('opacity', '1', {
-    timeout: FLIGHT_TIMEOUT,
-  });
+  await expect(page.locator('[data-visit-state]')).toHaveAttribute(
+    'data-visit-state',
+    /^(talking|ready)$/,
+    { timeout: FLIGHT_TIMEOUT },
+  );
 }
 
 /** Opens `/` and flies to a landmark through its navigation button. */

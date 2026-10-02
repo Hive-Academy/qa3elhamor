@@ -200,3 +200,20 @@ export const canAdvance = (
 ): boolean =>
   state.stage === 'hint' ||
   (state.stage === 'tour' && (state.typing || state.line < lastLine(script)));
+
+/**
+ * Where the visit is, for anything that has to wait for it (the end-to-end suite) without
+ * reading animation: `arriving` (the narrator is still swimming in), `talking` (a text is being
+ * typed), `ready` (the text is complete and the visitor's controls are all there), `leaving`
+ * (the farewell). Derived from the dialogue alone, never from a frame.
+ */
+export type VisitState = 'arriving' | 'talking' | 'ready' | 'leaving';
+
+export const visitStateOf = (state: DialogueState): VisitState =>
+  state.stage === 'waiting'
+    ? 'arriving'
+    : state.stage === 'farewell'
+      ? 'leaving'
+      : state.typing
+        ? 'talking'
+        : 'ready';
