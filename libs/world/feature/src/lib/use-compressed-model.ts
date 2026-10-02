@@ -21,8 +21,9 @@ const withMeshopt = (loader: GLTFLoader): void => {
  * Each caller gets its own instance (`scene.clone()`), so two landmarks can use the same
  * model: an `Object3D` has one parent, and mounting the cached scene twice would move it.
  * Instances share geometry, materials and textures; those are disposed, and the model
- * evicted, when the last user unmounts. Static models only: skinned meshes need
- * `SkeletonUtils.clone`.
+ * evicted, when the last user unmounts. Static models only: a GLB with its own skin would need
+ * `SkeletonUtils.clone`. (A rigged narrator is not one: `<Narrator>` skins its own clone of the
+ * static model at load time, `narrator-skinning.ts`.)
  *
  * `null` loads nothing and returns an empty group: the caller's way to skip an asset its
  * quality tier does not allow (`assetAllowed`) without calling hooks conditionally. Switching

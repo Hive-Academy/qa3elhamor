@@ -1,5 +1,11 @@
 import type { NarrationLandmarkId } from '@qa3elhamor/content-domain';
-import type { NarratorCastId } from '@qa3elhamor/world-feature';
+import {
+  SPONGEBOB_RIG,
+  isNarratorClipId,
+  type NarratorCastId,
+  type NarratorClipHold,
+  type NarratorRigSpec,
+} from '@qa3elhamor/world-feature';
 import { NARRATOR_CAST } from '../site.config';
 
 /**
@@ -99,4 +105,33 @@ export function narratorsConfigFor(
   if (wanted === 'bundled') return { ...config, useBundledCharacters: true };
   if (wanted === 'original') return { ...config, useBundledCharacters: false };
   return config;
+}
+
+/**
+ * Bones for the bundled models that have them (`@qa3elhamor/world-feature`, `narrator-rig.ts`):
+ * a rigged model hops, waves, gestures and idles, and idles at its landmark before the visit
+ * (`ResidentNarrator`). A model without an entry plays as a static model. Rigging another
+ * character is a data addition here (and its `NarratorRigSpec`).
+ */
+export const NARRATOR_RIGS: Readonly<
+  Partial<Record<BundledCharacter['asset'], NarratorRigSpec>>
+> = {
+  'spongebob-narrator': SPONGEBOB_RIG,
+};
+
+/**
+ * A development-only preview of one clip on every rigged narrator, from the page URL:
+ * `?pose=idle|wave|talk|hop|react`, optionally frozen with `&poseAt=0..1` (how far through the
+ * clip). Production builds ignore the URL (null).
+ */
+export function narratorPosePreviewFor(
+  search: string,
+  dev: boolean,
+): NarratorClipHold | null {
+  if (!dev) return null;
+  const params = new URLSearchParams(search);
+  const clip = params.get('pose');
+  if (!isNarratorClipId(clip)) return null;
+  const at = Number.parseFloat(params.get('poseAt') ?? '');
+  return Number.isFinite(at) ? { clip, at: Math.min(1, Math.max(0, at)) } : { clip };
 }

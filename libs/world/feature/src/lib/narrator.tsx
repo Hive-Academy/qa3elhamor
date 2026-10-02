@@ -18,6 +18,14 @@ import {
   stepNarrator,
   yawToward,
 } from './narrator-motion.js';
+import {
+  createNarratorAnimator,
+  stepNarratorAnimator,
+  type NarratorAnimatorState,
+  type NarratorClipHold,
+} from './narrator-animator.js';
+import { createRigPose } from './narrator-rig.js';
+import { rigNarratorModel, type RiggedNarrator } from './narrator-skinning.js';
 import { createNarratorUniforms } from './narrator-uniforms.js';
 import { usePrefersReducedMotion } from './use-prefers-reduced-motion.js';
 import type { Vec3 } from './world-space.js';
@@ -58,14 +66,25 @@ export interface NarratorProps {
   readonly onSettled?: () => void;
   /** Called once each time it has fully swum away. */
   readonly onExited?: () => void;
+  /** A rigged model waves while this is true (a farewell, a passer-by). Others ignore it. */
+  readonly waving?: boolean;
+  /** A counter: each change makes a rigged model react (a surprised jump). Others ignore it. */
+  readonly poke?: number;
+  /** Development preview for a rigged model: loop or freeze one clip. Null / omitted in production. */
+  readonly hold?: NarratorClipHold | null;
 }
 
 /**
- * A narrator: any character, procedural cast or a static model, brought to life without bones.
- * It swims in, turns to the visitor (yaw-limited), idles with a bob and a sway, squashes and
- * stretches in a speech rhythm while `talking`, and swims away when no longer `present`. All
- * motion is time based (critically damped springs, a wrapped clock), allocation-free per frame.
- * Reduced motion: a static pose facing the visitor, with only a gentle scale pulse while it talks.
+ * A narrator: any character, procedural cast or a loaded model. It swims in, turns to the
+ * visitor (yaw-limited), idles with a bob and a sway, squashes and stretches in a speech rhythm
+ * while `talking`, and swims away when no longer `present`. All motion is time based (critically
+ * damped springs, a wrapped clock), allocation-free per frame. Reduced motion: a static pose
+ * facing the visitor, with only a gentle scale pulse while it talks.
+ *
+ * A model with a `rig` also gets bones (skinned at load time, `narrator-skinning.ts`) and plays
+ * clips on them (`narrator-animator.ts`): it hops in and waves, breathes and sways while idle,
+ * gestures and nods while talking, waves while `waving`, reacts to `poke` and hops away. Under
+ * reduced motion it holds its rest pose (arms down).
  *
  * Procedural cast geometry and materials are created per narrator and disposed on unmount; a
  * model narrator's object belongs to the caller and is never disposed here.
@@ -108,6 +127,9 @@ function NarratorBody({
   exitTo,
   onSettled,
   onExited,
+  waving = false,
+  poke = 0,
+  hold = null,
 }: NarratorProps) {
   const prefersReduced = usePrefersReducedMotion();
   const reduced = reducedMotion ?? prefersReduced;
@@ -118,8 +140,7 @@ function NarratorBody({
   const castId = typeof cast === 'string' ? cast : null;
   const source = typeof cast === 'string' ? null : (cast.object ?? null);
   const cloneModel = typeof cast !== 'string' && cast.clone === true;
-  // A clone shares geometry and materials with the cached original, so it disposes nothing.
-  const model = useMemo(() => (source && cloneModel ? source.clone(true) : source), [source, cloneModel]);
+  const rigSpec = typeof cast === 'string' ? undefined : cast.rig;
   const modelHeight = typeof cast === 'string' ? undefined : cast.height;
   const mesh = useMemo(() => (castId ? NARRATOR_CAST[castId].create(uniforms) : null), [castId, uniforms]);
   useEffect(
@@ -135,14 +156,38 @@ function NarratorBody({
     () => (mesh ? measureNarratorGeometry(mesh.geometry) : source ? measureNarratorModel(source) : null),
     [mesh, source]
   );
+  // A rigged model skins its own clone (the source is never touched). Any failure falls back to
+  // the static model: the rig is resolved here, once, never inside the frame loop.
+  const rigged = useMemo<RiggedNarrator | null>(() => {
+    if (!source || !rigSpec || !bounds) return null;
+    try {
+      return rigNarratorModel(source, rigSpec, bounds);
+    } catch (error) {
+      console.error('Narrator: the model could not be rigged; it plays without bones.', error);
+      return null;
+    }
+  }, [source, rigSpec, bounds]);
+  useEffect(() => () => rigged?.dispose(), [rigged]);
+  // A clone shares geometry and materials with the cached original, so it disposes nothing.
+  const model = useMemo(
+    () => (rigged ? rigged.object : source && cloneModel ? source.clone(true) : source),
+    [rigged, source, cloneModel]
+  );
   // eslint-disable-next-line react-hooks/exhaustive-deps -- keyed on what the height depends on, not the cast object's identity
   const height = useMemo(() => narratorHeight(cast, scale), [castId, source, modelHeight, scale]);
-  const motion = useMemo(() => narratorMotion(cast), [cast]);
+  const castMotion = useMemo(() => narratorMotion(cast), [cast]);
+  // Once the clips carry the gestures, the body-level squash and bob step back.
+  const motion = useMemo(
+    () => (rigged?.spec.motion ? { ...castMotion, ...rigged.spec.motion } : castMotion),
+    [castMotion, rigged]
+  );
   const fit = bounds ? height / bounds.height : 1;
 
   const state = useRef(createNarratorMotionState());
   const pose = useRef(createNarratorPose());
   const camera = useRef(new Vector3());
+  const animator = useRef<{ readonly rig: RiggedNarrator; readonly state: NarratorAnimatorState } | null>(null);
+  const rigPose = useRef(createRigPose());
 
   const post: Vec3 = [finite(position[0]), finite(position[1]), finite(position[2])];
   const from = enterFrom ?? motion.enterFrom;
@@ -174,6 +219,28 @@ function NarratorBody({
     uniforms.talk.value = p.talk;
     uniforms.swim.value = p.swim;
     if (!reduced) tickAmbientClock(uniforms.time, Math.min(Math.max(delta, 0), NARRATOR_MAX_FRAME));
+
+    // The bones, in the same frame as the body (so the first visible frame is never the T-pose).
+    if (rigged) {
+      // Made once per rig (a new model or spec starts a fresh animator).
+      if (animator.current?.rig !== rigged) animator.current = { rig: rigged, state: createNarratorAnimator(rigged.spec) };
+      stepNarratorAnimator(
+        animator.current.state,
+        {
+          dt: delta,
+          phase: p.phase,
+          presence: state.current.presence,
+          talk: state.current.talk.x,
+          waving,
+          poke,
+          reducedMotion: reduced,
+          hold,
+        },
+        rigged.spec,
+        rigPose.current
+      );
+      rigged.apply(rigPose.current);
+    }
 
     if (event === 'settled') onSettled?.();
     else if (event === 'exited') onExited?.();

@@ -2,6 +2,7 @@ import { Box3, Matrix4, type BufferGeometry, type Material, type Object3D } from
 import { createCrabClerkGeometry, createCrabClerkMaterial } from './crab-clerk-model.js';
 import { createHamourGeometry, createHamourMaterial } from './hamour-model.js';
 import { DEFAULT_NARRATOR_MOTION, type NarratorMotionTuning } from './narrator-motion.js';
+import type { NarratorRigSpec } from './narrator-rig.js';
 import type { NarratorUniforms } from './narrator-uniforms.js';
 import { createSardinePresidentGeometry, createSardinePresidentMaterial } from './sardine-president-model.js';
 import { WORLD_SCALE, type Vec3 } from './world-space.js';
@@ -33,6 +34,12 @@ export interface NarratorModel {
    * object is never mutated, and the clone shares, so it disposes nothing.
    */
   readonly clone?: boolean;
+  /**
+   * Bones for this model (`narrator-rig.ts`): with a rig, `<Narrator>` skins its own clone of the
+   * object at load time and plays the clips (idle, talk, wave, hop, react). Omitted, or if the
+   * model cannot be rigged: today's static model, animated as a whole.
+   */
+  readonly rig?: NarratorRigSpec;
 }
 
 export type NarratorCast = NarratorCastId | NarratorModel;

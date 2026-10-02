@@ -18,7 +18,10 @@ import {
 } from 'react';
 import { PerspectiveCamera, Vector3, type Group } from 'three';
 import { InWorldCard } from '../in-world/in-world-card';
-import type { NarratorChoice } from '../narrators.config';
+import {
+  narratorPosePreviewFor,
+  type NarratorChoice,
+} from '../narrators.config';
 import { toContentLocale } from '../overlays/overlay-copy';
 import {
   INITIAL_DIALOGUE,
@@ -28,6 +31,7 @@ import {
 } from './dialogue';
 import {
   LandmarkNarrator,
+  ResidentNarrator,
   mouthOf,
   narratorRenderedHeight,
   speechAnchorOf,
@@ -73,6 +77,14 @@ export const COMPACT_BELOW_PX = 640;
 /** How long the narrator stays after the farewell is typed, before swimming off. */
 export const FAREWELL_LINGER_S = 1.2;
 const DEFAULT_DOOR_HEIGHT = 0.16;
+
+/** Development only (`?pose=wave&poseAt=0.3`): one clip held on every rigged narrator. */
+const POSE_PREVIEW = import.meta.env.DEV
+  ? narratorPosePreviewFor(
+      typeof window === 'undefined' ? '' : window.location.search,
+      true,
+    )
+  : null;
 
 /**
  * A landmark's narrated visit, as its in-world scene (`LANDMARK_SCENES`). Opening the landmark:
@@ -197,7 +209,26 @@ function NarratedVisit<Slot>({
 
   useSpeechBubblePlacement(speechRef, anchor, VISIT_INSETS, dir);
 
-  if (!mounted || !sceneLayer) return null;
+  // Before the visit (and after it), a rigged narrator idles at its post as the visitor dives
+  // past: the landmark is inhabited. The visit itself is unchanged.
+  if (!mounted)
+    return (
+      <WorldFrame
+        bounds={bounds}
+        eye={stop.eye}
+        door={door}
+        doorHeight={doorHeight}
+      >
+        <ResidentNarrator
+          choice={choice}
+          placement={post}
+          eye={stop.eye}
+          reducedMotion={reducedMotion}
+          hold={POSE_PREVIEW}
+        />
+      </WorldFrame>
+    );
+  if (!sceneLayer) return null;
 
   const words = visit.words[lang];
   const objectsOut = open && dialogue.stage !== 'waiting';
@@ -221,6 +252,8 @@ function NarratedVisit<Slot>({
             exitTo={post.exitTo}
             talking={dialogue.typing}
             present={present}
+            waving={dialogue.stage === 'farewell'}
+            hold={POSE_PREVIEW}
             reducedMotion={reducedMotion}
             onSettled={onSettled}
             onExited={onExited}

@@ -4,8 +4,10 @@ import { NARRATOR_CAST_IDS } from '@qa3elhamor/world-feature';
 import { describe, expect, it } from 'vitest';
 import {
   NARRATORS_CONFIG,
+  NARRATOR_RIGS,
   bundledCharactersFromEnv,
   narratorFor,
+  narratorPosePreviewFor,
   narratorsConfigFor,
 } from './narrators.config';
 import { narratorName } from './narrators/narrator-copy';
@@ -75,5 +77,26 @@ describe('narrators config', () => {
     const on = { ...NARRATORS_CONFIG, useBundledCharacters: true };
     expect(narratorsConfigFor('?narrators=original', true, on).useBundledCharacters).toBe(false);
     expect(narratorsConfigFor('?quality=high', true)).toBe(NARRATORS_CONFIG);
+  });
+});
+
+describe('narrator rigs and the pose preview', () => {
+  it('rigs SpongeBob only (Patrick keeps the static model for now)', () => {
+    expect(NARRATOR_RIGS['spongebob-narrator']?.id).toBe('spongebob');
+    expect(NARRATOR_RIGS['patrick-narrator']).toBeUndefined();
+  });
+
+  it('reads ?pose (and ?poseAt) in development only', () => {
+    expect(narratorPosePreviewFor('?pose=wave', true)).toEqual({ clip: 'wave' });
+    expect(narratorPosePreviewFor('?pose=hop&poseAt=0.5', true)).toEqual({
+      clip: 'hop',
+      at: 0.5,
+    });
+    expect(narratorPosePreviewFor('?pose=hop&poseAt=7', true)).toEqual({
+      clip: 'hop',
+      at: 1,
+    });
+    expect(narratorPosePreviewFor('?pose=dance', true)).toBeNull();
+    expect(narratorPosePreviewFor('?pose=wave', false)).toBeNull();
   });
 });

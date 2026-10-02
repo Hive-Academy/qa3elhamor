@@ -109,3 +109,21 @@ createNarratedVisitScene<MySlot>({
   content.
 - **Boundaries.** No kernel (`libs/landmarks`) change is needed. Content is bound in
   `landmarks.config.ts`; the kit never imports content.
+
+## Rigged narrators and the resident
+
+- **Bones at load time.** A bundled model listed in `NARRATOR_RIGS` (`narrators.config.ts`; today
+  SpongeBob only) is skinned when it loads: `<Narrator cast={{ object, rig }}>` builds bones from
+  the model's `NarratorRigSpec` (`@qa3elhamor/world-feature`, `narrator-rig.ts`), computes the skin
+  weights from the vertex positions (cached per model) and plays clips: hop in and wave, idle,
+  talk gestures, wave while `waving` (the farewell), react on `poke`, hop away. The GLB is
+  unchanged. If rigging fails the model plays as before (static), with a console error. Patrick is
+  a data addition: a spec, and its entry in `NARRATOR_RIGS`.
+- **The resident.** Before a visit opens (and after it ends), a rigged narrator idles at its post
+  while the visitor dives past (`ResidentNarrator`, `resident.ts`): it loads when the camera comes
+  within 4 stop-distances, goes beyond 5, and waves when the camera passes within 1.6. Only where
+  the tier allows the model; decorative (no events, no focus). The visit's flow and
+  `data-visit-state` are unchanged.
+- **Preview a clip (development only).** `?pose=idle|wave|talk|hop|react`, optionally frozen with
+  `&poseAt=0..1`, holds that clip on every rigged narrator, resident or visiting: for example
+  `/?quality=high&pose=wave&poseAt=0.75`. Production builds ignore it.
