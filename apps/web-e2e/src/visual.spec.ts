@@ -9,8 +9,9 @@ import type { Page } from '@playwright/test';
  * texture or a model that fails to load changes pixels that no DOM assertion can see.
  *
  * Determinism: reduced motion freezes the ocean (waves, caustics, drift) and slows ambient life
- * to a crawl, `?quality=` pins the tier, the camera is set through the page scroll and the
- * shot is taken only once the depth readout has stopped changing. A software rasteriser still
+ * to a crawl, `?quality=` pins the tier, the camera is set through the page scroll, the shot is
+ * taken only once the depth readout has stopped changing, and `data-freeze-frames` then stops the
+ * render loop so the canvas holds still. A software rasteriser still
  * differs by a few pixels from run to run: `maxDiffPixelRatio` (playwright.config.ts) absorbs
  * that and nothing close to a real regression.
  *
@@ -87,6 +88,12 @@ for (const tier of TIERS) {
       // land on a rasteriser that draws a few frames per second.
       await page.waitForTimeout(8_000);
       await hideChrome(page);
+      // Fish, residents and caustics never fully stop, even under reduced motion: stop drawing
+      // frames (apps/web/src/app/frame-freeze.tsx) so the canvas holds one still picture.
+      await page.evaluate(() =>
+        document.documentElement.setAttribute('data-freeze-frames', ''),
+      );
+      await page.waitForTimeout(500);
 
       await expect(page.locator('canvas')).toHaveScreenshot(`${stop.name}-${tier}.png`, {
         timeout: 60_000,

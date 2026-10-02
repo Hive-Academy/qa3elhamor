@@ -25,6 +25,7 @@ import {
 import { buildAmbientLife } from './ambient.config';
 import { DiveAudioMix } from './audio/dive-audio-mix';
 import { SiteCredits } from './credits';
+import { FrameFreeze } from './frame-freeze';
 import { SceneCredits } from './scene-credits';
 import { DepthGauge } from './depth-gauge';
 import { buildDivePath } from './dive.config';
@@ -237,6 +238,7 @@ function Dive({ onDiveFailure }: DiveShellProps) {
                   {intro === 'cinematic' && <TourIntroScene />}
                   <TourCaptionScene />
                   <QualityMonitor />
+                  <FrameFreeze />
                 </Canvas>
               </DiveFailureBoundary>
             </div>
