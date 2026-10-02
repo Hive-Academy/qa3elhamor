@@ -264,9 +264,12 @@ describe('the Bureau visit: the scroll', () => {
     expect(
       screen.getByText(en('complaintSuccessBody')).getAttribute('role'),
     ).toBe('status');
-    // Focus on the result, the filled-in paper out of reach under the stamp.
-    expect(document.activeElement?.textContent).toBe(
-      en('complaintSuccessTitle'),
+    // Focus on the result, the filled-in paper out of reach under the stamp. Focus moves in an
+    // effect after `onStamped`, so wait for it rather than racing a loaded runner.
+    await waitFor(() =>
+      expect(document.activeElement?.textContent).toBe(
+        en('complaintSuccessTitle'),
+      ),
     );
     expect(field('complaintSubjectLabel').closest('[inert]')).not.toBeNull();
     // No dialog actions on the paper: the President offers what comes next.
