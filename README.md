@@ -1,143 +1,206 @@
 # قاع الهامور — Qaa El-Hamour
 
-An interactive WebGL brand website themed on the viral Egyptian trend **"Qaa El-Hamour"**
-(قاع الهامور) — the August 2026 phenomenon in which some 1.8 million Egyptians projected
-their bureaucratic and economic frustrations onto an underwater parallel state.
+An interactive WebGL personal site, and a template you can fork. It is themed on the Egyptian
+trend "Qaa El-Hamour" (قاع الهامور, roughly "the bottom of the grouper's sea"), in which people
+joked about an underwater parallel state with its own bureaucracy. A scroll-driven camera dive
+through an ocean town stands in for a portfolio: the Pineapple is the bio, the Tiki Head the
+résumé, the Krusty Krab the services menu, and a Municipal Complaints Bureau replaces the contact
+form. Content, branding and assets come from data files, so forking is editing configuration,
+not components.
 
-The site is a scroll-driven camera dive through an ocean scene. Interactive landmarks stand
-in for the sections of a personal brand site: the Pineapple is the bio, Squidward's Tiki head
-is the résumé, the Krusty Krab is the services menu, and a Municipal Complaints Bureau
-replaces the contact form — visitors file a complaint instead of sending an email.
+![The opening view: the extruded title Qaa El-Hamour over the seabed, with "Begin the journey" and "Explore on my own"](docs/images/intro-title.jpg)
 
-It is built as a **config-driven, open-source template**. Content, branding, and assets
-resolve from data files; the scene libraries never import them directly. Forking should mean
-editing configuration, not components.
+**Live:** <https://abdallah-khalil.github.io/> (the owner's deployment of this repository)
 
-## Use this template
+## Features
 
-Fork it, then make it yours by editing content, config and assets only:
+- **Cinematic tour.** A first-time visitor gets an intro and a hands-free journey that flies the
+  camera to each landmark; the free dive is one click away ([docs/tour.md](docs/tour.md)).
+- **Narrators with animation.** Each landmark has a narrator that talks, waves and reacts when
+  poked. The template's own cast (the Hamour, the Sardine President, the Crab Clerk) is built in
+  code; optional bundled models are described under [Licences](#licences).
+- **Voice babble and ambient audio.** Narrators "speak" in synthesized babble, with UI sounds and a
+  looping music bed. Sound is off until the visitor's first gesture and downloads nothing before
+  then ([docs/audio.md](docs/audio.md)).
+- **3D text.** The title and the narrators' speech bubbles are drawn in the water
+  ([docs/ocean-text.md](docs/ocean-text.md)).
+- **Bilingual, Arabic and English**, right to left where needed; `locales: ['en']` turns Arabic off.
+- **Reduced motion and no WebGL.** With reduced motion every landmark opens as a dialog; without
+  WebGL (or with `?view=page`) the site loads as an ordinary page with the same content.
+- **Complaints Bureau contact form.** Sends through Web3Forms or Formspree, or says honestly that
+  it is not wired ([docs/contact.md](docs/contact.md)).
+- **Performance budget.** The 3D code is a lazy chunk; `npm run perf:budget` fails the build when a
+  budget is exceeded ([docs/perf-budget.md](docs/perf-budget.md)).
+- **Content Security Policy** written into the page at build time, following the providers you
+  configure ([docs/security.md](docs/security.md)).
 
-```bash
-npm install
-npm run template:reset        # swap the owner's profile for neutral sample content
-# edit content/*.json and apps/web/src/site.config.ts (brand, theme, languages, landmarks, cast)
-npx nx dev web
-```
+## Quick start
 
-[`docs/template.md`](docs/template.md) walks through it in about 30 minutes: content, brand and
-theme, the narrator cast, moving or replacing landmarks (including swapping a landmark's 3D model
-through the asset pipeline, with its licence credit), providers, and deploying to your own GitHub
-Pages. It was written by rebranding a fork end to end.
-
----
-
-## Status
-
-**Stage A foundation is complete.** The workspace, build tooling, module boundaries, CI, and
-the shared/world primitives exist. No scene, camera, landmark, or backend feature is built
-yet — those are Stage B roadmap items.
-
-What renders today is a fogged, empty ocean volume that proves the R3F → Vite → Nx pipeline
-works end to end and that the world asset manifest resolves across library boundaries.
-
-- **Roadmap:** [`.ptah/roadmap.md`](.ptah/roadmap.md) — the phased plan. Each unchecked item
-  is its own task.
-- **Decisions:** [`.ptah/scope-decisions.md`](.ptah/scope-decisions.md) — what was chosen
-  during discovery, and why.
-- **Source blueprint:** [`assets/qaa-elhamour-threejs-concept.md`](assets/qaa-elhamour-threejs-concept.md)
-
----
-
-## Getting started
+Requires Node.js 22 (what CI uses) and npm.
 
 ```bash
-npm install
-npx nx dev web        # http://localhost:4200
+npm ci
+npx nx serve web        # http://localhost:4200   (npx nx dev web is the same dev server)
 ```
 
-Verify the whole workspace:
+Check everything:
 
 ```bash
 npx nx run-many -t lint typecheck test build
 ```
 
----
+## Fork and deploy
 
-## Architecture
+Follow these in order. The detail for each step is in the linked page; the commands below are the
+ones those pages and the CI workflows use.
 
-| Layer | Choice | Why |
-|---|---|---|
-| 3D | Three.js via React Three Fiber + drei | Largest Three.js ecosystem; the most forkable option |
-| Build | Vite, Nx monorepo | Fast HMR; enforced library boundaries |
-| Hosting | Static bundle | Almost everything is prerendered |
-| Backend | One serverless seam | Only the public complaints wall needs a server |
-| Database | Managed Postgres via Prisma | Scoped to the wall alone |
-| Auth | None in this codebase | Visitors are anonymous; the CMS owns its own login |
+### 1. Fork and install
 
-### Workspace layout
+Fork `Hive-Academy/qa3elhamor` on GitHub, clone your fork, then `npm ci`.
 
-```
-apps/
-  web/                     React + R3F site. The composition root.
-  api/                     Serverless handlers (Fetch API shape). Health only today.
-libs/
-  shared/domain/           Result, branded ids, value-object base
-  shared/util/             Pure math: clamp, lerp, remap, smoothstep
-  shared/api-interfaces/   The only type channel between web and api
-  world/domain/            Asset manifest, quality tiers, CC-BY attribution records
+### 2. Start from sample content
+
+`content/` holds the owner's real profile. Do not deploy it as yours.
+
+```bash
+npm run template:reset   # copies content.example/*.json over content/
 ```
 
-Stage B adds `world/feature`, `dive/*`, `landmarks/*`, `content/*`, `complaints/*`, and
-`telemetry/*` as their roadmap items are built.
+This installs a fictional resident ("Sam Reef"). Edit `content/*.json` to be you (rules in
+[`content/README.md`](content/README.md)), delete the `"_sample"` note in each file, then check:
 
-### Module boundaries
+```bash
+npx nx validate content-data-access
+```
 
-Libraries carry three tag dimensions — `scope:` (bounded context), `type:` (layer), and
-`platform:` (web / serverless / shared) — enforced by `@nx/enforce-module-boundaries` in
-[`eslint.config.mjs`](eslint.config.mjs).
+Prefer a form to JSON? [docs/cms.md](docs/cms.md) covers the optional CMS.
 
-The rule that matters most: **bounded contexts are strictly isolated.** A scene library may
-not import content. Landmarks receive their copy as props, and `apps/web` is the only place
-allowed to wire the two together. Without that rule, content references leak into scene
-internals and a fork stops being a matter of editing data. Apps deliberately carry no
-`scope:` tag, which is what lets them compose across contexts.
+### 3. Rebrand
 
-Handlers in `apps/api` are written against the Fetch API (`Request` → `Response`) rather than
-any vendor's signature, so the deployment target stays an open decision.
+[docs/template.md](docs/template.md) is the full walkthrough (about 30 minutes). The switches live
+in `apps/web/src/site.config.ts`:
 
----
+| Export | What it controls |
+| --- | --- |
+| `SITE` | Brand name and masthead, `<head>` metadata, the colour theme and fonts, the water, and `locales` |
+| `LANDMARKS`, `LANDMARK_PLACEMENTS` | Landmark names, models and positions |
+| `DIVE_CONFIG` | The camera route and pacing |
+| `NARRATOR_CAST` | Who narrates each landmark, and `bundledByDefault` |
+| `TOUR` | `enabled: false` removes the intro and the journey |
+| `AUDIO` | The music bed (`music: null, ambience: false` removes sound entirely) |
 
-## Assets and licensing
+**Set `NARRATOR_CAST.bundledByDefault` to `false`.** It is `true` only for the owner's site and
+turns on the SpongeBob and Patrick narrators, which are Nickelodeon characters (see
+[Licences](#licences)). Also replace the favicon (`apps/web/public/favicon.ico`) and the owner's
+URLs listed in docs/template.md, section 0.
 
-Four models are committed under `assets/`, all **CC-BY-4.0** — commercial use permitted,
-**attribution required**:
+### 4. Contact form (optional)
 
-| Model | Author |
-|---|---|
-| Bikini Bottom Map 3D Model | [spongebob.evolution](https://sketchfab.com/spongebob.evolution) |
-| Sbfbb-SpongeBob House | [Sajin Mickey Firey fan 1342](https://sketchfab.com/cherylhill28) |
-| Sponge On The Run: SpongeBob Base Model | [NickBob](https://sketchfab.com/nickbob) |
-| Sponge On The Run: Patrick Base Model (Textured) | [NickBob](https://sketchfab.com/nickbob) |
+Set `VITE_CONTACT_PROVIDER` to `web3forms` or `formspree` plus its key or form id
+([docs/contact.md](docs/contact.md)). Unset, the form says it is not wired and sends nothing.
+Locally, copy `.env.example` to `.env` (the wall variables in it can stay as they are).
 
-The full credit strings live in `libs/world/domain/src/lib/attribution.ts` and are rendered
-in-world by the `asset-attribution-ui` roadmap item. A unit test fails the build if a model
-is added to the manifest without its credit.
+### 5. Deploy to GitHub Pages
 
-> **Two constraints worth knowing before you fork.**
->
-> The licences cover the **mesh files**, not the characters. SpongeBob is Nickelodeon /
-> Paramount intellectual property, and parody use of a viral meme sits differently from a
-> commercial site trading on that IP. This project therefore leans on the Egyptian trend's
-> own vocabulary — the Sardine President, the complaints bureau, *"we reached the bottom"* —
-> rather than SpongeBob branding.
->
-> The raw assets total **27.6 MB**, with a single 17 MB model among them. Compression
-> (Meshopt/Draco geometry, KTX2 textures) is a prerequisite, not an optimisation pass.
+The site is static. The workflow `.github/workflows/deploy-pages.yml` runs only when started by hand
+(Actions, "Deploy to GitHub Pages", Run workflow) and publishes only if `publish` is ticked.
+Unticked, it is a full build-and-check dry run, so start there. Full details:
+[docs/deploy.md](docs/deploy.md).
 
----
+**Your own user site** (`https://<you>.github.io/`):
+
+1. Create the repository `<you>/<you>.github.io`, and in its Settings, Pages, choose "Deploy from a
+   branch" with your publishing branch and `/ (root)`.
+2. Create an SSH deploy key (`ssh-keygen -t ed25519 -N "" -C "pages-deploy" -f pages_deploy_key`).
+   Add the public half to the Pages repository as a deploy key **with write access**, and the
+   private half to your fork as the secret `PAGES_DEPLOY_KEY`. Delete the local key files.
+3. In your fork, Settings, Secrets and variables, Actions, set the variables `PAGES_REPOSITORY`
+   (`<you>/<you>.github.io`) and `PAGES_BRANCH` (its publishing branch). Leave `SITE_BASE` unset.
+   Optionally set `SITE_URL` (`https://<you>.github.io/`) for social previews, and the contact
+   variables from step 4.
+4. Run the workflow as a dry run, then again with `publish` ticked.
+
+**A project site** (`https://<you>.github.io/<repo>/`): set the variable `SITE_BASE` to `/<repo>/`
+(and optionally `SITE_URL`), then build and push the output yourself:
+
+```bash
+SITE_BASE=/<repo>/ npx nx run web:build --skip-nx-cache
+SITE_BASE=/<repo>/ npm run deploy:prepare
+# publish the contents of apps/web/dist to your gh-pages branch
+```
+
+On Windows Git Bash use `SITE_BASE=<repo>` without slashes (docs/template.md, section 7). For a
+custom domain leave `SITE_BASE` unset and add a `CNAME` file under `apps/web/public/`.
+
+What the build leaves out of the published site on purpose (the moderation console and `/admin`) is
+explained in docs/deploy.md. The optional complaints wall needs a server (`apps/api` and Postgres,
+`docs/security.md`) and stays off on a static host.
+
+Before you publish, read the checklist at the end of docs/template.md ("What you must not ship").
+
+## Project layout
+
+```
+apps/web/            The React + R3F site and the composition root (site.config.ts lives here)
+apps/web-e2e/        Playwright end-to-end and visual specs
+apps/api/            Optional serverless handlers for the complaints wall (Fetch API shape)
+libs/world/          The 3D world: asset manifest and credits (domain), scene (feature), audio, UI
+libs/dive/           Scroll-driven camera path
+libs/landmarks/      Landmark definitions, scenes and overlays (see its README)
+libs/content/        Content model and the loader that validates content/*.json
+libs/complaints/     Complaint model, wall data access and API feature
+libs/telemetry/      Optional cookieless analytics
+libs/shared/         Result type, pure math, the web-to-api type channel
+content/             The site's words, as JSON (content.example/ is the neutral sample)
+assets/              Source 3D models and audio sources, with their licences
+tools/               Asset pipeline, perf budget, deploy helpers, template reset
+docs/                Guides, one per topic
+```
+
+Libraries carry `scope:`, `type:` and `platform:` tags, enforced by `@nx/enforce-module-boundaries`
+in `eslint.config.mjs`. Scene libraries never import content: `apps/web` is the only place that
+wires the two together, which is what makes a fork a matter of editing data.
+
+## Scripts
+
+| Command | Does |
+| --- | --- |
+| `npx nx serve web` | Dev server on port 4200 |
+| `npx nx run web:build` | Production build into `apps/web/dist` |
+| `npx nx run-many -t lint typecheck test` | Static checks and unit tests |
+| `npx nx validate content-data-access` | Validate `content/*.json` |
+| `npm run assets:compress` / `assets:verify` | Build / check the compressed 3D models |
+| `npm run perf:budget` | Check the built site against the budgets |
+| `npm run template:reset` | Replace `content/` with the sample content |
+| `npm run deploy:check-contact` / `deploy:prepare` | Check the contact config / shape the Pages artefact |
+| `npm run cms:local` | Local backend for the optional CMS |
+| `npm run db:up`, `db:migrate`, `api:dev` | The optional complaints wall's database and API |
+
+## Testing
+
+Unit and component specs sit beside the code (`npx nx run-many -t test`). End-to-end and visual
+specs run in real Chromium: `npx playwright install chromium` once, then
+`npx nx run web-e2e:e2e`. The e2e specs are written against the owner's landmark names and copy;
+[docs/testing.md](docs/testing.md) explains what is covered and how to adapt it. CI
+(`.github/workflows/ci.yml`) also runs the asset check, the CSP spec and the performance budget.
+
+## Licences
+
+- **Code: MIT** ([`LICENSE`](LICENSE)), copyright 2026 Abdallah Khalil. This covers the source
+  code only.
+- **Everything else keeps its own licence**: four CC-BY-4.0 Sketchfab models (attribution
+  required), a CC0 music track, the OFL-licensed fonts, and the site owner's personal content.
+  The full list, including which files are modified, is in [`NOTICE.md`](NOTICE.md). The site
+  renders the model and music credits itself; keep them if you fork.
+- **Characters.** SpongeBob and Patrick are Nickelodeon / Paramount intellectual property. The
+  model licences cover the mesh files, not the characters. This is an unofficial, non-commercial
+  fan parody, and the site's branding is the Egyptian trend, not SpongeBob. The switch is
+  `NARRATOR_CAST.bundledByDefault` in `site.config.ts`; it is `true` in this repository because
+  the owner's site uses the characters and accepts that risk. A fork should set it to `false`
+  (step 3 above), which falls back to the original cast built in code.
 
 ## Contributing
 
-Work proceeds one roadmap item per session. Pick an unchecked item from
-[`.ptah/roadmap.md`](.ptah/roadmap.md), check its `Depends on:` line, and run
-`/orchestrate <slug>` in a fresh chat.
+Work proceeds one roadmap item at a time. Pick an unchecked item from
+[`.ptah/roadmap.md`](.ptah/roadmap.md) and read its `Depends on:` line. Decisions made during
+discovery, and why, are in [`.ptah/scope-decisions.md`](.ptah/scope-decisions.md).

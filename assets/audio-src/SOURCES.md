@@ -57,3 +57,14 @@ Not sourced; low priority per brief. Synthesize procedurally.
 - OGA uploads are self-declared by the uploader; provenance of samples inside the tracks is not independently verifiable.
 - Audio content/mood/loop seams not listened to.
 - Repo is public: shipping CC0 files needs no notice, but keep this file and add a credits line for courtesy.
+
+## Shipped encoding (2026-10-02)
+
+`apps/web/public/audio/aquarium-bed.opus` and `aquarium-bed.m4a` are Underwater Theme II
+(`cleyton-underwater-theme-ii.ogg`, CC0), re-encoded with ffmpeg 9.0, metadata stripped:
+
+    ffmpeg -i cleyton-underwater-theme-ii.ogg -c:a libopus -b:a 64k -vbr on -map_metadata -1 aquarium-bed.opus
+    ffmpeg -i cleyton-underwater-theme-ii.ogg -c:a aac -b:a 96k -movflags +faststart -map_metadata -1 aquarium-bed.m4a
+
+The other two candidates were not shipped and were removed from this folder. The owner
+listened on the local preview and signed off on the mood (2026-10-02).

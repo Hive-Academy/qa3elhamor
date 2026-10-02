@@ -76,7 +76,7 @@ In `Hive-Academy/qa3elhamor`, Settings, Secrets and variables, Actions:
 | Variable | `VITE_CONTACT_PROVIDER` | `web3forms` or `formspree` (or leave unset: the form shows "not wired") |
 | Secret | `VITE_WEB3FORMS_ACCESS_KEY` | Web3Forms access key (when the provider is `web3forms`) |
 | Variable | `VITE_FORMSPREE_FORM_ID` | Formspree form id (when the provider is `formspree`) |
-| Variable | `VITE_BUNDLED_CHARACTERS` | `true` for the SpongeBob/Patrick narrators (the owner's deploy); unset keeps the original cast |
+| Variable | `VITE_BUNDLED_CHARACTERS` | `true` / `false` overrides `NARRATOR_CAST.bundledByDefault` in `site.config.ts`; unset uses that default (`true` in this repo, for the owner's site; forks should set the default to `false`) |
 
 Provider details: [contact.md](contact.md). The key and form id are public in the shipped
 bundle by design; the secret slot only keeps the key out of the repository.
