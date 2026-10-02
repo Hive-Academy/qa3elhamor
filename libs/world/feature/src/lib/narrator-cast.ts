@@ -1,10 +1,16 @@
-import { Box3, Matrix4, type BufferGeometry, type Material, type Object3D } from 'three';
-import { createCrabClerkGeometry, createCrabClerkMaterial } from './crab-clerk-model.js';
-import { createHamourGeometry, createHamourMaterial } from './hamour-model.js';
+import { Box3, Matrix4, type BufferGeometry, type Object3D } from 'three';
+import { CRAB_CLERK_RIG, CRAB_JOINTS, createCrabClerkMaterial, createCrabClerkParts } from './crab-clerk-model.js';
+import { HAMOUR_JOINTS, HAMOUR_RIG, createHamourNarratorMaterial, createHamourParts } from './hamour-model.js';
+import { buildJointedNarrator, type JointedNarrator } from './narrator-jointed.js';
 import { DEFAULT_NARRATOR_MOTION, type NarratorMotionTuning } from './narrator-motion.js';
 import type { NarratorRigSpec } from './narrator-rig.js';
 import type { NarratorUniforms } from './narrator-uniforms.js';
-import { createSardinePresidentGeometry, createSardinePresidentMaterial } from './sardine-president-model.js';
+import {
+  SARDINE_JOINTS,
+  SARDINE_PRESIDENT_RIG,
+  createSardinePresidentMaterial,
+  createSardinePresidentParts,
+} from './sardine-president-model.js';
 import { WORLD_SCALE, type Vec3 } from './world-space.js';
 
 /** The built-in, original cast (procedural, no asset files). */
@@ -44,18 +50,18 @@ export interface NarratorModel {
 
 export type NarratorCast = NarratorCastId | NarratorModel;
 
-export interface NarratorCastMesh {
-  readonly geometry: BufferGeometry;
-  readonly material: Material;
-}
-
 export interface NarratorCastSpec {
   readonly label: string;
   /** Rendered height at scale 1, parent units: the cast is in proportion to one another. */
   readonly height: number;
   readonly motion: NarratorMotionTuning;
-  /** A fresh geometry and material (the caller disposes both). */
-  create(uniforms: NarratorUniforms): NarratorCastMesh;
+  /** Its rig for the animator (leg lengths, rest, motion overrides, its `ClipStyle`). */
+  readonly rig: NarratorRigSpec;
+  /**
+   * A fresh jointed narrator (`narrator-jointed.ts`): its parts on their pivots, posed by the same
+   * animator as a rigged model. The caller disposes it.
+   */
+  create(uniforms: NarratorUniforms): JointedNarrator;
 }
 
 export const NARRATOR_CAST: Readonly<Record<NarratorCastId, NarratorCastSpec>> = {
@@ -73,14 +79,11 @@ export const NARRATOR_CAST: Readonly<Record<NarratorCastId, NarratorCastSpec>> =
       enterSeconds: 1.8,
       exitSeconds: 1.3,
     },
-    create: ({ time, swim, talk }) => {
-      const material = createHamourMaterial({ time, swim, talk });
-      // The presenter is lit for the stage: a stronger warm lift than the ambient Hamour, so it
-      // reads beside the brighter cast at conversation distance.
-      material.emissive.set('#5a3a1c');
-      material.emissiveIntensity = 0.75;
-      return { geometry: createHamourGeometry(), material };
-    },
+    rig: HAMOUR_RIG,
+    // The presenter is lit for the stage: a stronger warm lift than the ambient Hamour, so it
+    // reads beside the brighter cast at conversation distance.
+    create: (uniforms) =>
+      buildJointedNarrator(HAMOUR_JOINTS, HAMOUR_RIG, createHamourParts(), createHamourNarratorMaterial(uniforms), uniforms),
   },
   'sardine-president': {
     label: 'The Sardine President',
@@ -96,10 +99,15 @@ export const NARRATOR_CAST: Readonly<Record<NarratorCastId, NarratorCastSpec>> =
       enterSeconds: 1.4,
       exitSeconds: 1,
     },
-    create: (uniforms) => ({
-      geometry: createSardinePresidentGeometry(),
-      material: createSardinePresidentMaterial(uniforms),
-    }),
+    rig: SARDINE_PRESIDENT_RIG,
+    create: (uniforms) =>
+      buildJointedNarrator(
+        SARDINE_JOINTS,
+        SARDINE_PRESIDENT_RIG,
+        createSardinePresidentParts(),
+        createSardinePresidentMaterial(uniforms),
+        uniforms
+      ),
   },
   'crab-clerk': {
     label: 'The Crab Clerk',
@@ -118,10 +126,9 @@ export const NARRATOR_CAST: Readonly<Record<NarratorCastId, NarratorCastSpec>> =
       enterFrom: [-3.2, 0, -0.4],
       exitTo: [3.2, 0, -0.4],
     },
-    create: (uniforms) => ({
-      geometry: createCrabClerkGeometry(),
-      material: createCrabClerkMaterial(uniforms),
-    }),
+    rig: CRAB_CLERK_RIG,
+    create: (uniforms) =>
+      buildJointedNarrator(CRAB_JOINTS, CRAB_CLERK_RIG, createCrabClerkParts(), createCrabClerkMaterial(), uniforms),
   },
 };
 

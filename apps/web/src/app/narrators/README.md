@@ -111,15 +111,37 @@ createNarratedVisitScene<MySlot>({
 - **Boundaries.** No kernel (`libs/landmarks`) change is needed. Content is bound in
   `landmarks.config.ts`; the kit never imports content.
 
-## Rigged narrators and the resident
+## Animated narrators and the resident
 
-- **Bones at load time.** A bundled model listed in `NARRATOR_RIGS` (`narrators.config.ts`; today
-  SpongeBob only) is skinned when it loads: `<Narrator cast={{ object, rig }}>` builds bones from
+Every narrator plays the same clips on the same animator, in its own style: SpongeBob and Patrick
+(bundled models, skinned at load) and the original cast (built in code, jointed).
+
+- **Bones at load time.** A bundled model listed in `NARRATOR_RIGS` (`narrators.config.ts`:
+  SpongeBob and Patrick) is skinned when it loads: `<Narrator cast={{ object, rig }}>` builds bones from
   the model's `NarratorRigSpec` (`@qa3elhamor/world-feature`, `narrator-rig.ts`), computes the skin
   weights from the vertex positions (cached per model) and plays clips: hop in and wave, idle,
   talk gestures, wave while `waving` (the farewell), react on `poke`, hop away. The GLB is
-  unchanged. If rigging fails the model plays as before (static), with a console error. Patrick is
-  a data addition: a spec, and its entry in `NARRATOR_RIGS`.
+  unchanged. If rigging fails the model plays as before (static), with a console error.
+  - **Patrick** (`PATRICK_RIG`): the top point is his head, rigid with the whole face; the belly is
+    the chest; each side point is an arm in three segments (base, middle, tip), bound drooping
+    (`rest.armBind`); the bottom points are short legs inside the shorts.
+- **The original cast is jointed** (`narrator-jointed.ts`). The crab clerk, the Sardine President
+  and the Hamour are built in code as separate parts on pivots (claws, eye stalks, legs, fins,
+  tail, moustache, mouth), and an adapter maps the animator's pose (the same bone names, plus the
+  extras `jaw`, `tail`, `eye.L`, `eye.R`) onto those pivots. The crab's legs are solved (IK) so its
+  feet stay on the floor; a fish's body bends smoothly in its shader with its tail. They are the
+  fallback wherever a bundled model is not allowed or fails, and they animate just the same.
+- **Personality is data** (`ClipStyle`, `narrator-clip-style.ts`, on each rig's `style`): tempo,
+  breath, gesture size, which arm waves and how high, how big the react is, how it travels (hop,
+  swim or scuttle) and which fidgets it plays.
+  - **SpongeBob:** brisk; scratch, bounce, look, hips.
+  - **Patrick:** slow and dopey, deep belly breaths, a heavy low hop; dozes off, pats his belly.
+  - **Crab clerk:** quick; the free claw waves (the other holds the stamp), claws clack on the
+    talk beat, eye stalks glance; scuttles sideways in and out; `clack` fidget.
+  - **Sardine President:** slow and grand, chest out; a slow regal fin wave, the moustache and
+    mouth work as he talks; swims in; `puff` fidget.
+  - **Hamour:** swims in and out (tail sweep, body bend, fins tucked), fins flutter, the jaw talks;
+    `yawn` fidget.
 - **How it moves (`narrator-animator.ts`).** Nothing switches. Every layer has a weight: idle,
   listen, talk, fidget, wave, react and hop. Each weight is a critically damped spring with its own
   in and out times (`BLEND`), so motion starts and stops without a jolt.
@@ -129,17 +151,20 @@ createNarratedVisitScene<MySlot>({
     tilt, a nod now and then. It holds that for 5 s after its last line, then relaxes into the idle.
   - **Idle.** Breathing at a drifting rate, a slow weight shift from hip to hip, arms drifting,
     and glances between the camera and a look aside. All of it is noise that never visibly loops.
-  - **Fidgets.** A fidget plays every 4 to 9 s of free time: scratch, bounce, look or hips. It is
+  - **Fidgets.** A fidget from its style's set plays every few seconds of free time. It is
     never the same one twice running, and it is picked by a seeded generator. The seed comes from
     the post, so the choice is deterministic and never uses `Math.random`.
   - **Landing.** It lands with a damped settle, and the greeting wave waits for the settle.
   - **Jumps.** Some changes cannot be smoothed by a spring: a hop that reverses, a new `?pose`, a
     hand-over. These blend from the last pose shown over 0.45 s.
   - **Reduced motion.** It is still the rest pose.
-- **The resident.** Before a visit opens (and after it ends), a rigged narrator idles at home
-  while the visitor dives past (`ResidentNarrator`, `resident.ts`). It loads when the camera comes
-  within 4 stop-distances, goes beyond 5, and waves when the camera passes within 1.6. Only where
-  the tier allows the model; decorative (no events, no focus). The visit's flow and
+- **The resident.** Before a visit opens (and after it ends), every landmark's narrator idles at
+  home while the visitor dives past (`ResidentNarrator`, `resident.ts`): SpongeBob by the
+  Pineapple, Patrick by his rock at the Tiki, the crab clerk by the Krusty Krab's door, the
+  Sardine President by the Bureau (`bureau-scene.tsx` mounts it the same way). It loads when the
+  camera comes within 4 stop-distances, goes beyond 5, and waves when the camera passes within
+  1.6. A bundled model only where the tier allows it; the original cast from medium up (never on
+  low). A click or tap makes it react with a pop (`narrator-poke.ts`). The visit's flow and
   `data-visit-state` are unchanged.
 - **Where the resident stands.** Set it per landmark in `RESIDENT_PLACEMENTS`
   (`narrators.config.ts`), for example
@@ -148,8 +173,9 @@ createNarratedVisitScene<MySlot>({
     own frame. That is scene-world units, as in `LANDMARK_PLACEMENTS`.
   - `facing` is degrees about up in that frame (0 faces its +z), or `'camera'`, which faces the
     stop's eye. It still turns its head and body toward the camera within the usual limit.
-  - `scale` multiplies its height: the visit narrator's height times the model's `heightFactor`.
-    It is clamped to 0.2 to 3.
+  - `scale` multiplies its height: the visit narrator's height times the model's `heightFactor`
+    (1 for the original cast). The same spot and scale serve whoever plays there. It is clamped to
+    0.2 to 3.
   - An invalid entry is ignored, with a console warning. A landmark without an entry keeps its
     resident at the visit's narrator post.
 - **The hand-over.** The resident and the visit's guide share one link per narrator
@@ -160,8 +186,10 @@ createNarratedVisitScene<MySlot>({
   - **Leaving.** After the farewell, the guide hops back to that spot at the resident's size, and
     the resident takes over in place. No one disappears, and no one hops in from the side.
 - **Place it live (development only): `?place=resident`.** For example
-  `/?quality=high&place=resident`. Dive to the landmark: the resident is always shown, with a
-  panel at the top right.
+  `/?quality=high&place=resident&landmark=tiki`. Dive to the landmark: the resident is always
+  shown, with a panel at the top right. `&landmark=` (`pineapple`, `tiki`, `krusty-krab`,
+  `bureau`) places that one resident only. Without it every resident is shown and editable, and
+  the one nearest the camera takes the keys and shows its panel.
   - **Arrows** move it on the ground: up is away from the camera, left and right are the screen's.
   - **PageUp / PageDown** raise and lower it.
   - **Q / E** turn it, starting from the heading it shows when it faces the camera.
@@ -174,7 +202,9 @@ createNarratedVisitScene<MySlot>({
 
   Keys are ignored while typing in a field. Production builds never read the URL, and the tool is
   a lazy chunk that is never built for them (`placement-edit.ts`, `placement-tool.tsx`).
-- **Preview a clip (development only).** `?pose=` holds one clip on every rigged narrator,
-  resident or visiting: `idle`, `wave`, `talk`, `hop`, `react`, `listen`, or a fidget (`scratch`,
-  `bounce`, `look`, `hips`). Add `&poseAt=0..1` to freeze it partway through, for example
-  `/?quality=high&pose=hips&poseAt=0.5`. Production builds ignore it.
+- **Preview a clip (development only).** `?pose=` holds one clip on every narrator (bundled or
+  original cast), resident or visiting: `idle`, `wave`, `talk`, `hop` (a fish swims, the crab
+  scuttles), `react`, `listen`, or a fidget (`scratch`, `bounce`, `look`, `hips`, `doze`,
+  `belly`, `clack`, `puff`, `yawn`). Add `&poseAt=0..1` to freeze it partway through, for example
+  `/?quality=high&pose=hips&poseAt=0.5`. Add `&narrators=original` to see the original cast where
+  a bundled model would play. Production builds ignore all of these.

@@ -5,7 +5,6 @@ import { Vector3, type Group } from 'three';
 import { tickAmbientClock } from './ambient-clock.js';
 import {
   NARRATOR_CAST,
-  measureNarratorGeometry,
   measureNarratorModel,
   narratorHeight,
   narratorMotion,
@@ -26,6 +25,7 @@ import {
   type NarratorAnimatorState,
   type NarratorClipHold,
 } from './narrator-animator.js';
+import type { JointedNarrator } from './narrator-jointed.js';
 import { copyRigPose, createRigPose, rigPoseFinite, type RigPose } from './narrator-rig.js';
 import { rigNarratorModel, type RiggedNarrator } from './narrator-skinning.js';
 import { createNarratorUniforms } from './narrator-uniforms.js';
@@ -152,7 +152,8 @@ const seedOf = (p: Vec3): number =>
  * A model with a `rig` also gets bones (skinned at load time, `narrator-skinning.ts`) and plays
  * clips on them (`narrator-animator.ts`): it hops in and waves, breathes and sways while idle,
  * gestures and nods while talking, waves while `waving`, reacts to `poke` and hops away. Under
- * reduced motion it holds its rest pose (arms down).
+ * reduced motion it holds its rest pose (arms down). The original cast plays the same clips on
+ * jointed parts (`narrator-jointed.ts`), each in its own style (`ClipStyle`).
  *
  * Procedural cast geometry and materials are created per narrator and disposed on unmount; a
  * model narrator's object belongs to the caller and is never disposed here.
@@ -216,19 +217,16 @@ function NarratorBody({
   const cloneModel = typeof cast !== 'string' && cast.clone === true;
   const rigSpec = typeof cast === 'string' ? undefined : cast.rig;
   const modelHeight = typeof cast === 'string' ? undefined : cast.height;
-  const mesh = useMemo(() => (castId ? NARRATOR_CAST[castId].create(uniforms) : null), [castId, uniforms]);
-  useEffect(
-    () => () => {
-      mesh?.geometry.dispose();
-      mesh?.material.dispose();
-    },
-    [mesh]
+  const jointed = useMemo<JointedNarrator | null>(
+    () => (castId ? NARRATOR_CAST[castId].create(uniforms) : null),
+    [castId, uniforms]
   );
+  useEffect(() => () => jointed?.dispose(), [jointed]);
 
   const bounds = useMemo(
     // A clone measures as its (cached) source does.
-    () => (mesh ? measureNarratorGeometry(mesh.geometry) : source ? measureNarratorModel(source) : null),
-    [mesh, source]
+    () => (jointed ? jointed.bounds : source ? measureNarratorModel(source) : null),
+    [jointed, source]
   );
   // A rigged model skins its own clone (the source is never touched). Any failure falls back to
   // the static model: the rig is resolved here, once, never inside the frame loop.
@@ -250,17 +248,19 @@ function NarratorBody({
   // eslint-disable-next-line react-hooks/exhaustive-deps -- keyed on what the height depends on, not the cast object's identity
   const height = useMemo(() => narratorHeight(cast, scale), [castId, source, modelHeight, scale]);
   const castMotion = useMemo(() => narratorMotion(cast), [cast]);
+  // Whatever plays the clips: the skinned model, or the cast's jointed parts.
+  const posable: RiggedNarrator | JointedNarrator | null = rigged ?? jointed;
   // Once the clips carry the gestures, the body-level squash and bob step back.
   const motion = useMemo(
-    () => (rigged?.spec.motion ? { ...castMotion, ...rigged.spec.motion } : castMotion),
-    [castMotion, rigged]
+    () => (posable?.spec.motion ? { ...castMotion, ...posable.spec.motion } : castMotion),
+    [castMotion, posable]
   );
   const fit = bounds ? height / bounds.height : 1;
 
   const state = useRef(createNarratorMotionState());
   const pose = useRef(createNarratorPose());
   const camera = useRef(new Vector3());
-  const animator = useRef<{ readonly rig: RiggedNarrator; readonly state: NarratorAnimatorState } | null>(null);
+  const animator = useRef<{ readonly rig: RiggedNarrator | JointedNarrator; readonly state: NarratorAnimatorState } | null>(null);
   const rigPose = useRef(createRigPose());
 
   const post: Vec3 = [finite(position[0]), finite(position[1]), finite(position[2])];
@@ -278,8 +278,8 @@ function NarratorBody({
     if (!anchor || !animated) return;
 
     // Made once per rig (a new model or spec starts a fresh animator).
-    if (rigged && animator.current?.rig !== rigged)
-      animator.current = { rig: rigged, state: createNarratorAnimator(rigged.spec, firstSeed.current) };
+    if (posable && animator.current?.rig !== posable)
+      animator.current = { rig: posable, state: createNarratorAnimator(posable.spec, firstSeed.current) };
     const handed = arrival.current;
     if (handed) {
       arrival.current = null;
@@ -335,7 +335,7 @@ function NarratorBody({
     if (!reduced) tickAmbientClock(uniforms.time, Math.min(Math.max(delta, 0), NARRATOR_MAX_FRAME));
 
     // The bones, in the same frame as the body (so the first visible frame is never the T-pose).
-    if (rigged && animator.current) {
+    if (posable && animator.current) {
       stepNarratorAnimator(
         animator.current.state,
         {
@@ -348,10 +348,10 @@ function NarratorBody({
           reducedMotion: reduced,
           hold,
         },
-        rigged.spec,
+        posable.spec,
         rigPose.current
       );
-      rigged.apply(rigPose.current);
+      posable.apply(rigPose.current);
     }
 
     if (snapshot && p.visible) {
@@ -360,7 +360,7 @@ function NarratorBody({
       snapshot.position[2] = post[2] + p.offsetZ;
       snapshot.yaw = p.yaw;
       snapshot.height = height * Math.cbrt(Math.max(0, p.scaleX * p.scaleY * p.scaleZ));
-      snapshot.hasPose = rigged !== null && animator.current !== null;
+      snapshot.hasPose = posable !== null && animator.current !== null;
       if (snapshot.hasPose) copyRigPose(rigPose.current, snapshot.pose);
       snapshot.fresh = true;
     }
@@ -395,7 +395,7 @@ function NarratorBody({
     <group ref={root} position={post} {...pointer}>
       <group ref={body} visible={false}>
         <group scale={fit} position={[-bounds.centreX * fit, -bounds.minY * fit, -bounds.centreZ * fit]}>
-          {mesh ? <mesh geometry={mesh.geometry} material={mesh.material} /> : model && <primitive object={model} />}
+          {jointed ? <primitive object={jointed.object} /> : model && <primitive object={model} />}
         </group>
       </group>
     </group>

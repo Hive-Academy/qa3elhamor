@@ -5,6 +5,7 @@ import {
   BONE,
   LEFT,
   RIGHT,
+  NARRATOR_BONES,
   SPONGEBOB_RIG,
   addArm,
   addCrouch,
@@ -53,7 +54,7 @@ describe('rigNarratorModel', () => {
     const meshes = skinnedMeshes(rig.object);
     expect(meshes).toHaveLength(3);
     const skeleton = meshes[0]?.skeleton;
-    expect(skeleton?.bones).toHaveLength(14);
+    expect(skeleton?.bones).toHaveLength(NARRATOR_BONES.length);
     for (const mesh of meshes) {
       expect(mesh.skeleton).toBe(skeleton);
       expect(mesh.frustumCulled).toBe(false);

@@ -21,7 +21,11 @@ describe('narrators config', () => {
     expect(NARRATORS_CONFIG.useBundledCharacters).toBe(NARRATOR_CAST.bundledByDefault);
     const off = { ...NARRATORS_CONFIG, useBundledCharacters: false };
     for (const landmark of NARRATION_LANDMARKS)
-      expect(narratorFor(landmark, off)).toEqual({ kind: 'cast', cast: NARRATOR_CAST.cast[landmark] });
+      expect(narratorFor(landmark, off)).toEqual({
+        kind: 'cast',
+        cast: NARRATOR_CAST.cast[landmark],
+        resident: { landmark, placement: residentPlacementOf(RESIDENT_PLACEMENTS[landmark]) },
+      });
   });
 
   it('names a real cast member for every landmark, and real, lazy, tier-gated models', () => {
@@ -49,7 +53,11 @@ describe('narrators config', () => {
               fallback: cast,
               resident: { landmark, placement: residentPlacementOf(RESIDENT_PLACEMENTS[landmark]) },
             }
-          : { kind: 'cast', cast },
+          : {
+              kind: 'cast',
+              cast,
+              resident: { landmark, placement: residentPlacementOf(RESIDENT_PLACEMENTS[landmark]) },
+            },
       );
     }
     const switched = { cast: NARRATOR_CAST.cast, useBundledCharacters: true, bundledByDefault: false };
@@ -96,9 +104,10 @@ describe('narrators config', () => {
 });
 
 describe('narrator rigs and the pose preview', () => {
-  it('rigs SpongeBob only (Patrick keeps the static model for now)', () => {
+  it('rigs both bundled models, each playing in its own style', () => {
     expect(NARRATOR_RIGS['spongebob-narrator']?.id).toBe('spongebob');
-    expect(NARRATOR_RIGS['patrick-narrator']).toBeUndefined();
+    expect(NARRATOR_RIGS['patrick-narrator']?.id).toBe('patrick');
+    expect(NARRATOR_RIGS['patrick-narrator']?.style?.id).toBe('patrick');
   });
 
   it('reads ?pose (and ?poseAt) in development only', () => {
@@ -166,5 +175,25 @@ describe('resident placements', () => {
   it('previews the new clips (listening, fidgets) from the URL in development', () => {
     expect(narratorPosePreviewFor('?pose=scratch&poseAt=0.5', true)).toEqual({ clip: 'scratch', at: 0.5 });
     expect(narratorPosePreviewFor('?pose=listen', true)).toEqual({ clip: 'listen' });
+    for (const clip of ['doze', 'belly', 'clack', 'puff', 'yawn'])
+      expect(narratorPosePreviewFor(`?pose=${clip}`, true)).toEqual({ clip });
+  });
+
+  it('places a resident at every stop, validly, within the scale range', () => {
+    for (const landmark of NARRATION_LANDMARKS) {
+      const placement = residentPlacementOf(RESIDENT_PLACEMENTS[landmark], landmark);
+      expect(placement, landmark).not.toBeNull();
+      expect(placement?.offset.every(Number.isFinite), landmark).toBe(true);
+      // Beside the house, not inside the town: within a landmark's own footprint scale.
+      expect(Math.hypot(placement?.offset[0] ?? 9, placement?.offset[2] ?? 9), landmark).toBeLessThan(0.5);
+      expect(placement?.scale, landmark).toBeGreaterThanOrEqual(RESIDENT_SCALE_RANGE.min);
+      expect(placement?.scale, landmark).toBeLessThanOrEqual(RESIDENT_SCALE_RANGE.max);
+    }
+  });
+
+  it('gives every landmark a resident, whoever plays it (the model, or the original cast)', () => {
+    for (const useBundledCharacters of [true, false])
+      for (const landmark of NARRATION_LANDMARKS)
+        expect(narratorFor(landmark, { ...NARRATORS_CONFIG, useBundledCharacters }).resident?.landmark).toBe(landmark);
   });
 });

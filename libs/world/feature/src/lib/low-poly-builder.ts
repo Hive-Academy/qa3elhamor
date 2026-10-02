@@ -54,6 +54,36 @@ export class LowPolyBuilder {
     return this;
   }
 
+  /**
+   * One geometry per part id (position, colour, normals; no part attribute), for a character
+   * built of jointed parts: each part is mounted on its own pivot and moved as a whole.
+   */
+  buildParts(): Map<number, BufferGeometry> {
+    const byPart = new Map<number, { positions: number[]; colors: number[] }>();
+    for (let v = 0; v < this.parts.length; v++) {
+      const id = this.parts[v] ?? 0;
+      let bucket = byPart.get(id);
+      if (!bucket) {
+        bucket = { positions: [], colors: [] };
+        byPart.set(id, bucket);
+      }
+      for (let k = 0; k < 3; k++) {
+        bucket.positions.push(this.positions[v * 3 + k] ?? 0);
+        bucket.colors.push(this.colors[v * 3 + k] ?? 0);
+      }
+    }
+    const geometries = new Map<number, BufferGeometry>();
+    for (const [id, { positions, colors }] of byPart) {
+      const geometry = new BufferGeometry();
+      geometry.setAttribute('position', new Float32BufferAttribute(positions, 3));
+      geometry.setAttribute('color', new Float32BufferAttribute(colors, 3));
+      geometry.computeVertexNormals();
+      geometry.computeBoundingSphere();
+      geometries.set(id, geometry);
+    }
+    return geometries;
+  }
+
   build(): BufferGeometry {
     const geometry = new BufferGeometry();
     geometry.setAttribute('position', new Float32BufferAttribute(this.positions, 3));

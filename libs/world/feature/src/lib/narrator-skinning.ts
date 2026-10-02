@@ -17,6 +17,7 @@ import {
   BONE_COUNT,
   BONE_PARENT,
   NARRATOR_BONES,
+  jointOf,
   rigPoseFinite,
   type NarratorRigSpec,
   type RigPose,
@@ -119,7 +120,7 @@ export function rigNarratorModel(source: Object3D, spec: NarratorRigSpec, bounds
   const bones: Bone[] = [];
   const pivots: Vector3[] = [];
   NARRATOR_BONES.forEach((name, i) => {
-    const joint = spec.joints[name];
+    const joint = jointOf(spec, i);
     const pivot = new Vector3(
       frame.originX + joint[0] * frame.height,
       frame.originY + joint[1] * frame.height,

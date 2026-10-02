@@ -8,6 +8,8 @@ import {
   fidgetClip,
   hopClip,
   idleClip,
+  scuttleClip,
+  swimClip,
   isNarratorFidgetId,
   listenClip,
   reactClip,
@@ -15,11 +17,15 @@ import {
   talkClip,
   waveClip,
   type ClipLegs,
+  type IdleDrive,
   type NarratorClipId,
   type NarratorFidgetId,
 } from './narrator-clips.js';
 import { NARRATOR_MAX_FRAME, clamp, smoothstep, springStep, type NarratorPhase, type Spring } from './narrator-motion.js';
+import { DEFAULT_CLIP_STYLE, SPONGEBOB_STYLE, type ClipStyle } from './narrator-clip-style.js';
 import {
+  BONE,
+  addBone,
   blendRigPose,
   copyRigPose,
   createRigPose,
@@ -39,12 +45,16 @@ import {
  * animator owns the bones, and the hop: its arc is the root bone's offset (`RigPose.offsetY`),
  * which rides on top of the travel.
  *
- * - Entering (presence rising): hops in (`HOPS_IN` hops over the travel), lands with a settle,
- *   then waves (`GREET_SECONDS`).
+ * - Entering (presence rising): hops in (`ClipStyle.hop.hopsIn` hops over the travel; a fish swims
+ *   in, a crab scuttles), lands with a settle, then waves (`GREET_SECONDS`).
  * - Present: idles (breathing, a weight shift, drifting arms, glances, and a fidget every
  *   `FIDGET_GAP` seconds). Talking layers the talk gestures on top; between lines it eases into
  *   a listening pose rather than dropping to idle. `waving` waves for as long as it is set.
- * - Exiting: hops away (`HOPS_OUT`).
+ * - Exiting: hops away (`ClipStyle.hop.hopsOut`).
+ *
+ * Each character plays all of this in its own way (`ClipStyle`, from `spec.style`): the idle and
+ * talk tempo, how big the gestures are, which arm waves, its fidgets and how it travels. The
+ * styled clocks (idle, talk, wave) each advance at their own rate and wrap like the main clock.
  * - `poke` (a counter): each change while present plays `react` once.
  * - Reduced motion: the rest pose, still (no idle, no hops, no gestures).
  *
@@ -55,8 +65,9 @@ import {
  */
 
 export const GREET_SECONDS = 2.2;
-export const HOPS_IN = 3;
-export const HOPS_OUT = 2;
+/** SpongeBob's hops in and out (each style sets its own: `ClipStyle.hop`). */
+export const HOPS_IN = SPONGEBOB_STYLE.hop.hopsIn;
+export const HOPS_OUT = SPONGEBOB_STYLE.hop.hopsOut;
 
 /** Seconds a layer takes to blend in, and out (to 95%). */
 export const BLEND = {
@@ -77,8 +88,8 @@ export const LISTEN_HOLD = 5;
 export const INERTIA_SECONDS = 0.45;
 /** The greeting wave waits this long after landing, for the settle, seconds. */
 export const GREET_DELAY = 0.35;
-/** Seconds between two fidgets, the least and the most. */
-export const FIDGET_GAP = { min: 4, max: 9 } as const;
+/** Seconds between two fidgets, the least and the most: SpongeBob's (`ClipStyle.fidgetGap`). */
+export const FIDGET_GAP = SPONGEBOB_STYLE.fidgetGap;
 /** Seconds between two glances, the least and the most. */
 const GLANCE_GAP = { min: 1.6, max: 5 } as const;
 
@@ -109,6 +120,12 @@ export interface NarratorClipHold {
 
 export interface NarratorAnimatorState {
   clock: number;
+  /** How this character plays the clips. */
+  readonly style: ClipStyle;
+  /** The styled clocks: seconds at the style's idle, talk and wave tempo, wrapped like `clock`. */
+  idleClock: number;
+  talkClock: number;
+  waveClock: number;
   /** The seeded generator's state (mulberry32): fidgets and glances, never `Math.random`. */
   rng: number;
   /** Per-narrator idle phase offsets (from the seed). */
@@ -177,10 +194,17 @@ export function nextRandom(state: { rng: number }): number {
 
 /** The animator for `spec`. `seed` (any finite number) makes its idle and fidgets its own. */
 export function createNarratorAnimator(spec: NarratorRigSpec, seed = 1): NarratorAnimatorState {
+  const style = spec.style ?? DEFAULT_CLIP_STYLE;
   const rest = createRigPose();
   writeRestPose(spec.rest, rest);
+  addBone(rest, BONE.chest, style.posture.chest, 0, 0);
+  addBone(rest, BONE.head, style.posture.head, 0, 0);
   const state: NarratorAnimatorState = {
     clock: 0,
+    style,
+    idleClock: 0,
+    talkClock: 0,
+    waveClock: 0,
     rng: (Number.isFinite(seed) ? Math.floor(seed) : 1) >>> 0,
     phase: new Float64Array(IDLE_PHASES),
     breath: 0,
@@ -219,7 +243,7 @@ export function createNarratorAnimator(spec: NarratorRigSpec, seed = 1): Narrato
   };
   for (let i = 0; i < IDLE_PHASES; i++) state.phase[i] = nextRandom(state) * Math.PI * 2;
   state.breath = nextRandom(state) * Math.PI * 2;
-  state.nextFidgetIn = gap(state, FIDGET_GAP);
+  state.nextFidgetIn = gap(state, style.fidgetGap);
   state.nextGlanceIn = gap(state, GLANCE_GAP);
   return state;
 }
@@ -248,7 +272,7 @@ const legsCache = new WeakMap<NarratorRigSpec, ClipLegs>();
 const legsOf = (spec: NarratorRigSpec): ClipLegs => {
   let legs = legsCache.get(spec);
   if (!legs) {
-    legs = legLengths(spec);
+    legs = { ...legLengths(spec), armBind: spec.rest.armBind ?? 0 };
     legsCache.set(spec, legs);
   }
   return legs;
@@ -261,13 +285,19 @@ const TALK_CYCLE = (2 * Math.PI) / 1.9;
 const IDLE_CYCLE = 40;
 
 /** The idle's drive, reused (no allocation per frame). */
-interface MutableDrive {
-  breath: number;
-  gazeYaw: number;
-  gazePitch: number;
-  phase: Float64Array;
-}
-const drive: MutableDrive = { breath: 0, gazeYaw: 0, gazePitch: 0, phase: new Float64Array(IDLE_PHASES) };
+type MutableDrive = { -readonly [K in keyof IdleDrive]-?: IdleDrive[K] };
+const drive: MutableDrive = {
+  breath: 0,
+  gazeYaw: 0,
+  gazePitch: 0,
+  phase: new Float64Array(IDLE_PHASES),
+  amount: 1,
+  breathDepth: 0.013,
+};
+
+/** `clock` advanced by `dt` at `rate`, wrapped like the main clock (a corrupt clock restarts). */
+const advance = (clock: number, dt: number, rate: number): number =>
+  ((Number.isFinite(clock) ? clock : 0) + dt * (Number.isFinite(rate) && rate > 0 ? rate : 1)) % AMBIENT_TIME_PERIOD;
 
 /** Advances one frame and writes the bone pose into `out`. */
 export function stepNarratorAnimator(
@@ -279,6 +309,10 @@ export function stepNarratorAnimator(
   const dt = clamp(Number.isFinite(input.dt) ? input.dt : 0, 0, NARRATOR_MAX_FRAME);
   if (!Number.isFinite(state.clock)) state.clock = 0;
   state.clock = (state.clock + dt) % AMBIENT_TIME_PERIOD;
+  const style = state.style;
+  state.idleClock = advance(state.idleClock, dt, style.tempo);
+  state.talkClock = advance(state.talkClock, dt, style.talk.tempo);
+  state.waveClock = advance(state.waveClock, dt, style.wave.tempo);
   const legs = legsOf(spec);
   const phase = input.phase;
   const hold = input.hold;
@@ -332,11 +366,12 @@ export function stepNarratorAnimator(
   }
 
   const t = state.clock;
+  const idleClock = state.idleClock;
 
   // --- Targets. ---
   const travelling = phase === 'entering' || phase === 'exiting';
-  if (phase === 'entering') state.hopU = fract(clamp(input.presence, 0, 1) * HOPS_IN, true);
-  else if (phase === 'exiting') state.hopU = fract((1 - clamp(input.presence, 0, 1)) * HOPS_OUT, false);
+  if (phase === 'entering') state.hopU = fract(clamp(input.presence, 0, 1) * style.hop.hopsIn, true);
+  else if (phase === 'exiting') state.hopU = fract((1 - clamp(input.presence, 0, 1)) * style.hop.hopsOut, false);
   const talkIn = clamp(Number.isFinite(input.talk) ? input.talk : 0, 0, 1);
   let waveT = phase === 'present' && (input.waving || (state.greetLeft > 0 && state.greetLeft <= GREET_SECONDS)) ? 1 : 0;
   let hopT = travelling ? 1 : 0;
@@ -380,7 +415,7 @@ export function stepNarratorAnimator(
     state.fidgetAt += dt;
     if (state.fidgetAt >= FIDGET_SECONDS[state.fidget]) {
       state.fidget = null;
-      state.nextFidgetIn = gap(state, FIDGET_GAP);
+      state.nextFidgetIn = gap(state, style.fidgetGap);
     }
   } else if (free) {
     state.nextFidgetIn -= dt;
@@ -388,7 +423,7 @@ export function stepNarratorAnimator(
   }
 
   // --- Glances: between the camera and a look aside, held for a while each. ---
-  state.nextGlanceIn -= dt;
+  state.nextGlanceIn -= dt * style.tempo;
   if (state.nextGlanceIn <= 0) {
     const atCamera = env > 0.3 || nextRandom(state) < 0.45;
     state.gazeYawTarget = atCamera ? 0 : (nextRandom(state) * 2 - 1) * 0.28;
@@ -400,7 +435,7 @@ export function stepNarratorAnimator(
 
   // Breathing at a slowly drifting rate (a little quicker while talking).
   if (!Number.isFinite(state.breath)) state.breath = 0;
-  const breathRate = 1.45 + 0.2 * Math.sin(t * 0.08 + (state.phase[0] ?? 0)) + 0.4 * talkW;
+  const breathRate = (1.45 + 0.2 * Math.sin(t * 0.08 + (state.phase[0] ?? 0)) + 0.4 * talkW) * style.breath.rate;
   state.breath = (state.breath + breathRate * dt) % (Math.PI * 2);
 
   // --- Pose: the idle, then each layer blended over it. ---
@@ -409,21 +444,23 @@ export function stepNarratorAnimator(
   drive.gazeYaw = state.gazeYaw.x * glance;
   drive.gazePitch = state.gazePitch.x * glance;
   drive.phase.set(state.phase);
-  const idleT = hold?.clip === 'idle' && frozen !== null ? frozen * IDLE_CYCLE : t;
+  drive.amount = style.idle;
+  drive.breathDepth = style.breath.depth;
+  const idleT = hold?.clip === 'idle' && frozen !== null ? frozen * IDLE_CYCLE : idleClock;
   idleClip(idleT, legs, drive, out);
   if (state.settleAt >= 0) settleClip(state.settleAt, out);
   const scratch = state.scratch;
 
   if (listenW > 0) {
     copyRigPose(out, scratch);
-    listenClip(t, scratch);
+    listenClip(idleClock, scratch);
     blendRigPose(out, scratch, listenW);
   }
   if (talkW > 0) {
     copyRigPose(out, scratch);
-    const talkT = hold?.clip === 'talk' && frozen !== null ? frozen * TALK_CYCLE : t;
+    const talkT = hold?.clip === 'talk' && frozen !== null ? frozen * TALK_CYCLE : state.talkClock;
     // The posture follows the slower weight; the beat follows the envelope, dying away first.
-    talkClip(talkT, 1, scratch, hold?.clip === 'talk' ? 1 : env);
+    talkClip(talkT, style.talk.amplitude, scratch, hold?.clip === 'talk' ? 1 : env);
     blendRigPose(out, scratch, talkW);
   }
   const heldFidget = hold && isNarratorFidgetId(hold.clip) ? hold.clip : null;
@@ -438,20 +475,20 @@ export function stepNarratorAnimator(
   }
   if (waveW > 0) {
     copyRigPose(out, scratch);
-    const waveTime = hold?.clip === 'wave' && frozen !== null ? frozen * WAVE_CYCLE : t;
-    waveClip(waveTime, 1, scratch);
+    const waveTime = hold?.clip === 'wave' && frozen !== null ? frozen * WAVE_CYCLE : state.waveClock;
+    waveClip(waveTime, 1, scratch, style.wave.side, style.wave.lift, legs.armBind);
     blendRigPose(out, scratch, waveW);
   }
   if (reactW > 0) {
     copyRigPose(out, scratch);
     const since = hold?.clip === 'react' ? (frozen ?? (t % (REACT_SECONDS + 0.4)) / REACT_SECONDS) * REACT_SECONDS : state.reactAt;
     reactClip(since < 0 ? REACT_SECONDS : since, legs, scratch);
-    blendRigPose(out, scratch, reactW);
+    blendRigPose(out, scratch, reactW * style.react);
   }
   if (hopW > 0) {
     copyRigPose(out, scratch);
     const u = hold?.clip === 'hop' ? (frozen ?? (t % HOP_CYCLE) / HOP_CYCLE) : state.hopU;
-    hopClip(u, legs, scratch);
+    travelClip(style, u, legs, scratch);
     blendRigPose(out, scratch, hopW);
   }
 
@@ -469,21 +506,30 @@ export function stepNarratorAnimator(
   state.hasLast = true;
 }
 
+/** One hop, stroke or scuttle step of the style's way of travelling, `u` 0..1 through it. */
+function travelClip(style: ClipStyle, u: number, legs: ClipLegs, out: RigPose): void {
+  if (style.locomotion === 'swim') swimClip(u, out);
+  else if (style.locomotion === 'scuttle') scuttleClip(u, legs, out, style.hop.height);
+  else hopClip(u, legs, out, style.hop.height, style.hop.crouch);
+}
+
 function startFidget(state: NarratorAnimatorState, id: NarratorFidgetId): void {
   state.fidget = id;
   state.fidgetAt = 0;
   state.lastFidget = id;
 }
 
-/** A fidget other than the last one, picked by the seeded generator. */
+/** One of the style's fidgets other than the last one, picked by the seeded generator. */
 function pickFidget(state: NarratorAnimatorState): NarratorFidgetId {
-  const choices = NARRATOR_FIDGET_IDS.length - (state.lastFidget ? 1 : 0);
+  const set = state.style.fidgets.length > 0 ? state.style.fidgets : NARRATOR_FIDGET_IDS;
+  const skip = state.lastFidget !== null && set.length > 1 && set.includes(state.lastFidget);
+  const choices = set.length - (skip ? 1 : 0);
   let k = Math.min(choices - 1, Math.floor(nextRandom(state) * choices));
-  for (const id of NARRATOR_FIDGET_IDS) {
-    if (id === state.lastFidget) continue;
+  for (const id of set) {
+    if (skip && id === state.lastFidget) continue;
     if (k-- === 0) return id;
   }
-  return NARRATOR_FIDGET_IDS[0] ?? 'look';
+  return set[0] ?? 'look';
 }
 
 /** `out` = `a` minus `b`, channel by channel (squash as a difference too). */

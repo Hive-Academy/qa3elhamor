@@ -1,5 +1,5 @@
 import type { NarrationLandmarkId } from '@qa3elhamor/content-domain';
-import { useThree } from '@react-three/fiber';
+import { useFrame, useThree } from '@react-three/fiber';
 import { useEffect, useRef, useState } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { Plane, Raycaster, Vector2, Vector3, type Object3D } from 'three';
@@ -13,10 +13,11 @@ import {
 import './placement-panel.css';
 
 /*
- * The resident placement tool (`?place=resident`, development only; lazy, never in a
- * production bundle). Mounted inside the scene next to a resident: keys and Alt-drag edit its
+ * The resident placement tool (`?place=resident[&landmark=id]`, development only; lazy, never in
+ * a production bundle). Mounted inside the scene next to a resident: keys and Alt-drag edit its
  * placement live (`PLACEMENT_EDITS`), and a small DOM panel shows the numbers and copies the
- * config line. See `narrators/README.md`.
+ * config line. With several residents placed at once, the one nearest the camera takes the keys
+ * and shows its panel. See `narrators/README.md`.
  */
 
 export interface ResidentPlacementToolProps {
@@ -31,8 +32,22 @@ export interface ResidentPlacementToolProps {
   readonly facingNow: number;
 }
 
-/** The newest tool takes the keys: there is normally just one rigged resident on screen. */
+/** Each tool's camera distance, and the nearest: it takes the keys and shows its panel. */
+const distances = new Map<NarrationLandmarkId, number>();
 let active: NarrationLandmarkId | null = null;
+
+function nearest(): NarrationLandmarkId | null {
+  let best: NarrationLandmarkId | null = null;
+  let bestDistance = Number.POSITIVE_INFINITY;
+  for (const [landmark, distance] of distances)
+    if (distance < bestDistance) {
+      best = landmark;
+      bestDistance = distance;
+    }
+  return best;
+}
+
+const eyeAt = new Vector3();
 
 const typing = (target: EventTarget | null): boolean =>
   target instanceof HTMLElement &&
@@ -49,12 +64,20 @@ export default function ResidentPlacementTool(props: ResidentPlacementToolProps)
   const latest = useRef(props);
   latest.current = props;
 
-  useEffect(() => {
-    active = landmark;
-    return () => {
-      if (active === landmark) active = null;
-    };
-  }, [landmark]);
+  const [isActive, setActive] = useState(false);
+  useEffect(
+    () => () => {
+      distances.delete(landmark);
+      if (active === landmark) active = nearest();
+    },
+    [landmark],
+  );
+  useFrame(() => {
+    const [x, y, z] = latest.current.spot;
+    distances.set(landmark, camera.getWorldPosition(eyeAt).distanceTo(local.set(x, y, z)));
+    active = nearest();
+    if ((active === landmark) !== isActive) setActive(active === landmark);
+  });
 
   // Keys: arrows along the ground (away from the camera is "up"), PageUp/Down, Q/E, +/-.
   useEffect(() => {
@@ -155,11 +178,13 @@ export default function ResidentPlacementTool(props: ResidentPlacementToolProps)
   }, []);
   useEffect(() => {
     root.current?.render(
-      <PlacementPanel
-        landmark={landmark}
-        placement={props.placement}
-        facingNow={props.facingNow}
-      />,
+      isActive ? (
+        <PlacementPanel
+          landmark={landmark}
+          placement={props.placement}
+          facingNow={props.facingNow}
+        />
+      ) : null,
     );
   });
   return null;

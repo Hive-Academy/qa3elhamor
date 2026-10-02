@@ -1,3 +1,4 @@
+import { PATRICK_STYLE, SPONGEBOB_STYLE, type ClipStyle } from './narrator-clip-style.js';
 import type { NarratorMotionTuning } from './narrator-motion.js';
 import type { Vec3 } from './world-space.js';
 
@@ -28,9 +29,20 @@ export const NARRATOR_BONES = [
   'knee.L',
   'hip.R',
   'knee.R',
+  // The extras: a character without the part leaves them unused (a skinned model gives them no
+  // capsule; a jointed cast maps only the ones it has).
+  'jaw',
+  'tail',
+  'eye.L',
+  'eye.R',
 ] as const;
 
 export type NarratorBoneName = (typeof NARRATOR_BONES)[number];
+
+/** The bones every character has a joint for. */
+export type NarratorCoreBoneName = Exclude<NarratorBoneName, NarratorExtraBoneName>;
+/** The optional bones: a jaw, a tail, eye stalks. */
+export type NarratorExtraBoneName = 'jaw' | 'tail' | 'eye.L' | 'eye.R';
 
 export const BONE_COUNT = NARRATOR_BONES.length;
 
@@ -50,10 +62,14 @@ export const BONE = {
   kneeL: 11,
   hipR: 12,
   kneeR: 13,
+  jaw: 14,
+  tail: 15,
+  eyeL: 16,
+  eyeR: 17,
 } as const;
 
 /** Each bone's parent index (-1 for the root). */
-export const BONE_PARENT: readonly number[] = [-1, 0, 1, 2, 3, 4, 5, 3, 7, 8, 1, 10, 1, 12];
+export const BONE_PARENT: readonly number[] = [-1, 0, 1, 2, 3, 4, 5, 3, 7, 8, 1, 10, 1, 12, 3, 1, 3, 3];
 
 /**
  * A pose: what the clips write and the shell copies onto the bones. Rotations are Euler XYZ,
@@ -165,7 +181,9 @@ export function mixArm(
   side: Side,
   w: number,
   arm: { readonly lift: number; readonly swing: number; readonly reach: number },
-  elbow: { readonly bend: number; readonly curl: number }
+  elbow: { readonly bend: number; readonly curl: number },
+  /** Added to `arm.lift`: the bind's droop (`RigRest.armBind`), so the pose is aimed from horizontal. */
+  liftBy = 0
 ): void {
   const k = w <= 0 ? 0 : w >= 1 ? 1 : w;
   if (k === 0) return;
@@ -175,7 +193,7 @@ export function mixArm(
     r[bone * 3 + 1] = (r[bone * 3 + 1] ?? 0) + (y - (r[bone * 3 + 1] ?? 0)) * k;
     r[bone * 3 + 2] = (r[bone * 3 + 2] ?? 0) + (z - (r[bone * 3 + 2] ?? 0)) * k;
   };
-  mix(side === LEFT ? BONE.shoulderL : BONE.shoulderR, -arm.swing, -arm.reach * side, arm.lift * side);
+  mix(side === LEFT ? BONE.shoulderL : BONE.shoulderR, -arm.swing, -arm.reach * side, (arm.lift + liftBy) * side);
   mix(side === LEFT ? BONE.elbowL : BONE.elbowR, 0, -elbow.bend * side, elbow.curl * side);
 }
 
@@ -205,6 +223,12 @@ export interface RigRest {
   readonly armForward: number;
   /** How far the elbows bend forward. */
   readonly elbowBend: number;
+  /**
+   * How far the bound (T-pose) arms already hang below horizontal, radians (default 0). A clip that
+   * puts an arm somewhere absolute (a wave, hands on hips) aims from horizontal, so a model whose
+   * arms are modelled drooping (Patrick's star points) lifts them that much further.
+   */
+  readonly armBind?: number;
 }
 
 /** A rigged character: one bundled model's data. */
@@ -213,8 +237,11 @@ export interface NarratorRigSpec {
   readonly id: string;
   /** The height the numbers below were measured against, model units (documentation only). */
   readonly measuredHeight: number;
-  /** Each bone's pivot, x height, from the model's base centre. */
-  readonly joints: Readonly<Record<NarratorBoneName, Vec3>>;
+  /**
+   * Each bone's pivot, x height, from the model's base centre. The extras (jaw, tail, eye stalks)
+   * are optional: one left out sits on its parent's pivot.
+   */
+  readonly joints: Readonly<Record<NarratorCoreBoneName, Vec3>> & Readonly<Partial<Record<NarratorExtraBoneName, Vec3>>>;
   /** Which bone owns which part of the mesh. A bone may have several; the root may have none. */
   readonly capsules: readonly RigCapsule[];
   /** Weight falloff: `exp(-falloff * (distance / radius)^2)`. Higher is crisper. */
@@ -222,6 +249,18 @@ export interface NarratorRigSpec {
   readonly rest: RigRest;
   /** Overrides for the body-level motion (`stepNarrator`) once the clips carry the gestures. */
   readonly motion?: Partial<NarratorMotionTuning>;
+  /** How it plays the clips (tempo, amplitudes, fidgets, hop or swim). Omitted: SpongeBob's. */
+  readonly style?: ClipStyle;
+}
+
+/** The pivot of `bone` in `spec`, x height: an extra left out sits on its parent's. */
+export function jointOf(spec: NarratorRigSpec, bone: number): Vec3 {
+  for (let at = bone; at >= 0; at = BONE_PARENT[at] ?? -1) {
+    const name = NARRATOR_BONES[at];
+    const joint = name ? (spec.joints as Readonly<Partial<Record<NarratorBoneName, Vec3>>>)[name] : undefined;
+    if (joint) return joint;
+  }
+  return [0, 0, 0];
 }
 
 /** The rest pose (arms lowered, everything else as bound) for `rest`, into `out`. */
@@ -341,4 +380,77 @@ export const SPONGEBOB_RIG: NarratorRigSpec = {
   rest: { armDown: 1.15, armForward: 0.18, elbowBend: 0.3 },
   // The clips breathe, sway and gesture; the body-level squash, hop and bob stay small.
   motion: { bob: 0.012, sway: 0.02, talkStretch: 0.02, talkBounce: 0, enterSeconds: 2.1, exitSeconds: 1.6 },
+  style: SPONGEBOB_STYLE,
+};
+
+// ---------------------------------------------------------------------------------------------
+// Patrick
+
+/** The decimated Patrick LOD's height (`patrick-narrator`, standing height in the manifest). */
+const PS = 14.889;
+/** A point measured on the Patrick LOD (model units), as fractions of its height. */
+const ps = (x: number, y: number, z: number): Vec3 => [x / PS, y / PS, z / PS];
+
+/**
+ * Patrick (`patrick-narrator.glb`, one mesh, vertex colours), measured on the decimated LOD
+ * (facing +z, feet on y = 0, centred on x = 0). A starfish: the top point is his head, with the
+ * whole face on it (mouth y 7.5..9, eyes 9..11, brows 11.5) up to the tip at 14.9; the body is a
+ * fat cone (widest y 4..5, z +-3.2) in green shorts (y 1..4.5); the side points are his arms,
+ * fat cones drooping about 35 degrees from a broad base at |x| ~2.4 (y 3.5..8) to the tip at
+ * (+-4.9, 4.5, -1.0), set a little behind his middle; the bottom points are two short legs, apart
+ * below y 1.2 (centres at |x| 1.55) and joined by the shorts above.
+ *
+ * The head point is one rigid bone with the face (`head`), so the face never shears; the chest
+ * owns the belly between it and the shorts. Each arm is three segments along its point
+ * (shoulder at the base, elbow half way, hand at the tip), so a gesture bends the point rather
+ * than swinging a stiff cone out of the body. The arms are bound drooping (`armBind`).
+ */
+export const PATRICK_RIG: NarratorRigSpec = {
+  id: 'patrick',
+  measuredHeight: PS,
+  joints: {
+    root: [0, 0, 0],
+    hips: ps(0, 2.3, 0.1),
+    chest: ps(0, 4.2, 0.1),
+    head: ps(0, 7.4, 0.3),
+    'shoulder.L': ps(2.3, 6.2, -0.6),
+    'elbow.L': ps(3.6, 5.5, -0.9),
+    'hand.L': ps(4.3, 4.85, -1.0),
+    'shoulder.R': ps(-2.3, 6.2, -0.6),
+    'elbow.R': ps(-3.6, 5.5, -0.9),
+    'hand.R': ps(-4.3, 4.85, -1.0),
+    'hip.L': ps(1.5, 2.0, 0.1),
+    'knee.L': ps(1.55, 0.9, 0.1),
+    'hip.R': ps(-1.5, 2.0, 0.1),
+    'knee.R': ps(-1.55, 0.9, 0.1),
+  },
+  capsules: [
+    // The head point, and the whole face on its front (mouth, eyes, brows), all one bone.
+    { bone: 'head', from: ps(0, 9.0, 0.4), to: ps(0, 13.6, 0.3), radius: 2.3 / PS },
+    { bone: 'head', from: ps(0, 7.9, 1.7), to: ps(0, 10.8, 1.5), radius: 1.7 / PS },
+    { bone: 'head', from: ps(-1.6, 8.2, 1.5), to: ps(1.6, 8.2, 1.5), radius: 1.1 / PS },
+    // The belly.
+    { bone: 'chest', from: ps(0, 3.6, 0.1), to: ps(0, 6.2, 0.1), radius: 3.1 / PS },
+    // The belly's sides under the arms, where the shorts meet them: they stay with the body.
+    { bone: 'chest', from: ps(-2.7, 4.2, -0.4), to: ps(2.7, 4.2, -0.4), radius: 1.3 / PS },
+    // The shorts.
+    { bone: 'hips', from: ps(-1.4, 2.6, 0.1), to: ps(1.4, 2.6, 0.1), radius: 1.6 / PS },
+    // Arms: the base of the point, its middle, its tip.
+    { bone: 'shoulder.L', from: ps(2.9, 5.9, -0.7), to: ps(3.6, 5.5, -0.9), radius: 1.2 / PS },
+    { bone: 'elbow.L', from: ps(3.6, 5.5, -0.9), to: ps(4.3, 4.85, -1.0), radius: 1.0 / PS },
+    { bone: 'hand.L', from: ps(4.3, 4.85, -1.0), to: ps(4.85, 4.5, -1.05), radius: 0.7 / PS },
+    { bone: 'shoulder.R', from: ps(-2.9, 5.9, -0.7), to: ps(-3.6, 5.5, -0.9), radius: 1.2 / PS },
+    { bone: 'elbow.R', from: ps(-3.6, 5.5, -0.9), to: ps(-4.3, 4.85, -1.0), radius: 1.0 / PS },
+    { bone: 'hand.R', from: ps(-4.3, 4.85, -1.0), to: ps(-4.85, 4.5, -1.05), radius: 0.7 / PS },
+    // Legs: the shorts' leg and the leg below it.
+    { bone: 'hip.L', from: ps(1.5, 2.0, 0.1), to: ps(1.55, 0.9, 0.1), radius: 1.1 / PS },
+    { bone: 'knee.L', from: ps(1.55, 0.9, 0.1), to: ps(1.58, 0.1, 0.15), radius: 1.0 / PS },
+    { bone: 'hip.R', from: ps(-1.5, 2.0, 0.1), to: ps(-1.55, 0.9, 0.1), radius: 1.1 / PS },
+    { bone: 'knee.R', from: ps(-1.55, 0.9, 0.1), to: ps(-1.58, 0.1, 0.15), radius: 1.0 / PS },
+  ],
+  falloff: 3,
+  rest: { armDown: 0, armForward: 0.05, elbowBend: 0.05, armBind: 0.6 },
+  // Heavier than SpongeBob: slower in and out, the body-level motion smaller still.
+  motion: { bob: 0.01, sway: 0.015, talkStretch: 0.015, talkBounce: 0, enterSeconds: 2.6, exitSeconds: 2 },
+  style: PATRICK_STYLE,
 };

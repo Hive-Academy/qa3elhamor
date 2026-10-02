@@ -31,7 +31,8 @@ describe('<Narrator> at the config boundary', () => {
     const { container } = render(
       <Narrator cast={'spongebob-typo' as NarratorCastId} position={[0, 0, 0]} talking={false} present />
     );
-    expect(container.querySelector('mesh')).not.toBeNull();
+    // The fallback cast is jointed parts, mounted as one object.
+    expect(container.querySelector('primitive')).not.toBeNull();
     expect(warn).toHaveBeenCalledTimes(1);
   });
 

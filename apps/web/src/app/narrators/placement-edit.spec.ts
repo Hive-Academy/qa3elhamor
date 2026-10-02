@@ -13,11 +13,17 @@ const AT: ResidentPlacement = { offset: [0.1, 0, 0.2], facing: 'camera', scale: 
 
 describe('placeModeFor', () => {
   it('reads ?place=resident in development only', () => {
-    expect(placeModeFor('?place=resident', true)).toBe('resident');
-    expect(placeModeFor('?quality=high&place=resident', true)).toBe('resident');
+    expect(placeModeFor('?place=resident', true)).toEqual({ landmark: null });
+    expect(placeModeFor('?quality=high&place=resident', true)).toEqual({ landmark: null });
     expect(placeModeFor('?place=resident', false)).toBeNull();
     expect(placeModeFor('?place=landmark', true)).toBeNull();
     expect(placeModeFor('', true)).toBeNull();
+  });
+
+  it('targets one landmark with &landmark=, and every one for an unknown id', () => {
+    expect(placeModeFor('?place=resident&landmark=tiki', true)).toEqual({ landmark: 'tiki' });
+    expect(placeModeFor('?place=resident&landmark=krusty-krab', true)).toEqual({ landmark: 'krusty-krab' });
+    expect(placeModeFor('?place=resident&landmark=atlantis', true)).toEqual({ landmark: null });
   });
 });
 

@@ -2,7 +2,8 @@ import { BoxGeometry, Group, Mesh, MeshBasicMaterial, type BufferGeometry, type 
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { WORLD_SCALE } from './world-space.js';
 import { createCrabClerkGeometry, CRAB_PART } from './crab-clerk-model.js';
-import { createHamourGeometry } from './hamour-model.js';
+import { HAMOUR_PART, createHamourGeometry, createHamourParts } from './hamour-model.js';
+import type { JointedNarrator } from './narrator-jointed.js';
 import { LOW_POLY_PART_ATTRIBUTE } from './low-poly-builder.js';
 import {
   NARRATOR_CAST,
@@ -39,37 +40,57 @@ function compile(material: MeshStandardMaterial) {
   return { shader, time };
 }
 
+/** Every mesh of a jointed narrator: its geometries and its (shared) material. */
+function meshesOf(narrator: JointedNarrator): Mesh[] {
+  const meshes: Mesh[] = [];
+  narrator.object.traverse((o) => {
+    if ((o as Mesh).isMesh) meshes.push(o as Mesh);
+  });
+  return meshes;
+}
+
 describe('the narrator cast', () => {
-  it.each(NARRATOR_CAST_IDS)('%s is a readable low-poly mesh (300-1500 triangles), finite and deterministic', (id) => {
-    const uniforms = createNarratorUniforms();
-    const { geometry, material } = NARRATOR_CAST[id].create(uniforms);
-    const count = triangles(geometry);
+  it.each(NARRATOR_CAST_IDS)('%s is a readable low-poly character (300-1500 triangles), finite and deterministic', (id) => {
+    const a = NARRATOR_CAST[id].create(createNarratorUniforms());
+    const b = NARRATOR_CAST[id].create(createNarratorUniforms());
+    const ma = meshesOf(a);
+    const mb = meshesOf(b);
+    const count = ma.reduce((sum, m) => sum + triangles(m.geometry), 0);
     expect(count).toBeGreaterThanOrEqual(300);
     expect(count).toBeLessThanOrEqual(1500);
-    expect(allFinite(geometry, 'position')).toBe(true);
-    expect(allFinite(geometry, 'color')).toBe(true);
-    const again = NARRATOR_CAST[id].create(createNarratorUniforms());
-    expect(Array.from(again.geometry.getAttribute('position').array)).toEqual(Array.from(geometry.getAttribute('position').array));
-    expect(Array.from(again.geometry.getAttribute('color').array)).toEqual(Array.from(geometry.getAttribute('color').array));
-    for (const m of [material, again.material]) m.dispose();
-    geometry.dispose();
-    again.geometry.dispose();
+    expect(ma.length).toBe(mb.length);
+    ma.forEach((m, i) => {
+      expect(allFinite(m.geometry, 'position')).toBe(true);
+      expect(allFinite(m.geometry, 'color')).toBe(true);
+      expect(Array.from(m.geometry.getAttribute('position').array)).toEqual(
+        Array.from(mb[i]?.geometry.getAttribute('position').array ?? [])
+      );
+    });
+    a.dispose();
+    b.dispose();
   });
 
-  it.each(NARRATOR_CAST_IDS)('%s has a fogged, flat-shaded material driven by its narrator uniforms', (id) => {
+  it.each(NARRATOR_CAST_IDS)('%s is jointed: several parts on pivots, all sharing one fogged, flat-shaded material', (id) => {
+    const narrator = NARRATOR_CAST[id].create(createNarratorUniforms());
+    const meshes = meshesOf(narrator);
+    expect(meshes.length).toBeGreaterThanOrEqual(4);
+    const material = meshes[0]?.material as MeshStandardMaterial;
+    expect(meshes.every((m) => m.material === material)).toBe(true);
+    expect(material.fog).toBe(true);
+    expect(material.flatShading).toBe(true);
+    expect(material.vertexColors).toBe(true);
+    expect(narrator.spec.style?.id).toBe(id);
+    narrator.dispose();
+  });
+
+  it('bends a fish in its shader from the narrator uniforms (the jaw and the bend)', () => {
     const uniforms = createNarratorUniforms();
-    const { geometry, material } = NARRATOR_CAST[id].create(uniforms);
-    const standard = material as MeshStandardMaterial;
-    expect(standard.fog).toBe(true);
-    expect(standard.flatShading).toBe(true);
-    expect(standard.vertexColors).toBe(true);
-    const { shader } = compile(standard);
-    expect(Object.values(shader.uniforms)).toContain(uniforms.time);
+    const hamour = NARRATOR_CAST.hamour.create(uniforms);
+    const { shader } = compile(meshesOf(hamour)[0]?.material as MeshStandardMaterial);
     expect(Object.values(shader.uniforms)).toContain(uniforms.talk);
-    expect(Object.values(shader.uniforms)).toContain(uniforms.swim);
+    expect(Object.values(shader.uniforms)).toContain(uniforms.bend);
     expect(shader.vertexShader).toMatch(/transformed/);
-    geometry.dispose();
-    material.dispose();
+    hamour.dispose();
   });
 
   it('is in proportion: the Hamour guide is the biggest, the sardine the smallest', () => {
@@ -80,19 +101,21 @@ describe('the narrator cast', () => {
   it('keeps the existing Hamour geometry and its plain material for the ambient fish', () => {
     const geometry = createHamourGeometry();
     expect(geometry.getAttribute(LOW_POLY_PART_ATTRIBUTE)).toBeUndefined();
-    const { geometry: presenter, material } = NARRATOR_CAST.hamour.create(createNarratorUniforms());
-    expect(Array.from(presenter.getAttribute('position').array)).toEqual(Array.from(geometry.getAttribute('position').array));
-    const { shader } = compile(material as MeshStandardMaterial);
-    expect(shader.vertexShader).toContain('uHamourTalk');
-    material.dispose();
+    // The narrator's parts are the same triangles, split.
+    const parts = createHamourParts();
+    const split = [...parts.values()].reduce((sum, g) => sum + triangles(g), 0);
+    expect(split).toBe(triangles(geometry));
+    expect([...parts.keys()].sort()).toEqual(Object.values(HAMOUR_PART).sort());
   });
 
-  it('tags the limbs the shaders move', () => {
+  it('tags every jointed part', () => {
     const sardine = createSardinePresidentGeometry().getAttribute(LOW_POLY_PART_ATTRIBUTE);
     const crab = createCrabClerkGeometry().getAttribute(LOW_POLY_PART_ATTRIBUTE);
     const ids = (attribute: typeof sardine) => new Set(Array.from(attribute.array as Float32Array));
-    expect(ids(sardine)).toEqual(new Set([0, ...Object.values(SARDINE_PART)]));
-    expect(ids(crab)).toEqual(new Set([0, ...Object.values(CRAB_PART)]));
+    expect(ids(sardine)).toEqual(new Set(Object.values(SARDINE_PART)));
+    const crabParts = new Set<number>(Object.values(CRAB_PART).filter((v) => v < CRAB_PART.legs));
+    for (let i = 0; i < 12; i++) crabParts.add(CRAB_PART.legs + i);
+    expect(ids(crab)).toEqual(crabParts);
   });
 
   it('stands the crab on y = 0 and keeps its claws oversized (wider than its shell)', () => {
@@ -103,10 +126,10 @@ describe('the narrator cast', () => {
   });
 
   it('lifts each face by its own colour (emissive x vertex colour), fogged as usual', () => {
-    const { material } = NARRATOR_CAST['crab-clerk'].create(createNarratorUniforms());
-    const { shader } = compile(material as MeshStandardMaterial);
+    const crab = NARRATOR_CAST['crab-clerk'].create(createNarratorUniforms());
+    const { shader } = compile(meshesOf(crab)[0]?.material as MeshStandardMaterial);
     expect(shader.fragmentShader).toContain('totalEmissiveRadiance *= vColor.rgb');
-    material.dispose();
+    crab.dispose();
   });
 
   it('recognises cast ids', () => {

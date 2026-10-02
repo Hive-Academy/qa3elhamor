@@ -1,5 +1,6 @@
 import type { NarrationLandmarkId } from '@qa3elhamor/content-domain';
 import {
+  PATRICK_RIG,
   SPONGEBOB_RIG,
   isNarratorClipId,
   type NarratorCastId,
@@ -64,7 +65,8 @@ export const NARRATORS_CONFIG: NarratorsConfig = {
 
 /**
  * Where a landmark's resident narrator stands (`ResidentNarrator`) while the visitor dives past,
- * and where its guide hops out from when the landmark opens (and back to when it closes).
+ * and where its guide hops out from when the landmark opens (and back to when it closes). The
+ * same spot serves whoever plays there: the bundled model, or the original cast standing in.
  */
 export interface ResidentPlacement {
   /**
@@ -83,15 +85,21 @@ export interface ResidentPlacement {
 export const RESIDENT_SCALE_RANGE = { min: 0.2, max: 3 } as const;
 
 /**
- * Where each rigged narrator stands at home. A landmark without an entry keeps its resident at
- * the visit's narrator post. Tune one live with `?place=resident` (development only,
- * `narrators/README.md`), then paste its "Copy config" snippet here.
+ * Where each landmark's narrator stands at home. A landmark without an entry keeps its resident
+ * at the visit's narrator post. Tune one live with `?place=resident&landmark=<id>` (development
+ * only, `narrators/README.md`), then paste its "Copy config" snippet here.
  */
 export const RESIDENT_PLACEMENTS: Readonly<
   Partial<Record<NarrationLandmarkId, ResidentPlacement>>
 > = {
   // Beside the Pineapple's door, on the side the dive comes from, facing the camera.
   pineapple: { offset: [0.016, 0, 0.138], facing: 'camera', scale: 0.62 },
+  // Patrick by his rock, on the side the dive comes from.
+  tiki: { offset: [-0.105, 0, 0.1], facing: 'camera', scale: 0.62 },
+  // The Crab Clerk by the Krusty Krab's door.
+  'krusty-krab': { offset: [0.15, 0, 0.1], facing: 'camera', scale: 0.8 },
+  // The Sardine President hovering by the Bureau's counter window.
+  bureau: { offset: [0.04, 0.02, 0.15], facing: 'camera', scale: 0.7 },
 };
 
 const finiteNumber = (value: unknown): value is number =>
@@ -136,7 +144,7 @@ export function residentPlacementOf(
   };
 }
 
-/** The resident's setup a bundled narrator carries: its landmark, and where it stands. */
+/** The resident's setup every narrator carries: its landmark, and where it stands. */
 export interface ResidentSetup {
   readonly landmark: NarrationLandmarkId;
   /** Null: at the visit's narrator post. */
@@ -146,10 +154,15 @@ export interface ResidentSetup {
 /**
  * What a landmark's narrator is: one of the original cast, or a bundled model, which keeps
  * the original cast as its `fallback` for tiers that do not allow the model, and for a model
- * that fails to load.
+ * that fails to load. Either one lives at its landmark (`resident`) between visits.
  */
 export type NarratorChoice =
-  | { readonly kind: 'cast'; readonly cast: NarratorCastId }
+  | {
+      readonly kind: 'cast';
+      readonly cast: NarratorCastId;
+      /** Where it lives between visits; none for a stand-in (`fallbackOf`). */
+      readonly resident?: ResidentSetup;
+    }
   | {
       readonly kind: 'model';
       readonly asset: BundledCharacter['asset'];
@@ -170,12 +183,12 @@ export function narratorFor(
   const bundled = config.useBundledCharacters
     ? config.bundled[landmark]
     : undefined;
-  if (!bundled) return { kind: 'cast', cast };
-  const { asset, heightFactor } = bundled;
   const placement = residentPlacementOf(
     residents[landmark],
     `RESIDENT_PLACEMENTS.${landmark}`,
   );
+  if (!bundled) return { kind: 'cast', cast, resident: { landmark, placement } };
+  const { asset, heightFactor } = bundled;
   return {
     kind: 'model',
     asset,
@@ -206,18 +219,20 @@ export function narratorsConfigFor(
  * Bones for the bundled models that have them (`@qa3elhamor/world-feature`, `narrator-rig.ts`):
  * a rigged model hops, waves, gestures and idles, and idles at its landmark before the visit
  * (`ResidentNarrator`). A model without an entry plays as a static model. Rigging another
- * character is a data addition here (and its `NarratorRigSpec`).
+ * character is a data addition here (and its `NarratorRigSpec`, with its `ClipStyle`).
  */
 export const NARRATOR_RIGS: Readonly<
   Partial<Record<BundledCharacter['asset'], NarratorRigSpec>>
 > = {
   'spongebob-narrator': SPONGEBOB_RIG,
+  'patrick-narrator': PATRICK_RIG,
 };
 
 /**
- * A development-only preview of one clip on every rigged narrator, from the page URL:
- * `?pose=idle|wave|talk|hop|react|listen|scratch|bounce|look|hips`, optionally frozen with `&poseAt=0..1` (how far through the
- * clip). Production builds ignore the URL (null).
+ * A development-only preview of one clip on every narrator (the bundled models and the original
+ * cast alike), from the page URL: `?pose=idle|wave|talk|hop|react|listen` or a fidget
+ * (`scratch|bounce|look|hips|doze|belly|clack|puff|yawn`), optionally frozen with `&poseAt=0..1`
+ * (how far through the clip). Production builds ignore the URL (null).
  */
 export function narratorPosePreviewFor(
   search: string,

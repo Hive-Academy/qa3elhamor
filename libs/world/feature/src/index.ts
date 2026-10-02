@@ -26,7 +26,23 @@ export type { KelpClearing } from './lib/kelp-bed.js';
 export * from './lib/narrator.js';
 export * from './lib/narrator-cast.js';
 export { DEFAULT_NARRATOR_MOTION, type NarratorMotionTuning } from './lib/narrator-motion.js';
-export { SPONGEBOB_RIG, NARRATOR_BONES, type NarratorRigSpec, type NarratorBoneName, type RigCapsule } from './lib/narrator-rig.js';
+export {
+  SPONGEBOB_RIG,
+  PATRICK_RIG,
+  NARRATOR_BONES,
+  type NarratorRigSpec,
+  type NarratorBoneName,
+  type RigCapsule,
+} from './lib/narrator-rig.js';
+export {
+  SPONGEBOB_STYLE,
+  PATRICK_STYLE,
+  CRAB_CLERK_STYLE,
+  SARDINE_PRESIDENT_STYLE,
+  HAMOUR_STYLE,
+  type ClipStyle,
+  type NarratorLocomotion,
+} from './lib/narrator-clip-style.js';
 export {
   NARRATOR_CLIP_IDS,
   NARRATOR_FIDGET_IDS,

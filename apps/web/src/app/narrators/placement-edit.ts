@@ -1,4 +1,4 @@
-import type { NarrationLandmarkId } from '@qa3elhamor/content-domain';
+import { NARRATION_LANDMARKS, type NarrationLandmarkId } from '@qa3elhamor/content-domain';
 import {
   RESIDENT_SCALE_RANGE,
   type ResidentPlacement,
@@ -10,12 +10,23 @@ import {
  * store the scene and the panel share. Pure: no React, no three.js, no DOM.
  */
 
-/** `?place=resident` in development; null otherwise (production builds never read the URL). */
-export function placeModeFor(search: string, dev: boolean): 'resident' | null {
+/** What `?place=resident` asks for: every landmark's resident, or the one `&landmark=` names. */
+export interface PlaceMode {
+  /** Null: every resident shows the tool, and the keys go to the one nearest the camera. */
+  readonly landmark: NarrationLandmarkId | null;
+}
+
+/**
+ * `?place=resident` (optionally `&landmark=tiki`) in development; null otherwise (production
+ * builds never read the URL). An unknown `landmark` places every resident.
+ */
+export function placeModeFor(search: string, dev: boolean): PlaceMode | null {
   if (!dev) return null;
-  return new URLSearchParams(search).get('place') === 'resident'
-    ? 'resident'
-    : null;
+  const params = new URLSearchParams(search);
+  if (params.get('place') !== 'resident') return null;
+  const wanted = params.get('landmark');
+  const landmark = NARRATION_LANDMARKS.find((id) => id === wanted) ?? null;
+  return { landmark };
 }
 
 /** Step sizes: offsets in the landmark's units, turns in degrees, scale as a factor. */

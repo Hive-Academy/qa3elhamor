@@ -7,6 +7,10 @@ import {
 } from 'three';
 import { AMBIENT_TIME_UNIFORM } from './ambient-clock.js';
 import { LowPolyBuilder } from './low-poly-builder.js';
+import { HAMOUR_STYLE } from './narrator-clip-style.js';
+import type { CastJoint, JointedCastSpec } from './narrator-jointed.js';
+import type { NarratorRigSpec } from './narrator-rig.js';
+import type { NarratorUniforms } from './narrator-uniforms.js';
 import { seededRandom } from './seeded-random.js';
 import { applyVertexMotion } from './vertex-motion.js';
 import type { Vec3 } from './world-space.js';
@@ -133,11 +137,28 @@ function disc(
 const mix = (a: Color, b: Color, t: number): Color => a.clone().lerp(b, t);
 
 export function createHamourGeometry(seed = 7): BufferGeometry {
+  return buildHamour(seed, false).build();
+}
+
+/** Builder part ids of the jointed Hamour (`createHamourParts`). `L` is its left, +X. */
+export const HAMOUR_PART = { body: 0, tail: 1, finL: 2, finR: 3 } as const;
+
+/** The Hamour's parts, one geometry each (`HAMOUR_PART`), for the narrator's `HAMOUR_JOINTS`. */
+export function createHamourParts(seed = 7): Map<number, BufferGeometry> {
+  return buildHamour(seed, true).buildParts();
+}
+
+/** The Hamour's mesh; `jointed` marks the tail and pectoral fins as parts (the ambient fish has none). */
+function buildHamour(seed: number, jointed: boolean): LowPolyBuilder {
   const random = seededRandom(seed);
   const pal = Object.fromEntries(
     Object.entries(HAMOUR_PALETTE).map(([key, hex]) => [key, new Color(hex)])
   ) as Record<keyof typeof HAMOUR_PALETTE, Color>;
   const builder = new LowPolyBuilder();
+  const part = (id: number, draw: () => void): void => {
+    if (jointed) builder.withPart(id, draw);
+    else draw();
+  };
 
   // Mottling: low-frequency blotches across the flanks (pale spots are separate discs).
   const bodyColour = (p: Vec3, rel: number): Color => {
@@ -243,10 +264,12 @@ export function createHamourGeometry(seed = 7): BufferGeometry {
     const a = (-75 + (150 * i) / TAIL_STEPS) * (Math.PI / 180);
     return [0, tailRoot[1] + 0.205 * Math.sin(a), ROOT_Z - 0.03 - 0.19 * Math.cos(a)];
   };
-  for (let i = 0; i < TAIL_STEPS; i++) {
-    const edge = i === 0 || i === TAIL_STEPS - 1 ? pal.finEdge : finColour(0.4);
-    builder.triangle(tailRoot, tailPoint(i), tailPoint(i + 1), [pal.fin, edge, edge]);
-  }
+  part(HAMOUR_PART.tail, () => {
+    for (let i = 0; i < TAIL_STEPS; i++) {
+      const edge = i === 0 || i === TAIL_STEPS - 1 ? pal.finEdge : finColour(0.4);
+      builder.triangle(tailRoot, tailPoint(i), tailPoint(i + 1), [pal.fin, edge, edge]);
+    }
+  });
 
   // Pectoral fins (rounded paddles behind the gills) and pelvic fins (small, below).
   const paddle = (base: Vec3, side: number, length: number, spread: number, droop: number): void => {
@@ -264,11 +287,112 @@ export function createHamourGeometry(seed = 7): BufferGeometry {
     }
   };
   for (const side of [1, -1]) {
-    paddle(surface(0.27, side * 1.85), side, 0.11, 0.055, 0.01);
+    part(side > 0 ? HAMOUR_PART.finL : HAMOUR_PART.finR, () => paddle(surface(0.27, side * 1.85), side, 0.11, 0.055, 0.01));
     paddle(surface(0.31, side * 2.75), side, 0.07, 0.025, 0.035);
   }
 
-  return builder.build();
+  return builder;
+}
+
+/** Where the jointed Hamour's tail and pectoral fins pivot, model units. */
+const HAMOUR_TAIL_ROOT: Vec3 = [0, surface(1, 0)[1] - 0.048, ROOT_Z];
+const HAMOUR_FIN_ROOT = (side: 1 | -1): Vec3 => surface(0.27, side * 1.85);
+/** The body bends behind this z (the head stays rigid), most at the tail root. */
+const HAMOUR_BEND_FRONT = 0.2;
+
+const finJoint = (side: 1 | -1): CastJoint => {
+  const k = side > 0 ? 'L' : 'R';
+  return {
+    name: `fin.${k}`,
+    parent: 'body',
+    pivot: HAMOUR_FIN_ROOT(side),
+    parts: [side > 0 ? HAMOUR_PART.finL : HAMOUR_PART.finR],
+    // The fin points back along the flank: the "arm" lifting tips it up (about x) and flares it
+    // out (about y); its swing tips it; the elbow's curl rocks it (a wave).
+    drives: [
+      { bone: `shoulder.${k}`, gain: [0.6 * side, -0.8, 0], from: [2, 2, 2] },
+      { bone: `shoulder.${k}`, gain: [0.6, 0, 0] },
+      { bone: `elbow.${k}`, gain: [0.35 * side, 0, 0], from: [2, 2, 2] },
+    ],
+    flutter: { axis: 1, amplitude: 0.12, rate: 6.4, phase: side > 0 ? 0 : 1.7 },
+  };
+};
+
+/** The narrator Hamour's joints: body, tail fin on the bend, the two pectoral fins. */
+export const HAMOUR_JOINTS: JointedCastSpec = {
+  joints: [
+    {
+      name: 'body',
+      parent: null,
+      pivot: [0, 0, 0.05],
+      parts: [HAMOUR_PART.body],
+      drives: [
+        { bone: 'hips', gain: [0.4, 1, 0.6] },
+        { bone: 'chest', gain: [0.7, 0, 0.3] },
+        { bone: 'head', gain: [0.5, 0.6, 0.3] },
+      ],
+    },
+    { name: 'tail', parent: 'body', pivot: HAMOUR_TAIL_ROOT, parts: [HAMOUR_PART.tail], drives: [{ bone: 'tail', gain: [0, 0.6, 0] }], onBend: true },
+    finJoint(1),
+    finJoint(-1),
+  ],
+  bend: { gain: 0.5, front: HAMOUR_BEND_FRONT, root: ROOT_Z },
+  jaw: { gain: 2.4 },
+};
+
+/** The Hamour's rig for the animator (a fish: no legs to crouch on, a tail and a jaw). */
+export const HAMOUR_RIG: NarratorRigSpec = {
+  id: 'hamour',
+  measuredHeight: 0.42,
+  joints: {
+    root: [0, 0, 0],
+    hips: [0, 0.5, 0],
+    chest: [0, 0.5, 0.2],
+    head: [0, 0.5, 0.6],
+    'shoulder.L': [0.25, 0.4, 0.4],
+    'elbow.L': [0.3, 0.4, 0.2],
+    'hand.L': [0.32, 0.4, 0.1],
+    'shoulder.R': [-0.25, 0.4, 0.4],
+    'elbow.R': [-0.3, 0.4, 0.2],
+    'hand.R': [-0.32, 0.4, 0.1],
+    'hip.L': [0.1, 0.2, 0],
+    'knee.L': [0.1, 0.1, 0],
+    'hip.R': [-0.1, 0.2, 0],
+    'knee.R': [-0.1, 0.1, 0],
+  },
+  capsules: [],
+  falloff: 1,
+  rest: { armDown: 0, armForward: 0, elbowBend: 0 },
+  motion: { bob: 0.035, sway: 0.02, talkStretch: 0.03, talkBounce: 0.015 },
+  style: HAMOUR_STYLE,
+};
+
+/**
+ * The narrator Hamour's material: the presenter's warm lift, and in its vertex stage the body's
+ * bend (`uniforms.bend`, from the tail bone) and the jaw (`uniforms.talk`, from the jaw bone, plus
+ * a slow breath on its own clock).
+ */
+export function createHamourNarratorMaterial({ time, talk, bend }: NarratorUniforms): MeshStandardMaterial {
+  const material = new MeshStandardMaterial({
+    vertexColors: true,
+    flatShading: true,
+    roughness: 0.82,
+    metalness: 0,
+    side: DoubleSide,
+    emissive: '#5a3a1c',
+    emissiveIntensity: 0.75,
+  });
+  return applyVertexMotion(material, {
+    uniforms: { [AMBIENT_TIME_UNIFORM]: time, uNarratorTalk: talk, uNarratorBend: bend },
+    declarations: `uniform float ${AMBIENT_TIME_UNIFORM};\nuniform float uNarratorTalk;\nuniform float uNarratorBend;`,
+    transform: /* glsl */ `
+      float hamourRear = clamp( ( ${HAMOUR_BEND_FRONT.toFixed(3)} - position.z ) / ${(HAMOUR_BEND_FRONT - ROOT_Z).toFixed(3)}, 0.0, 1.0 );
+      transformed.x += uNarratorBend * hamourRear * hamourRear;
+      float hamourJaw = smoothstep( 0.38, 0.5, position.z ) * ( 1.0 - smoothstep( -0.05, -0.015, position.y ) );
+      transformed.y -= ( ( 0.5 + 0.5 * sin( ${AMBIENT_TIME_UNIFORM} * 1.2 ) ) * 0.008 + uNarratorTalk * 0.05 ) * hamourJaw;
+    `,
+    cacheKey: 'narrator-hamour',
+  });
 }
 
 export interface HamourMaterialOptions {

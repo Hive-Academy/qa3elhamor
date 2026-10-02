@@ -1,7 +1,9 @@
 import type { BufferGeometry, Color, MeshStandardMaterial } from 'three';
-import { AMBIENT_TIME_UNIFORM } from './ambient-clock.js';
-import { LOW_POLY_PART_ATTRIBUTE, LowPolyBuilder } from './low-poly-builder.js';
+import { LowPolyBuilder } from './low-poly-builder.js';
+import { SARDINE_PRESIDENT_STYLE } from './narrator-clip-style.js';
+import type { CastJoint, JointedCastSpec } from './narrator-jointed.js';
 import { createNarratorMaterial } from './narrator-material.js';
+import type { NarratorRigSpec } from './narrator-rig.js';
 import { cartoonEye, colour, disc, mixColour, normalise, ring, tube } from './narrator-shapes.js';
 import type { NarratorUniforms } from './narrator-uniforms.js';
 import { seededRandom } from './seeded-random.js';
@@ -10,10 +12,11 @@ import type { Vec3 } from './world-space.js';
 /**
  * The Sardine President: an original, small, chubby silver sardine with big forward-looking
  * eyes, stern little eyebrows, pink cheeks and a smile, wearing a red-white-black sash and a
- * tiny gold medal. A cartoon of office, not of any person.
+ * tiny gold medal, and a grand moustache. A cartoon of office, not of any person.
  *
- * Authored nose at +Z, back at +Y, about 0.87 units long. Parts: 1 the tail, 2 and 3 the right
- * (+X) and left pectoral fins (they flap when it talks).
+ * Authored nose at +Z, back at +Y, about 0.87 units long. Built of jointed parts
+ * (`SARDINE_PART`, posed by `SARDINE_JOINTS`): the body, the tail, the two pectoral fins (his
+ * "arms"), the moustache and the mouth.
  */
 export const SARDINE_PALETTE = {
   backDark: '#2e5878',
@@ -37,7 +40,8 @@ export const SARDINE_PALETTE = {
   goldDark: '#a8761f',
 } as const;
 
-export const SARDINE_PART = { tail: 1, rightFin: 2, leftFin: 3 } as const;
+/** Builder part ids. `L` is his left, +X (the medal's side). */
+export const SARDINE_PART = { body: 0, tail: 1, finL: 2, finR: 3, moustache: 4, mouth: 5 } as const;
 
 const PROFILE = {
   u: [0, 0.06, 0.14, 0.24, 0.36, 0.48, 0.6, 0.72, 0.82, 0.92, 1],
@@ -50,8 +54,13 @@ const NOSE_Z = 0.4;
 const ROOT_Z = -0.38;
 const SEGMENTS = 12;
 
-/** Pectoral fin pivots (x on the +X side; mirrored), shared with the flap shader. */
+/** Pectoral fin pivots (x on the +X side; mirrored). */
 const FIN_PIVOT = { x: 0.108, y: -0.07, z: 0.16 } as const;
+/** The body bends behind this z (the head stays rigid). */
+const BEND_FRONT = 0.15;
+/** Where the moustache hangs from (under the nose) and the mouth opens (below it). */
+const MOUSTACHE_ROOT: Vec3 = [0, 0.004, NOSE_Z + 0.04];
+const MOUTH_AT: Vec3 = [0, -0.032, NOSE_Z + 0.03];
 
 const zAt = (u: number): number => NOSE_Z + (ROOT_Z - NOSE_Z) * u;
 
@@ -79,7 +88,17 @@ function surfaceNormal(u: number, theta: number): Vec3 {
 /** The sash's centre line: a tilted ring, over the shoulder in front, under the belly behind. */
 const sashU = (theta: number): number => 0.34 - 0.09 * Math.cos(theta);
 
+/** The whole sardine as one geometry (a `part` attribute marks the parts). */
 export function createSardinePresidentGeometry(seed = 11): BufferGeometry {
+  return buildSardinePresident(seed).build();
+}
+
+/** The sardine's parts, one geometry each (`SARDINE_PART`), for `SARDINE_JOINTS`. */
+export function createSardinePresidentParts(seed = 11): Map<number, BufferGeometry> {
+  return buildSardinePresident(seed).buildParts();
+}
+
+function buildSardinePresident(seed: number): LowPolyBuilder {
   const random = seededRandom(seed);
   const pal = Object.fromEntries(Object.entries(SARDINE_PALETTE).map(([k, hex]) => [k, colour(hex)])) as Record<
     keyof typeof SARDINE_PALETTE,
@@ -174,6 +193,26 @@ export function createSardinePresidentGeometry(seed = 11): BufferGeometry {
     const t1 = Math.PI - 0.85 + (1.7 * (i + 1)) / SMILE_STEPS;
     builder.quad(surface(0.012, t0, 0.004), surface(0.034, t0, 0.004), surface(0.034, t1, 0.004), surface(0.012, t1, 0.004), pal.mouth);
   }
+  // The mouth: a dark oval on the snout that opens (stretches) as he talks.
+  builder.withPart(SARDINE_PART.mouth, () => {
+    disc(builder, MOUTH_AT, normalise([0, -0.35, 1]), 0.024, pal.mouth, colour('#1a0608'), 0.002, 8);
+  });
+  // The presidential moustache: two thick curls from under the nose, up at the tips.
+  builder.withPart(SARDINE_PART.moustache, () => {
+    for (const side of [1, -1]) {
+      const [x, y, z] = MOUSTACHE_ROOT;
+      const points: Vec3[] = [
+        [x, y, z],
+        [x + side * 0.035, y - 0.012, z - 0.006],
+        [x + side * 0.068, y - 0.012, z - 0.02],
+        [x + side * 0.092, y + 0.006, z - 0.038],
+        [x + side * 0.1, y + 0.026, z - 0.05],
+      ];
+      const radii = [0.014, 0.015, 0.012, 0.008, 0.004];
+      for (let i = 0; i < points.length - 1; i++)
+        tube(builder, points[i] as Vec3, points[i + 1] as Vec3, radii[i] ?? 0.01, radii[i + 1] ?? 0.004, pal.brow, 5);
+    }
+  });
 
   // --- Fins. ---
   const finColour = (): Color => mixColour(pal.fin, pal.finEdge, random() * 0.4);
@@ -213,11 +252,11 @@ export function createSardinePresidentGeometry(seed = 11): BufferGeometry {
   // Pectoral fins: rounded paddles that flap (parts 2 and 3), and small pelvic fins.
   for (const side of [1, -1]) {
     const pivot: Vec3 = [side * FIN_PIVOT.x, FIN_PIVOT.y, FIN_PIVOT.z];
-    builder.withPart(side > 0 ? SARDINE_PART.rightFin : SARDINE_PART.leftFin, () => {
+    builder.withPart(side > 0 ? SARDINE_PART.finL : SARDINE_PART.finR, () => {
       const steps = 5;
       const point = (k: number): Vec3 => {
         const phi = (-1 + (2 * k) / steps) * 0.85;
-        return [pivot[0] + side * (0.03 + 0.025 * Math.cos(phi)), pivot[1] + Math.sin(phi) * 0.05 - 0.02, pivot[2] - 0.1 * (0.4 + 0.6 * Math.cos(phi))];
+        return [pivot[0] + side * (0.035 + 0.03 * Math.cos(phi)), pivot[1] + Math.sin(phi) * 0.065 - 0.025, pivot[2] - 0.135 * (0.4 + 0.6 * Math.cos(phi))];
       };
       for (let i = 0; i < steps; i++) builder.triangle(pivot, point(i), point(i + 1), [pal.fin, pal.finEdge, pal.finEdge]);
     });
@@ -225,37 +264,102 @@ export function createSardinePresidentGeometry(seed = 11): BufferGeometry {
     builder.triangle(pelvic, [pelvic[0] + side * 0.02, pelvic[1] - 0.05, pelvic[2] - 0.06], [pelvic[0], pelvic[1] - 0.01, pelvic[2] - 0.08], finColour());
   }
 
-  return builder.build();
+  return builder;
 }
 
 /**
- * The cast material (see `createNarratorMaterial`). The vertex patch is a gentle tail
- * wave (stronger while it swims) and the pectoral fins flapping, wider on each talk beat: it
- * gestures as it speaks.
+ * The cast material (see `createNarratorMaterial`). Its vertex stage bends the body behind the
+ * head (`uniforms.bend`, from the tail bone); the parts move whole on their joints.
  */
-export function createSardinePresidentMaterial({ time, talk, swim }: NarratorUniforms): MeshStandardMaterial {
-  const p = FIN_PIVOT;
+export function createSardinePresidentMaterial({ bend }: NarratorUniforms): MeshStandardMaterial {
   return createNarratorMaterial({
     roughness: 0.42,
     glow: 0.38,
     motion: {
-      uniforms: { [AMBIENT_TIME_UNIFORM]: time, uNarratorTalk: talk, uNarratorSwim: swim },
-      declarations: `uniform float ${AMBIENT_TIME_UNIFORM};\nuniform float uNarratorTalk;\nuniform float uNarratorSwim;\nattribute float ${LOW_POLY_PART_ATTRIBUTE};`,
+      uniforms: { uNarratorBend: bend },
+      declarations: 'uniform float uNarratorBend;',
       transform: /* glsl */ `
-        float sardineT = ${AMBIENT_TIME_UNIFORM};
-        float sardineRear = 1.0 - smoothstep( -0.45, 0.1, position.z );
-        transformed.x += sin( sardineT * 6.0 - position.z * 7.0 ) * 0.05 * sardineRear * sardineRear * ( 0.35 + uNarratorSwim );
-        if ( ${LOW_POLY_PART_ATTRIBUTE} > 1.5 && ${LOW_POLY_PART_ATTRIBUTE} < 3.5 ) {
-          float finSide = ${LOW_POLY_PART_ATTRIBUTE} < 2.5 ? 1.0 : -1.0;
-          float finAngle = finSide * ( 0.22 * sin( sardineT * 5.0 + finSide ) + 0.75 * uNarratorTalk );
-          vec2 finPivot = vec2( finSide * ${p.x.toFixed(3)}, ${p.y.toFixed(3)} );
-          vec2 finArm = transformed.xy - finPivot;
-          float finCos = cos( finAngle );
-          float finSin = sin( finAngle );
-          transformed.xy = finPivot + vec2( finCos * finArm.x - finSin * finArm.y, finSin * finArm.x + finCos * finArm.y );
-        }
+        float sardineRear = clamp( ( ${BEND_FRONT.toFixed(3)} - position.z ) / ${(BEND_FRONT - ROOT_Z).toFixed(3)}, 0.0, 1.0 );
+        transformed.x += uNarratorBend * sardineRear * sardineRear;
       `,
       cacheKey: 'narrator-sardine-president',
     },
   });
 }
+
+const finJoint = (side: 1 | -1): CastJoint => {
+  const k = side > 0 ? 'L' : 'R';
+  return {
+    name: `fin.${k}`,
+    parent: 'body',
+    pivot: [side * FIN_PIVOT.x, FIN_PIVOT.y, FIN_PIVOT.z],
+    parts: [side > 0 ? SARDINE_PART.finL : SARDINE_PART.finR],
+    // His fins are his arms. They point back along his flanks, so lifting one tips it up (about
+    // x) and flares it out (about y); the swing tips it too; the elbow's curl rocks it (the regal
+    // wave).
+    drives: [
+      { bone: `shoulder.${k}`, gain: [0.75 * side, -0.7, 0.4 * side], from: [2, 2, 2] },
+      { bone: `shoulder.${k}`, gain: [0.4, 0, 0] },
+      { bone: `elbow.${k}`, gain: [0.35 * side, 0, 0], from: [2, 2, 2] },
+    ],
+    flutter: { axis: 2, amplitude: 0.1 * side, rate: 5, phase: side > 0 ? 0 : 1.1 },
+  };
+};
+
+/** The Sardine President's joints: body, tail on the bend, fins, moustache, mouth. */
+export const SARDINE_JOINTS: JointedCastSpec = {
+  joints: [
+    {
+      name: 'body',
+      parent: null,
+      pivot: [0, 0, 0.05],
+      parts: [SARDINE_PART.body],
+      drives: [
+        { bone: 'hips', gain: [0.4, 1, 0.6] },
+        { bone: 'chest', gain: [0.9, 0, 0.3] },
+        { bone: 'head', gain: [0.6, 0.6, 0.3] },
+      ],
+    },
+    {
+      name: 'tail',
+      parent: 'body',
+      pivot: [0, PROFILE.c[PROFILE.c.length - 1] ?? 0, ROOT_Z + 0.01],
+      parts: [SARDINE_PART.tail],
+      drives: [{ bone: 'tail', gain: [0, 0.7, 0] }],
+      onBend: true,
+    },
+    finJoint(1),
+    finJoint(-1),
+    // The moustache twitches up on each syllable and wiggles with his head.
+    { name: 'moustache', parent: 'body', pivot: MOUSTACHE_ROOT, parts: [SARDINE_PART.moustache], drives: [{ bone: 'jaw', gain: [-0.5, 0, 0] }, { bone: 'head', gain: [0, 0, 0.8] }] },
+    { name: 'mouth', parent: 'body', pivot: MOUTH_AT, parts: [SARDINE_PART.mouth], drives: [], stretch: { bone: 'jaw', axis: 0, gain: 3.6, along: [0.3, 1, 0] } },
+  ],
+  bend: { gain: 0.45, front: BEND_FRONT, root: ROOT_Z },
+};
+
+/** The Sardine President's rig for the animator: a fish, all fins and importance. */
+export const SARDINE_PRESIDENT_RIG: NarratorRigSpec = {
+  id: 'sardine-president',
+  measuredHeight: 0.4,
+  joints: {
+    root: [0, 0, 0],
+    hips: [0, 0.5, 0],
+    chest: [0, 0.5, 0.2],
+    head: [0, 0.5, 0.6],
+    'shoulder.L': [0.25, 0.4, 0.4],
+    'elbow.L': [0.3, 0.4, 0.2],
+    'hand.L': [0.32, 0.4, 0.1],
+    'shoulder.R': [-0.25, 0.4, 0.4],
+    'elbow.R': [-0.3, 0.4, 0.2],
+    'hand.R': [-0.32, 0.4, 0.1],
+    'hip.L': [0.1, 0.2, 0],
+    'knee.L': [0.1, 0.1, 0],
+    'hip.R': [-0.1, 0.2, 0],
+    'knee.R': [-0.1, 0.1, 0],
+  },
+  capsules: [],
+  falloff: 1,
+  rest: { armDown: 0, armForward: 0, elbowBend: 0 },
+  motion: { bob: 0.04, sway: 0.025, talkStretch: 0.03, talkBounce: 0.015 },
+  style: SARDINE_PRESIDENT_STYLE,
+};

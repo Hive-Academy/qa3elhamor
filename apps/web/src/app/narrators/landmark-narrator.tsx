@@ -1,4 +1,5 @@
-import { assetAllowed } from '@qa3elhamor/world-domain';
+import type { NarrationLandmarkId } from '@qa3elhamor/content-domain';
+import { assetAllowed, type QualityTier } from '@qa3elhamor/world-domain';
 import {
   NARRATOR_CAST,
   NARRATOR_SPEECH_HEADROOM,
@@ -30,6 +31,7 @@ import {
   NARRATOR_RIGS,
   type NarratorChoice,
   type ResidentPlacement,
+  type ResidentSetup,
 } from '../narrators.config';
 import { PLACEMENT_EDITS, UNPLACED, placeModeFor } from './placement-edit';
 import { createResidentState, stepResident } from './resident';
@@ -140,12 +142,17 @@ export function residentTravel(
   };
 }
 
+/** Whether residents show on this tier: a bundled model where its asset is allowed, the cast from medium up. */
+export const residentAllowed = (choice: NarratorChoice, tier: QualityTier): boolean =>
+  choice.kind === 'model' ? assetAllowed(choice.asset, tier) : tier !== 'low';
+
 /**
  * A landmark's narrator as configured (`NARRATOR_CAST` in `site.config.ts`, `narrators.config.ts`): one of the original cast, or a
  * bundled character model. The model is lazy and tier-gated (`assetAllowed`): where the tier
  * does not allow it, or it fails to load, the original cast plays instead; while it loads,
- * nothing shows and it swims in once it arrives. A model with a resident hops out from where
- * the resident stood (taking over its pose) and back there when it leaves.
+ * nothing shows and it swims in once it arrives. A narrator with a resident (`ResidentNarrator`)
+ * comes out from where the resident stood (taking over its pose) and goes back there when it
+ * leaves, where the resident takes over again.
  */
 export function LandmarkNarrator({
   choice,
@@ -162,23 +169,36 @@ export function LandmarkNarrator({
   useEffect(() => {
     if (choice.kind === 'cast' || gated) report.current?.(fallbackOf(choice));
   }, [choice, gated]);
+  // A resident only lives where the tier shows it (`ResidentNarrator`).
+  const lives = choice.resident !== undefined && residentAllowed(choice, tier);
   // Read once, at mount: the resident's last frame, if it was on screen.
   const [handOver] = useState(() =>
-    choice.kind === 'model' && !gated
-      ? takeNarratorSnapshot(residentLinkOf(choice).snapshot)
-      : null,
+    lives ? takeNarratorSnapshot(residentLinkOf(choice).snapshot) : null,
   );
+  const link = lives ? residentLinkOf(choice) : null;
+  const rendered = narratorRenderedHeight(choice, height);
+  const home = link ? residentTravel(link, props.position, rendered) : null;
+  // Out from the resident's spot (from nothing there if it was not on screen), and back to
+  // it, at its size, where the resident takes over again.
+  const fromHome = home
+    ? { enterFrom: home.offset, exitTo: home.offset, exitScale: home.scale }
+    : {};
+  const shared = link ? { handOver, snapshot: link.snapshot } : {};
 
   if (choice.kind === 'cast' || gated) {
     const cast = choice.kind === 'cast' ? choice.cast : choice.fallback;
-    return <CastNarrator cast={cast} height={height} {...props} />;
+    return (
+      <CastNarrator
+        cast={cast}
+        height={height}
+        {...props}
+        {...(choice.kind === 'cast' ? { ...fromHome, ...shared } : {})}
+      />
+    );
   }
   const fallback = (
     <CastNarrator cast={choice.fallback} height={height} {...props} />
   );
-  const link = residentLinkOf(choice);
-  const rendered = height * choice.heightFactor;
-  const home = residentTravel(link, props.position, rendered);
   return (
     <NarratorModelBoundary
       fallback={fallback}
@@ -191,17 +211,8 @@ export function LandmarkNarrator({
           height={rendered}
           onLoaded={() => report.current?.(choice)}
           {...props}
-          {...(home
-            ? {
-                // Out from the resident's spot (from nothing there if it was not on screen),
-                // and back to it, at its size, where the resident takes over again.
-                enterFrom: home.offset,
-                exitTo: home.offset,
-                exitScale: home.scale,
-              }
-            : {})}
-          handOver={handOver}
-          snapshot={link.snapshot}
+          {...fromHome}
+          {...shared}
         />
       </Suspense>
     </NarratorModelBoundary>
@@ -213,10 +224,13 @@ const RESIDENT_ENTER_FROM: Vec3 = [-0.9, 0, -0.5];
 const RESIDENT_EXIT_TO: Vec3 = [0.9, 0, -0.5];
 const NOTHING = (): void => undefined;
 
-/** Development only (`?place=resident`): the placement tool, a lazy chunk never built for production. */
+/** Development only (`?place=resident[&landmark=id]`): the placement tool, a lazy chunk never built for production. */
 const PLACE_MODE = import.meta.env.DEV
   ? placeModeFor(typeof window === 'undefined' ? '' : window.location.search, true)
   : null;
+/** Whether the tool places `landmark`'s resident: every one, or the one `&landmark=` names. */
+const placingAt = (landmark: NarrationLandmarkId): boolean =>
+  PLACE_MODE !== null && (PLACE_MODE.landmark === null || PLACE_MODE.landmark === landmark);
 const ResidentPlacementTool =
   import.meta.env.DEV && PLACE_MODE ? lazy(() => import('./placement-tool')) : null;
 
@@ -236,28 +250,36 @@ export interface ResidentNarratorProps {
 
 /**
  * The landmark's narrator idling at home before the visit, while the visitor dives past
- * (`resident.ts`): only a rigged bundled model, only where the tier allows the model (medium and
- * up). It stands where `RESIDENT_PLACEMENTS` puts it (beside the landmark; the visit's post when
- * unplaced), loads when the camera comes near, unmounts when it goes far, and waves as the camera
- * passes close. A click or tap on it only makes it react (`onPoke`): it never opens the visit,
- * and has nothing to focus (the visit's "Say hi" is the keyboard's way). A model that fails to
- * load shows nothing here (the visit has its own fallback). Rendered inside a `WorldFrame`.
+ * (`resident.ts`): a rigged bundled model where the tier allows the model, or the original cast
+ * (jointed, animated the same way) from medium up. It stands where `RESIDENT_PLACEMENTS` puts it
+ * (beside the landmark; the visit's post when unplaced), loads when the camera comes near,
+ * unmounts when it goes far, and waves as the camera passes close. A click or tap on it only
+ * makes it react (`onPoke`): it never opens the visit, and has nothing to focus (the visit's
+ * "Say hi" is the keyboard's way). A model that fails to load shows nothing here (the visit has
+ * its own fallback). Rendered inside a `WorldFrame`.
  */
 export function ResidentNarrator(props: ResidentNarratorProps) {
   const { tier } = useQuality();
   const { choice } = props;
-  if (choice.kind !== 'model' || !assetAllowed(choice.asset, tier)) return null;
+  const resident = choice.resident;
+  if (!resident || !residentAllowed(choice, tier)) return null;
+  if (choice.kind === 'cast')
+    return <ResidentPresence {...props} resident={resident} play={{ cast: choice.cast }} />;
   const rig = NARRATOR_RIGS[choice.asset];
   if (!rig) return null;
   return (
     <ResidentPresence
       {...props}
-      choice={choice}
-      url={assetUrl(choice.asset, import.meta.env.BASE_URL)}
-      rig={rig}
+      resident={resident}
+      play={{ url: assetUrl(choice.asset, import.meta.env.BASE_URL), rig }}
     />
   );
 }
+
+/** Who plays the resident: a bundled model (lazy), or one of the original cast. */
+type ResidentPlay =
+  | { readonly url: string; readonly rig: NarratorRigSpec }
+  | { readonly cast: NarratorCastId };
 
 const cameraAt = new Vector3();
 const spotAt = new Vector3();
@@ -319,21 +341,21 @@ function ResidentPresence({
   hold,
   poke,
   onPoke,
-  url,
-  rig,
+  resident: setup,
+  play,
 }: ResidentNarratorProps & {
-  readonly choice: Extract<NarratorChoice, { kind: 'model' }>;
-  readonly url: string;
-  readonly rig: NarratorRigSpec;
+  readonly resident: ResidentSetup;
+  readonly play: ResidentPlay;
 }) {
-  const { landmark } = choice.resident;
+  const { landmark } = setup;
   const edit = useSyncExternalStore(subscribeEdits, () =>
     PLACEMENT_EDITS.get(landmark),
   );
-  const configured = choice.resident.placement;
-  const placing = PLACE_MODE === 'resident';
+  const configured = setup.placement;
+  const placing = placingAt(landmark);
   const placement = placing ? (edit ?? configured ?? UNPLACED) : configured;
-  const height = post.height * choice.heightFactor * (placement?.scale ?? 1);
+  const height =
+    narratorRenderedHeight(choice, post.height) * (placement?.scale ?? 1);
 
   const link = residentLinkOf(choice);
   // The guide that just left (hopping back here) hands over: it is shown from the first frame.
@@ -374,35 +396,42 @@ function ResidentPresence({
       setView({ shown, waving: step.waving });
   });
 
+  const living = pose && {
+    position: pose.spot,
+    restYaw: pose.restYaw,
+    enterFrom: RESIDENT_ENTER_FROM,
+    exitTo: RESIDENT_EXIT_TO,
+    talking: false,
+    present: true,
+    waving: view.waving,
+    reducedMotion,
+    hold,
+    poke,
+    onPoke,
+    handOver,
+    snapshot: link.snapshot,
+  };
   return (
     <>
       <group ref={probe} />
-      {view.shown && pose && (
-        <NarratorModelBoundary fallback={null} onFallback={NOTHING}>
-          <Suspense fallback={null}>
-            <ModelNarrator
-              url={url}
-              rig={rig}
-              height={height}
-              onLoaded={NOTHING}
-              position={pose.spot}
-              restYaw={pose.restYaw}
-              enterFrom={RESIDENT_ENTER_FROM}
-              exitTo={RESIDENT_EXIT_TO}
-              talking={false}
-              present
-              waving={view.waving}
-              reducedMotion={reducedMotion}
-              hold={hold}
-              poke={poke}
-              onPoke={onPoke}
-              handOver={handOver}
-              snapshot={link.snapshot}
-            />
-          </Suspense>
-        </NarratorModelBoundary>
-      )}
-      {ResidentPlacementTool && pose && placement && (
+      {view.shown &&
+        living &&
+        ('cast' in play ? (
+          <CastNarrator cast={play.cast} height={height} {...living} />
+        ) : (
+          <NarratorModelBoundary fallback={null} onFallback={NOTHING}>
+            <Suspense fallback={null}>
+              <ModelNarrator
+                url={play.url}
+                rig={play.rig}
+                height={height}
+                onLoaded={NOTHING}
+                {...living}
+              />
+            </Suspense>
+          </NarratorModelBoundary>
+        ))}
+      {ResidentPlacementTool && placing && pose && placement && (
         <Suspense fallback={null}>
           <ResidentPlacementTool
             landmark={landmark}
