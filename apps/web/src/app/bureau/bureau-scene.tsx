@@ -46,6 +46,7 @@ import { narratorName } from '../narrators/narrator-copy';
 import { useNarratorPoke } from '../narrators/narrator-poke';
 import { voiceOf } from '../narrators/narrator-voice';
 import type { StopView } from '../narrators/stop-view';
+import { useVisitAutoplay } from '../narrators/visit-autoplay';
 import { TalkBubbles } from '../narrators/talk-bubbles';
 import { typingSeconds } from '../narrators/typewriter';
 import { viewFrame, worldPerPx, type Vec3 } from '../narrators/view-layout';
@@ -137,6 +138,7 @@ export function createBureauScene(
 const AT_ORIGIN = (): [number, number] => [0, 0];
 
 function BureauVisit({
+  definition: landmark,
   phase,
   sceneLayer,
   bounds,
@@ -224,6 +226,13 @@ function BureauVisit({
   }, []);
   const closeWall = useCallback(() => setWallOpen(false), []);
   const wallOut = wall !== null && wallOpen && !out;
+  // Hands-free during the cinematic tour, whose last stop this is: the President's lines move
+  // on by themselves, and the tour hands over once his last line (with its actions) is read.
+  // Nothing moves on while the visitor has the scroll or the wall out.
+  useVisitAutoplay(landmark.id, dialogue, script, dispatch, {
+    held: out || wallOut,
+    contentDwellMs: 0,
+  });
   // Esc on the board: back to the President (a note open on it closes first, on its own).
   useEffect(() => {
     if (!wallOut) return undefined;

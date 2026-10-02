@@ -256,6 +256,25 @@ export const NARRATOR_CAST: NarratorCastConfig = {
   bundledByDefault: true,
 };
 
+/** The cinematic tour: the intro and the hands-free journey through the landmarks (docs/tour.md). */
+export interface TourConfig {
+  /** `false`: no intro, no journey and no "Replay the journey": the free dive only. */
+  readonly enabled: boolean;
+  /**
+   * Landmark ids (`LANDMARKS`), in the order the journey visits them. Leave it out for every
+   * landmark in dive order. The last stop is the finale: its visit stays open at the end.
+   */
+  readonly stops?: readonly string[];
+}
+
+/**
+ * First-time visitors to the dive get the intro: "Begin the journey" flies the camera to every
+ * landmark in dive order and lets each narrator talk hands-free, ending at the Complaints Bureau;
+ * "Explore on my own" is the free dive. The choice is remembered; returning visitors get a small
+ * "Replay the journey" button instead.
+ */
+export const TOUR: TourConfig = { enabled: true };
+
 /** The ambient sound (docs/audio.md). */
 export interface AudioConfig {
   /**

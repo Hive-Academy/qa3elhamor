@@ -7,6 +7,7 @@ import { IN_WORLD_CARD_COPY } from '../overlays/citizenship-card/citizenship-car
 import { PAGE_VIEW_COPY } from '../page-view/page-copy';
 import { PINEAPPLE_VISIT_COPY } from '../pineapple/pineapple-copy';
 import { TIKI_VISIT_COPY } from '../tiki/tiki-copy';
+import { TOUR_COPY } from '../tour/tour-copy';
 import { NOTICE_BOARD_COPY } from '../wall/notice-board-copy';
 import { WALL_COPY } from '../wall/wall-copy';
 import { CHROME_COPY, LOCALE_NAMES } from './ui-strings';
@@ -23,6 +24,7 @@ const TABLES = {
   PAGE_VIEW_COPY,
   WALL_COPY,
   NOTICE_BOARD_COPY,
+  TOUR_COPY,
 } as const;
 
 /** Strings keyed by id, each carrying every locale (`{ en, ar }` per entry). */

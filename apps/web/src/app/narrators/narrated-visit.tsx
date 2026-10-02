@@ -67,6 +67,7 @@ import {
   useVisitLifecycle,
   useVisitWhoosh,
 } from './visit-hooks';
+import { CONTENT_DWELL_MS, useVisitAutoplay } from './visit-autoplay';
 import { VisitHud } from './visit-hud';
 import { visitScript } from './visit-script';
 import type { NarratedVisitDefinition, VisitLayout } from './visit-types';
@@ -116,6 +117,7 @@ export function createNarratedVisitScene<Slot>(
 const AT_ORIGIN = (): [number, number] => [0, 0];
 
 function NarratedVisit<Slot>({
+  definition: landmark,
   phase,
   sceneLayer,
   bounds,
@@ -167,6 +169,11 @@ function NarratedVisit<Slot>({
   // A click or tap on the narrator (the resident or the guide), or the HUD's "Say hi".
   const { poke, onPoke } = useNarratorPoke();
   const [fullOpen, setFullOpen] = useFullView(open);
+  // Hands-free during the cinematic tour (`visit-autoplay.ts`); it waits while the full view is open.
+  useVisitAutoplay(landmark.id, dialogue, script, dispatch, {
+    held: fullOpen,
+    contentDwellMs: CONTENT_DWELL_MS,
+  });
   const { onPick, onUnhover } = useObjectPicking(dispatch);
   // The picked object lives in the dialogue state: one source of truth, cleared whenever the
   // narrator goes back to the tour, however the visitor got it there.
