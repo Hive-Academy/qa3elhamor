@@ -1,4 +1,11 @@
-import { AUDIO_MIX, glideTimeConstant, lowpassCutoffHz, musicGainFor } from '@qa3elhamor/world-domain';
+import {
+  AUDIO_MIX,
+  VOICE_PROFILES,
+  glideTimeConstant,
+  lowpassCutoffHz,
+  musicGainFor,
+  voicePitchHz,
+} from '@qa3elhamor/world-domain';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createAudioEngine, pickMusicSource, type AudioSource } from './audio-engine.js';
 
@@ -52,6 +59,7 @@ class FakeGain extends FakeNode {
 class FakeFilter extends FakeNode {
   type = 'lowpass';
   readonly frequency = new FakeParam(350);
+  readonly Q = new FakeParam(1);
 }
 
 class FakeSource extends FakeNode {
@@ -326,6 +334,103 @@ describe('createAudioEngine', () => {
     });
     // Every change starts from the current value: no jumps.
     expect(musicGain()?.gain.cancelled).toHaveLength(2);
+  });
+
+  describe('voices and UI sounds', () => {
+    // Without music or ambience the graph is: master, music gain, voice bus, SFX bus.
+    const sfxSetup = () => {
+      const s = setup({ music: null, ambience: false });
+      return { ...s, voiceBus: () => s.context.gains[2], sfxBus: () => s.context.gains[3] };
+    };
+    const playAll = (engine: ReturnType<typeof setup>['engine']) => {
+      engine.blip(VOICE_PROFILES.spongebob, 'a');
+      engine.pop();
+      engine.whoosh();
+      engine.plip();
+    };
+
+    it('creates nothing before the first start: a sound effect never builds the graph', () => {
+      const { engine, createContext } = sfxSetup();
+      playAll(engine);
+      expect(createContext).not.toHaveBeenCalled();
+    });
+
+    it('routes voices and SFX to the master, around the depth filter', () => {
+      const { engine, master, voiceBus, sfxBus, depthFilter } = sfxSetup();
+      engine.start();
+      expect(voiceBus()?.connections).toEqual([master()]);
+      expect(sfxBus()?.connections).toEqual([master()]);
+      expect(voiceBus()?.gain.value).toBe(AUDIO_MIX.voiceGain);
+      expect(sfxBus()?.gain.value).toBe(AUDIO_MIX.sfxGain);
+      expect(depthFilter()?.connections).toEqual([master()]);
+    });
+
+    it('plays a blip through the profile filter on the voice bus, from silence, at the char pitch', () => {
+      const { engine, context, voiceBus } = sfxSetup();
+      engine.start();
+      const profile = VOICE_PROFILES.spongebob;
+      engine.blip(profile, 'k');
+      const [osc] = context.sources;
+      expect(osc?.type).toBe(profile.waveform);
+      expect(osc?.started).toBe(1);
+      expect(osc?.stopped).toBe(1);
+      const filter = context.filters.at(-1);
+      expect(filter?.type).toBe(profile.filter);
+      expect(filter?.Q.value).toBe(profile.filterQ);
+      const level = context.gains.at(-1);
+      expect(level?.connections).toEqual([voiceBus()]);
+      // The envelope starts at near-silence: no click.
+      expect(level?.gain.value).toBeLessThan(0.001);
+      expect(osc?.frequency.value).toBeCloseTo(voicePitchHz(profile, 'k'), 6);
+    });
+
+    it('adds a vibrato oscillator for a voice that has one', () => {
+      const { engine, context } = sfxSetup();
+      engine.start();
+      engine.blip(VOICE_PROFILES['sardine-president'], 'a');
+      expect(context.sources).toHaveLength(2);
+      expect(context.sources.every((s) => s.started === 1 && s.stopped === 1)).toBe(true);
+    });
+
+    it('plays pop, plip and whoosh on the SFX bus, reusing one noise buffer', () => {
+      const { engine, context, sfxBus } = sfxSetup();
+      engine.start();
+      engine.pop();
+      engine.plip();
+      engine.whoosh();
+      engine.whoosh();
+      expect(context.sources).toHaveLength(4);
+      const toSfx = context.gains.filter((g) => g.connections.includes(sfxBus()));
+      expect(toSfx).toHaveLength(4);
+      const [, , first, second] = context.sources;
+      expect(first?.buffer).not.toBeNull();
+      expect(second?.buffer).toBe(first?.buffer);
+    });
+
+    it('caps concurrent sounds, and frees a slot when one ends', () => {
+      const { engine, context } = sfxSetup();
+      engine.start();
+      for (let i = 0; i < AUDIO_MIX.maxSfxVoices + 4; i++) engine.plip();
+      expect(context.sources).toHaveLength(AUDIO_MIX.maxSfxVoices);
+
+      const first = context.sources[0];
+      first?.onended?.();
+      expect(first?.connections).toHaveLength(0);
+      engine.plip();
+      expect(context.sources).toHaveLength(AUDIO_MIX.maxSfxVoices + 1);
+    });
+
+    it('is silent while stopped and after dispose', () => {
+      const { engine, context } = sfxSetup();
+      engine.start();
+      engine.stop();
+      playAll(engine);
+      expect(context.sources).toHaveLength(0);
+      engine.start();
+      engine.dispose();
+      playAll(engine);
+      expect(context.sources).toHaveLength(0);
+    });
   });
 
   it('disposes everything: loops stopped, music released, context closed, start inert', () => {

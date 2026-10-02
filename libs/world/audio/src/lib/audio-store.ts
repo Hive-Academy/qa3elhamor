@@ -8,6 +8,7 @@ import {
   soundReducer,
   type SoundEvent,
   type SoundSession,
+  type VoiceProfile,
 } from '@qa3elhamor/world-domain';
 import type { AudioEngine } from './audio-engine.js';
 
@@ -38,6 +39,14 @@ export interface AudioStore {
   readonly setDepth: (depth01: number) => void;
   /** Ducks the music until the returned release is called. Claims from several narrators stack. */
   readonly duck: () => () => void;
+  /**
+   * The one-shot sounds: a narrator's blip and the UI sounds. They play only while sound is
+   * audible, and never create the engine: muted, not yet activated or hidden, they do nothing.
+   */
+  readonly blip: (profile: VoiceProfile, char: string, delayS?: number) => void;
+  readonly pop: () => void;
+  readonly whoosh: () => void;
+  readonly plip: () => void;
   /** Releases the engine (closing its context). The store stays usable: a later start rebuilds it. */
   readonly dispose: () => void;
 }
@@ -150,6 +159,18 @@ export function createAudioStore({
         duckClaims -= 1;
         engine?.setDucked(duckClaims > 0);
       };
+    },
+    blip: (profile, char, delayS) => {
+      if (isAudible(session)) engine?.blip(profile, char, delayS);
+    },
+    pop: () => {
+      if (isAudible(session)) engine?.pop();
+    },
+    whoosh: () => {
+      if (isAudible(session)) engine?.whoosh();
+    },
+    plip: () => {
+      if (isAudible(session)) engine?.plip();
     },
     dispose: () => {
       engine?.dispose();

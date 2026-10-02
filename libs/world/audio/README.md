@@ -23,4 +23,19 @@ useAudioDucking(isTalking);    // in a narrator: the music drops ~9 dB while tru
 - **A hidden tab** suspends the sound. Showing it again resumes what was playing.
 - **Failures never throw to React.** An unplayable or missing music file is logged with `console.error`, and the ambience keeps playing. Without Web Audio, or with nothing configured, the toggle renders nothing.
 - **Hooks without a provider** are safe: `useAudioDepth` and `useAudioDucking` do nothing, and `useSound().available` is false.
+- **Narrator voices and UI sounds** are synthesized on two buses (`voiceGain`, `sfxGain` in `AUDIO_MIX`) that go straight to the master, around the depth filter, so speech stays clear on the seabed. They follow the single sound toggle: silent while off, before the first gesture or in a hidden tab, and they never create an `AudioContext` themselves. At most `maxSfxVoices` (6) sound at once; more are dropped.
+
+```tsx
+import { useVoiceBabble, useVoice, useSfx, useAudioBridge, AudioBridge } from '@qa3elhamor/world-audio';
+
+useVoiceBabble('spongebob', typedText);  // babble newly typed letters (Animal Crossing style)
+const { speakChar, onReveal } = useVoice('hamour'); // the same, by hand; null = no voice
+const { pop, whoosh, plip } = useSfx();  // bubble appears / landmark opens or closes / button
+
+// drei <Html> renders a separate React root: context does not reach it. Bridge it:
+const audio = useAudioBridge();
+<Html><AudioBridge value={audio}>…</AudioBridge></Html>;
+```
+
+  The voices are data (`VOICE_PROFILES` in world-domain: `spongebob`, `patrick`, `hamour`, `sardine-president`, `crab-clerk`, `default`). `babbleFor(previous, next, profile)` decides the blips: letters and digits in any script, one per two or three letters, restarting after punctuation; each character has a fixed pitch (a hash of it), so a word sounds the same every time. A reveal of more than 12 characters at once (a finished line, reduced motion) is silent.
 - **Testing**: `createAudioEngine` takes `createContext`, `createElement` and `random`, and `AudioProvider` takes `createEngine` and `storage`. The specs use fakes for all of them.

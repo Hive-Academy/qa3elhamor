@@ -17,6 +17,21 @@ Sound is **off until the visitor's first gesture**. Browsers block audio before 
 
 The button is in the top inline-end corner of the dive, under the depth gauge, and in the bottom inline-end corner of the page view. It is a toggle (`aria-pressed`), reachable with Tab and pressed with Enter or Space. Its hit area is at least 44 × 44 px, and its name is in the site's language (`CHROME_COPY.sound` / `soundPrompt`). The choice is kept in `localStorage` under `qa3elhamor:sound`.
 
+## Narrator voices and UI sounds
+
+Each narrator "speaks" in a synthesized babble while its line types out, in the manner of Animal Crossing or Undertale: a short tone every two or three letters, with a pitch fixed per character so the same word always sounds the same. Spaces and punctuation are silent, and the next word after a punctuation mark starts with a blip. Arabic lines babble too. A line that appears whole (the visitor finished it, or reduced motion) is silent. Small UI sounds go with it: a bubble **pop** when a speech bubble appears, a soft **whoosh** when a landmark opens or closes, and a light **plip** on buttons and "Next".
+
+| Voice | Character |
+| --- | --- |
+| `spongebob` | High, bright square wave, quick, with an upward squeak |
+| `patrick` | Low, slow, soft triangle that sags |
+| `hamour` | Bubbly: each blip glides down through a resonant filter, with a fast wobble |
+| `sardine-president` | Pompous mid sawtooth with a slow vibrato |
+| `crab-clerk` | Short, clicky, nasal square ticks |
+| `default` | A neutral voice for anyone else |
+
+All of it is synthesized (no files, nothing to license) and follows the one sound button: nothing plays while sound is off or before the first gesture. The voices and UI sounds skip the depth filter, so they stay clear on the seabed, and their levels are `voiceGain` and `sfxGain` in `AUDIO_MIX`. Tune a voice in `VOICE_PROFILES` (`libs/world/domain/src/lib/audio/voice-profiles.ts`) and the UI sounds in `UI_SFX` (`ui-sfx.ts`).
+
 ## Where the code is
 
 - **Policy**: `libs/world/domain/src/lib/audio/`. The preference, the session state machine (`soundReducer`, `autoStartAllowed`) and the mix numbers (`AUDIO_MIX`, `lowpassCutoffHz`, `musicGainFor`, `AMBIENCE`) are pure and unit-tested.

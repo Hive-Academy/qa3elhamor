@@ -11,6 +11,10 @@ const fakeEngine = () =>
     stop: vi.fn(),
     setDepth: vi.fn(),
     setDucked: vi.fn(),
+    blip: vi.fn(),
+    pop: vi.fn(),
+    whoosh: vi.fn(),
+    plip: vi.fn(),
     dispose: vi.fn(),
   }) satisfies AudioEngine;
 

@@ -1,8 +1,15 @@
-import { autoStartAllowed } from '@qa3elhamor/world-domain';
+import {
+  autoStartAllowed,
+  babbleFor,
+  voiceProfileFor,
+  type VoiceProfileId,
+} from '@qa3elhamor/world-domain';
 import {
   createContext,
   useContext,
   useEffect,
+  useMemo,
+  useRef,
   useState,
   useSyncExternalStore,
   type ReactNode,
@@ -175,4 +182,92 @@ export function useAudioDepth(depth01: number): void {
 export function useAudioDucking(active: boolean): void {
   const store = useContext(AudioStoreContext);
   useEffect(() => (store && active ? store.duck() : undefined), [store, active]);
+}
+
+/**
+ * The provider's sound, as an opaque value to carry into a separate React root. drei's `<Html>`
+ * renders its children with its own `createRoot`, so context does not reach them: read this
+ * outside and wrap the `<Html>` content in `<AudioBridge value={…}>`.
+ */
+export type AudioBridgeValue = AudioStore | null;
+
+export function useAudioBridge(): AudioBridgeValue {
+  return useContext(AudioStoreContext);
+}
+
+/** Re-provides the sound read by `useAudioBridge` inside another React root. */
+export function AudioBridge({
+  value,
+  children,
+}: {
+  readonly value: AudioBridgeValue;
+  readonly children?: ReactNode;
+}) {
+  return <AudioStoreContext.Provider value={value}>{children}</AudioStoreContext.Provider>;
+}
+
+export interface VoiceControls {
+  /** One blip of this voice for `char`, `delayS` from now (letters only make sense). */
+  readonly speakChar: (char: string, delayS?: number) => void;
+  /**
+   * The typewriter went from `previous` to `next`: babble the newly revealed letters. A big
+   * jump (a finished or instantly shown line) stays silent; a new line babbles from its start.
+   */
+  readonly onReveal: (previous: string, next: string) => void;
+}
+
+const SILENT_VOICE: VoiceControls = { speakChar: noop, onReveal: noop };
+
+/**
+ * A narrator's synthesized babble voice (`VOICE_PROFILES`). `null` is no voice. Silent without
+ * a provider, while sound is off, and before the visitor's first gesture.
+ */
+export function useVoice(profileId: VoiceProfileId | null): VoiceControls {
+  const store = useContext(AudioStoreContext);
+  return useMemo(() => {
+    if (!store || profileId === null) return SILENT_VOICE;
+    const profile = voiceProfileFor(profileId);
+    return {
+      speakChar: (char, delayS) => store.blip(profile, char, delayS),
+      onReveal: (previous, next) => {
+        for (const blip of babbleFor(previous, next, profile)) {
+          store.blip(profile, blip.char, blip.delayS);
+        }
+      },
+    };
+  }, [store, profileId]);
+}
+
+/**
+ * Babbles `revealed` as it grows: pass the typewriter's shown text on every render. The first
+ * render and any jump (reduced motion shows a line whole) stay silent.
+ */
+export function useVoiceBabble(profileId: VoiceProfileId | null, revealed: string): void {
+  const { onReveal } = useVoice(profileId);
+  const previous = useRef(revealed);
+  useEffect(() => {
+    if (previous.current === revealed) return;
+    onReveal(previous.current, revealed);
+    previous.current = revealed;
+  }, [onReveal, revealed]);
+}
+
+export interface SfxControls {
+  /** A speech bubble appears. */
+  readonly pop: () => void;
+  /** A landmark opens or closes. */
+  readonly whoosh: () => void;
+  /** A button or "Next". */
+  readonly plip: () => void;
+}
+
+const SILENT_SFX: SfxControls = { pop: noop, whoosh: noop, plip: noop };
+
+/** The small UI sounds. Stable functions; silent without a provider or while sound is off. */
+export function useSfx(): SfxControls {
+  const store = useContext(AudioStoreContext);
+  return useMemo(
+    () => (store ? { pop: store.pop, whoosh: store.whoosh, plip: store.plip } : SILENT_SFX),
+    [store],
+  );
 }

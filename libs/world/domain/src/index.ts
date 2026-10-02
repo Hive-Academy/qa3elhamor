@@ -9,3 +9,6 @@ export * from './lib/quality-assets.js';
 export * from './lib/audio/sound-preference.js';
 export * from './lib/audio/sound-session.js';
 export * from './lib/audio/audio-mix.js';
+export * from './lib/audio/voice-profiles.js';
+export * from './lib/audio/voice-babble.js';
+export * from './lib/audio/ui-sfx.js';

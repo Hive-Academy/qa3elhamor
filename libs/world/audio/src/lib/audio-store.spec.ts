@@ -1,3 +1,4 @@
+import { VOICE_PROFILES } from '@qa3elhamor/world-domain';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { AudioEngine } from './audio-engine.js';
 import { SOUND_STORAGE_KEY, createAudioStore, type SoundStorage } from './audio-store.js';
@@ -8,6 +9,10 @@ const fakeEngine = () =>
     stop: vi.fn(),
     setDepth: vi.fn(),
     setDucked: vi.fn(),
+    blip: vi.fn(),
+    pop: vi.fn(),
+    whoosh: vi.fn(),
+    plip: vi.fn(),
     dispose: vi.fn(),
   }) satisfies AudioEngine;
 
@@ -161,6 +166,30 @@ describe('createAudioStore', () => {
     unsubscribe();
     store.toggle();
     expect(listener).toHaveBeenCalledTimes(1);
+  });
+
+  it('plays voice blips and UI sounds only while audible, never creating the engine', () => {
+    const { store, engine, createEngine } = setup();
+    const voice = VOICE_PROFILES.patrick;
+    store.blip(voice, 'a');
+    store.pop();
+    expect(createEngine).not.toHaveBeenCalled();
+
+    store.activate();
+    store.blip(voice, 'a', 0.05);
+    store.pop();
+    store.whoosh();
+    store.plip();
+    expect(engine.blip).toHaveBeenCalledWith(voice, 'a', 0.05);
+    expect(engine.pop).toHaveBeenCalledTimes(1);
+    expect(engine.whoosh).toHaveBeenCalledTimes(1);
+    expect(engine.plip).toHaveBeenCalledTimes(1);
+
+    store.toggle();
+    store.pop();
+    store.blip(voice, 'b');
+    expect(engine.pop).toHaveBeenCalledTimes(1);
+    expect(engine.blip).toHaveBeenCalledTimes(1);
   });
 
   it('disposes the engine and builds a fresh one at the next start', () => {

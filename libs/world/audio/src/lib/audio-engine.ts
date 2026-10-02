@@ -6,8 +6,12 @@ import {
   lowpassCutoffHz,
   musicGainFor,
   nextBubbleDelayS,
+  UI_SFX,
+  voicePitchHz,
   type AudioMix,
+  type VoiceProfile,
 } from '@qa3elhamor/world-domain';
+import { noiseBuffer, synthBlip, synthNoise, synthTone, type SoundDone } from './sfx-synth.js';
 
 /** One encoding of the music bed: a URL and the MIME type `canPlayType` is asked about. */
 export interface AudioSource {
@@ -40,6 +44,18 @@ export interface AudioEngine {
   setDepth(depth01: number): void;
   /** Ducks the music while a narrator talks. */
   setDucked(ducked: boolean): void;
+  /**
+   * One babble blip of a narrator's voice for `char`, `delayS` from now. Like the UI sounds
+   * below, it plays only while the sound is on and running (never builds the graph), and is
+   * dropped when `maxSfxVoices` sounds are already playing.
+   */
+  blip(profile: VoiceProfile, char: string, delayS?: number): void;
+  /** A speech bubble appears. */
+  pop(): void;
+  /** A landmark opens or closes. */
+  whoosh(): void;
+  /** A button or "Next". */
+  plip(): void;
   /** Stops everything and closes the context. The engine is unusable afterwards. */
   dispose(): void;
 }
@@ -60,6 +76,10 @@ interface Graph {
   readonly depthFilter: BiquadFilterNode;
   readonly music: GainNode;
   readonly ambience: GainNode | null;
+  /** The narrators' babble, straight to the master: not muffled by depth. */
+  readonly voices: GainNode;
+  /** The UI sounds, straight to the master. */
+  readonly sfx: GainNode;
   readonly element: HTMLAudioElement | null;
   readonly loops: readonly AudioScheduledSourceNode[];
 }
@@ -160,6 +180,11 @@ const logPlayFailure = (url: string) => (error: unknown) => {
  *
  *   music <audio> → MediaElementSource → music gain (ducking) ┐
  *   rumble + bubbles (synthesized) → ambience gain ───────────┤→ depth low-pass → master → out
+ *   narrator babble blips → voice gain ──────────────────────────────────────────┤
+ *   pop / whoosh / plip → sfx gain ──────────────────────────────────────────────┘
+ *
+ * The voice and SFX buses skip the depth filter so speech stays crisp on the seabed, and they
+ * pass through the master, so they fade with it and fall silent when sound is off.
  *
  * Nothing is created until the first `start()`: no AudioContext at import or render, and no
  * music request before the visitor wants sound (`preload="none"`). A music bed that is missing,
@@ -188,6 +213,30 @@ export function createAudioEngine({
   const clearSuspend = () => {
     if (suspendTimer !== null) clearTimeout(suspendTimer);
     suspendTimer = null;
+  };
+
+  let sounding = 0;
+  let noise: AudioBuffer | null = null;
+
+  /**
+   * Plays a one-shot sound while running, within the `maxSfxVoices` cap. Never builds the graph
+   * (no AudioContext from a sound effect), and never throws: a synth failure is logged.
+   */
+  const oneShot = (play: (graph: Graph, done: SoundDone) => void) => {
+    if (!running || !graph || sounding >= mix.maxSfxVoices) return;
+    sounding += 1;
+    let released = false;
+    const done = () => {
+      if (released) return;
+      released = true;
+      sounding = Math.max(0, sounding - 1);
+    };
+    try {
+      play(graph, done);
+    } catch (error) {
+      done();
+      console.error('A sound effect could not play.', error);
+    }
   };
 
   const scheduleBubble = (context: AudioContext, out: AudioNode) => {
@@ -250,12 +299,21 @@ export function createAudioEngine({
         ambienceGain.connect(depthFilter);
         loops = startRumble(context, ambienceGain, random);
       }
+
+      const voices = context.createGain();
+      voices.gain.value = mix.voiceGain;
+      voices.connect(master);
+      const sfx = context.createGain();
+      sfx.gain.value = mix.sfxGain;
+      sfx.connect(master);
       return {
         context,
         master,
         depthFilter,
         music: musicGain,
         ambience: ambienceGain,
+        voices,
+        sfx,
         element,
         loops,
       };
@@ -270,6 +328,8 @@ export function createAudioEngine({
     graph ??= build();
     if (!graph) return;
     running = true;
+    // Sounds cut off by a suspend may never report their end: do not let them hold the cap.
+    sounding = 0;
     clearSuspend();
     const { context, master, ambience: ambienceGain, element } = graph;
     void Promise.resolve(context.resume()).catch((error: unknown) =>
@@ -327,10 +387,28 @@ export function createAudioEngine({
         );
       }
     },
+    blip(profile, char, delayS = 0) {
+      oneShot(({ context, voices }, done) =>
+        synthBlip(context, voices, profile, voicePitchHz(profile, char), delayS, done),
+      );
+    },
+    pop() {
+      oneShot(({ context, sfx }, done) => synthTone(context, sfx, UI_SFX.pop, done));
+    },
+    plip() {
+      oneShot(({ context, sfx }, done) => synthTone(context, sfx, UI_SFX.plip, done));
+    },
+    whoosh() {
+      oneShot(({ context, sfx }, done) => {
+        noise ??= noiseBuffer(context, random);
+        synthNoise(context, sfx, UI_SFX.whoosh, noise, done);
+      });
+    },
     dispose() {
       if (disposed) return;
       disposed = true;
       running = false;
+      noise = null;
       clearBubbles();
       clearSuspend();
       if (!graph) return;

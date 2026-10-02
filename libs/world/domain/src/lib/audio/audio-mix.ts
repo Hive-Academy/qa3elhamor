@@ -23,6 +23,12 @@ export interface AudioMix {
   readonly floorCutoffHz: number;
   /** Seconds the depth filter takes to follow the dive. */
   readonly depthGlideS: number;
+  /** The narrators' babble bus. It bypasses the depth filter, so voices stay clear. */
+  readonly voiceGain: number;
+  /** The UI sounds' bus (pop, whoosh, plip), also outside the depth filter. */
+  readonly sfxGain: number;
+  /** At most this many voice blips and UI sounds sound at once; more are dropped. */
+  readonly maxSfxVoices: number;
 }
 
 export const AUDIO_MIX: AudioMix = {
@@ -37,6 +43,9 @@ export const AUDIO_MIX: AudioMix = {
   surfaceCutoffHz: 18_000,
   floorCutoffHz: 1_200,
   depthGlideS: 0.4,
+  voiceGain: 0.5,
+  sfxGain: 0.45,
+  maxSfxVoices: 6,
 };
 
 const clamp01 = (value: number): number =>
