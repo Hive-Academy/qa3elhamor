@@ -138,7 +138,7 @@ landmarks may use the same model.
    `apps/web/public/models/placements.json`. The model should be centred at its origin, in
    scene-world units.
 
-2. **Declare it.** Add an entry to `LANDMARKS` in `apps/web/src/app/landmarks.config.ts`, and
+2. **Declare it.** Add an entry to `LANDMARKS` in `apps/web/src/app/landmark-definitions.ts`, and
    a camera stop for it in `apps/web/src/app/dive.config.ts` (`{ kind: 'stop', landmark: ... }`
    plus its placement in `LANDMARK_PLACEMENTS`):
 
