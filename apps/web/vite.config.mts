@@ -2,6 +2,7 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { resolve } from 'node:path';
+import { contentSecurityPolicy } from '../../tools/deploy/csp-vite-plugin.mjs';
 
 /**
  * Public base path. `/` suits a GitHub Pages user site (https://<user>.github.io/) and any
@@ -31,7 +32,9 @@ export default defineConfig(() => ({
     port: 4200,
     host: 'localhost',
   },
-  plugins: [react()],
+  // contentSecurityPolicy: build-time <meta> CSP per HTML entry (tools/deploy/csp.ts,
+  // docs/security.md). Dev runs without one.
+  plugins: [react(), contentSecurityPolicy()],
   // Uncomment this if you are using workers.
   // worker: {
   //  plugins: [],

@@ -3,7 +3,12 @@ import {
   createPrismaClient,
   PrismaComplaintRepository,
 } from '@qa3elhamor/complaints-data-access';
-import { loadComplaintsApiConfig } from '@qa3elhamor/complaints-feature-api';
+import {
+  DEFAULT_FAILED_REQUEST_LIMITS,
+  InMemoryFailureLimiter,
+  loadComplaintsApiConfig,
+  noopCachePurger,
+} from '@qa3elhamor/complaints-feature-api';
 import type {
   ApiErrorResponse,
   ModerationActionResponse,
@@ -76,6 +81,8 @@ const routerWith = (options: {
       newId: options.newId ?? (() => randomUUID()),
       clientIp: (request) => request.headers.get('x-nf-client-connection-ip'),
       reportError,
+      failureLimiter: new InMemoryFailureLimiter(DEFAULT_FAILED_REQUEST_LIMITS),
+      cachePurger: noopCachePurger,
     },
     loadApiConfig({})
   );

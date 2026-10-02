@@ -7,8 +7,10 @@ import type {
   WallPageResponse,
 } from '@qa3elhamor/shared-api-interfaces';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { loadComplaintsApiConfig } from './config.js';
+import { noopCachePurger, WALL_CACHE_TAG } from './cache-purger.js';
+import { DEFAULT_FAILED_REQUEST_LIMITS, loadComplaintsApiConfig } from './config.js';
 import type { ComplaintsApiDeps } from './deps.js';
+import { InMemoryFailureLimiter } from './failure-limiter.js';
 import { handleListWall } from './list-wall.handler.js';
 import { handleListModeration, handleModerateComplaint } from './moderation.handler.js';
 import { handleSubmitComplaint } from './submit-complaint.handler.js';
@@ -30,6 +32,8 @@ const makeDeps = (overrides: Partial<ComplaintsApiDeps> = {}): ComplaintsApiDeps
   newId: () => `id-${String(++seq).padStart(4, '0')}`,
   clientIp: (request) => request.headers.get('x-test-ip'),
   reportError: () => undefined,
+  failureLimiter: new InMemoryFailureLimiter(DEFAULT_FAILED_REQUEST_LIMITS),
+  cachePurger: noopCachePurger,
   ...overrides,
 });
 
@@ -79,7 +83,7 @@ describe('POST /complaints', () => {
   });
 
   it('refuses a body over the size cap before parsing it', async () => {
-    const huge = JSON.stringify({ ...valid, body: 'x'.repeat(9000) });
+    const huge = JSON.stringify({ ...valid, body: 'x'.repeat(13_000) });
     const response = await handleSubmitComplaint(post(huge), deps);
     expect(response.status).toBe(413);
     expect(await errorCode(response)).toBe('payload-too-large');
@@ -210,6 +214,8 @@ describe('GET /complaints', () => {
     expect(first.status).toBe(200);
     expect(first.headers.get('cache-control')).toBe('public, max-age=30');
     expect(first.headers.get('cdn-cache-control')).toContain('s-maxage=60');
+    expect(first.headers.get('cache-tag')).toBe(WALL_CACHE_TAG);
+    expect(first.headers.get('netlify-cache-tag')).toBe(WALL_CACHE_TAG);
     const page1 = (await first.json()) as WallPageResponse;
     expect(page1.items.map((c) => c.id)).toEqual(['id-0003', 'id-0002']);
     expect(page1.items[0]).not.toHaveProperty('status');

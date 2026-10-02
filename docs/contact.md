@@ -96,7 +96,9 @@ small UI change plus a new adapter field.
 
 ## Content Security Policy
 
-For `security-hardening`: allow the chosen provider origin in `connect-src`:
+Implemented by `security-hardening` (docs/security.md): the build adds the chosen provider's
+origin to `connect-src` from `VITE_CONTACT_PROVIDER` (`CONTACT_PROVIDER_ORIGINS` in
+`tools/deploy/csp.ts`; a new provider must be added there too):
 
 | Provider | `connect-src` |
 | --- | --- |
@@ -125,6 +127,7 @@ No third-party script is loaded, so `script-src` does not need to change for the
    validation in `contactConfigProblems`.
 3. Add the provider to the `VITE_CONTACT_PROVIDER` type in
    `apps/web/src/vite-env.d.ts`.
-4. Add a setup row to the table above and a CSP origin row if needed.
+4. Add a setup row to the table above, a CSP origin row, and the origin to
+   `CONTACT_PROVIDER_ORIGINS` in `tools/deploy/csp.ts` (otherwise the CSP blocks the request).
 5. Write adapter specs mocking `fetch`, covering success, provider errors, non-2xx, 429, timeout,
    network failure, non-JSON body, stalled body, timer cleanup, and credential leakage.

@@ -10,14 +10,17 @@ import type {
   ModerationPageResponse,
 } from '@qa3elhamor/shared-api-interfaces';
 import { toModerationComplaint, type ComplaintsApiDeps, type WallStores } from './deps.js';
-import { errorResponse, jsonResponse } from './http.js';
+import { errorResponse, jsonResponse, rateLimitedResponse } from './http.js';
 import { encodeCursor, readPageQuery } from './pagination.js';
-import { hasModerationToken } from './security.js';
+import { hasModerationToken, rateLimitSubject, UNIDENTIFIED_CLIENT } from './security.js';
 
 /**
  * Gate shared by every moderation route. Order: an unset token disables moderation outright
- * (503, so an operator sees a configuration problem rather than a login failure), then the
- * bearer token is checked (401), and only then is the database consulted.
+ * (503, so an operator sees a configuration problem rather than a login failure), a client
+ * with too many refused requests is throttled (429) before its token is even compared, then
+ * the bearer token is checked (401, counted as a refusal), and only then is the database
+ * consulted. The token is at least 24 characters, so guessing is already hopeless; the
+ * throttle stops a guessing loop from costing a hash per attempt indefinitely.
  */
 const authorize = (
   request: Request,
@@ -27,7 +30,14 @@ const authorize = (
   if (moderationToken === null) {
     return { ok: false, response: errorResponse(503, 'moderation-disabled') };
   }
+  const client = rateLimitSubject(deps.clientIp(request)) ?? UNIDENTIFIED_CLIENT;
+  const now = deps.now();
+  const throttle = deps.failureLimiter.check(client, now);
+  if (!throttle.allowed) {
+    return { ok: false, response: rateLimitedResponse(throttle.retryAfterSeconds) };
+  }
   if (!hasModerationToken(request, moderationToken)) {
+    deps.failureLimiter.recordFailure(client, now);
     return {
       ok: false,
       response: errorResponse(401, 'unauthorized', {
@@ -97,6 +107,16 @@ export const handleModerateComplaint = async (
 
   const saved = await auth.wall.complaints.saveTransition(current, next);
   if (!saved) return errorResponse(409, 'conflict');
+
+  if (current.status === 'approved' && next.status !== 'approved') {
+    // The decision is committed; a CDN that cannot be purged must not turn it into an error
+    // the moderator would retry. The cache window still bounds how long the text stays up.
+    try {
+      await deps.cachePurger.purgeWall();
+    } catch (error) {
+      deps.reportError(error);
+    }
+  }
 
   const body: ModerationActionResponse = { complaint: toModerationComplaint(next) };
   return jsonResponse(200, body);

@@ -4,9 +4,12 @@
     <meta charset="utf-8" />
     <title>Moderation | Qaa El-Hamour</title>
     <!--
-      Private tool: keep it out of search indexes. The meta tag is the in-page guard; deploy-static
-      must also send `X-Robots-Tag: noindex, nofollow` for /moderation.html (a header covers
-      crawlers that never parse the HTML), and robots.txt disallows the path.
+      Private tool: keep it out of search indexes. The meta tag is the in-page guard; the host that
+      serves this page (never GitHub Pages: deploy:prepare removes it there) must also send
+      `X-Robots-Tag: noindex, nofollow, noarchive`, `Content-Security-Policy: frame-ancestors 'none'`
+      and `Cache-Control: no-store` (headers a <meta> cannot set), and robots.txt disallows the path.
+      Its strict Content-Security-Policy <meta> (Trusted Types, no third parties) is written in at
+      build time by tools/deploy/csp-plugin.ts. See docs/security.md.
     -->
     <meta name="robots" content="noindex, nofollow" />
     <meta name="referrer" content="no-referrer" />

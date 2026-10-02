@@ -27,9 +27,35 @@ const ERROR_MESSAGES: Readonly<Record<ApiErrorCode, string>> = {
   'internal-error': 'Something went wrong.',
 };
 
-const BASE_HEADERS = {
-  'content-type': 'application/json; charset=utf-8',
+/**
+ * Sent on every API response (the router in `apps/api` also stamps them on responses it builds
+ * itself: health, 404, 405, CORS preflights). The API only ever returns JSON, so the policy is
+ * the tightest one possible: if a browser is ever tricked into rendering a response as a
+ * document (a complaint body containing markup, opened directly), nothing in it can load,
+ * run, be framed or submit anywhere.
+ *
+ * - `nosniff`: the declared `application/json` is final; no MIME sniffing into HTML or script.
+ * - CSP `default-src 'none'` plus the directives that do not fall back to it.
+ * - `X-Frame-Options` duplicates `frame-ancestors` for browsers without CSP level 2.
+ * - `no-referrer`: API URLs (cursors, complaint ids) never leak onward.
+ * - `same-origin` CORP: other sites cannot embed responses through no-cors requests; CORS
+ *   fetches from `CORS_ALLOWED_ORIGINS` are unaffected.
+ * - `X-Robots-Tag`: the API is not content; keep the wall JSON and every moderation route out
+ *   of search indexes and caches.
+ */
+export const API_SECURITY_HEADERS = {
   'x-content-type-options': 'nosniff',
+  'content-security-policy':
+    "default-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; sandbox",
+  'x-frame-options': 'DENY',
+  'referrer-policy': 'no-referrer',
+  'cross-origin-resource-policy': 'same-origin',
+  'x-robots-tag': 'noindex, nofollow, noarchive',
+} as const;
+
+const BASE_HEADERS = {
+  ...API_SECURITY_HEADERS,
+  'content-type': 'application/json; charset=utf-8',
   // Dynamic by default; the wall listing overrides this with CDN-friendly caching.
   'cache-control': 'no-store',
 } as const;
@@ -58,6 +84,10 @@ export const errorResponse = (
   };
   return jsonResponse(status, body, options.headers);
 };
+
+/** 429 with `Retry-After`, for the submission limit and the failure limiter alike. */
+export const rateLimitedResponse = (retryAfterSeconds: number): Response =>
+  errorResponse(429, 'rate-limited', { headers: { 'retry-after': String(retryAfterSeconds) } });
 
 export type BodyReadResult =
   | { readonly ok: true; readonly value: unknown }

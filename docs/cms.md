@@ -122,8 +122,11 @@ the deploy preview) with a message naming the file and path:
 
 ### Content Security Policy
 
-security-hardening owns the CSP. The admin page loads Decap from `https://unpkg.com`, so the
-policy applied to `/admin/*` must allow:
+The site's own pages get a build-time `<meta>` policy (docs/security.md). `/admin/index.html`
+is copied verbatim from `public/`, is not a Vite entry, and gets **no** policy from the build;
+the GitHub Pages artefact excludes it. On a Netlify deployment that serves the CMS, send a
+header policy for `/admin/*` instead. The admin page loads Decap from `https://unpkg.com`, so
+that policy must allow:
 
 - `script-src https://unpkg.com` (the pinned script is also SRI-checked), plus `'unsafe-inline'`
   or a hash/nonce for the inline styles and scripts Decap injects;

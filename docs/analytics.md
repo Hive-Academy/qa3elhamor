@@ -49,13 +49,16 @@ origin (`<origin>/api/event` or `<origin>/api/send`).
 
 ## Content Security Policy origins
 
-For `security-hardening`: allow the provider origin in both `script-src` (the tracker script)
-and `connect-src` (the events it sends). Only the configured provider needs to be listed.
+Implemented by `security-hardening` (docs/security.md): the build writes the policy into the
+page from the same analytics variables, through `resolveAnalyticsConfig`, so the configured
+provider origin is added to `script-src` (the tracker script) and `connect-src` (the events it
+sends), and nothing is added when analytics resolves to `none`. No manual step is needed for
+the hosts below.
 
 | Provider | `script-src` | `connect-src` |
 | --- | --- | --- |
 | Plausible Cloud | `https://plausible.io` | `https://plausible.io` |
-| Umami Cloud | `https://cloud.umami.is` | `https://cloud.umami.is` (recent Umami Cloud trackers may post to a gateway host such as `https://api-gateway.umami.dev`; check the Network tab after deploy and add it if present) |
+| Umami Cloud | `https://cloud.umami.is` | `https://cloud.umami.is` and `https://api-gateway.umami.dev` (recent Umami Cloud trackers post to the gateway; it is allowed automatically with the default script. If the Network tab shows yet another host after deploy, add it to `UMAMI_CLOUD_GATEWAY` handling in `tools/deploy/csp.ts`) |
 | Self-hosted | origin of `VITE_ANALYTICS_SCRIPT_SRC` | same origin |
 
 The script tag is injected with `async`, no inline code and no `crossorigin`, so no
@@ -140,8 +143,7 @@ a visitor count; the provider's unique-visitor figure is the denominator.
 The injected script has no `integrity` attribute, by decision. The pinned official URLs
 (`plausible.io/js/script.js`, `cloud.umami.is/script.js`) are updated in place by the
 providers, so a hash would break tracking at their next release. The mitigations are the
-pinned https origin and, once `security-hardening` lands, a CSP that allows only that
-origin. A fork that self-hosts a versioned script it controls can add SRI in
+pinned https origin and the CSP, which allows only that origin (docs/security.md). A fork that self-hosts a versioned script it controls can add SRI in
 `libs/telemetry/data-access/src/lib/script-loader.ts`.
 
 ## Verifying

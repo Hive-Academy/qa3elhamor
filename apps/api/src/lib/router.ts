@@ -1,4 +1,5 @@
 import {
+  API_SECURITY_HEADERS,
   errorResponse,
   handleListModeration,
   handleListWall,
@@ -108,20 +109,17 @@ export const createRouter = (deps: ComplaintsApiDeps, config: ApiConfig): ApiHan
     return errorResponse(404, 'not-found');
   };
 
-  return async (request) => {
-    const cors = corsFor(request, config);
+  const respond = async (request: Request, cors: ReturnType<typeof corsFor>): Promise<Response> => {
     const pathname = new URL(request.url).pathname;
     if (config.basePath !== '' && !pathname.startsWith(`${config.basePath}/`)) {
-      return withHeaders(errorResponse(404, 'not-found'), cors.headers);
+      return errorResponse(404, 'not-found');
     }
     const path = pathname.slice(config.basePath.length);
-
     if (request.method === 'OPTIONS') {
-      if (!cors.allowed) return withHeaders(errorResponse(403, 'forbidden-origin'), cors.headers);
+      if (!cors.allowed) return errorResponse(403, 'forbidden-origin');
       return new Response(null, {
         status: 204,
         headers: {
-          ...cors.headers,
           'access-control-allow-methods': CORS_METHODS,
           'access-control-allow-headers': CORS_HEADERS,
           'access-control-max-age': '600',
@@ -129,14 +127,21 @@ export const createRouter = (deps: ComplaintsApiDeps, config: ApiConfig): ApiHan
       });
     }
     if (!cors.allowed && request.method !== 'GET' && request.method !== 'HEAD') {
-      return withHeaders(errorResponse(403, 'forbidden-origin'), cors.headers);
+      return errorResponse(403, 'forbidden-origin');
     }
-
     try {
-      return withHeaders(await dispatch(request, path), cors.headers);
+      return await dispatch(request, path);
     } catch (error) {
       deps.reportError(error);
-      return withHeaders(errorResponse(500, 'internal-error'), cors.headers);
+      return errorResponse(500, 'internal-error');
     }
+  };
+
+  // Every response leaves through here, so the security headers cover the ones handlers do
+  // not build (health, 204 preflights) as well as theirs.
+  return async (request) => {
+    const cors = corsFor(request, config);
+    const response = await respond(request, cors);
+    return withHeaders(withHeaders(response, API_SECURITY_HEADERS), cors.headers);
   };
 };

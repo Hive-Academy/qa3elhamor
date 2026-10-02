@@ -33,8 +33,12 @@ const toRequest = async (req: IncomingMessage): Promise<Request> => {
     if (value === undefined) continue;
     for (const item of Array.isArray(value) ? value : [value]) headers.append(name, item);
   }
-  // Play the platform edge: the client IP comes from the socket, never from the client.
+  // Play the platform edge: the client IP comes from the socket, never from the client, and
+  // the edge proof (when EDGE_AUTH_SECRET is set) is added here, never accepted from outside.
   headers.set(api.config.clientIpHeader, req.socket.remoteAddress ?? '');
+  if (api.config.edgeAuth !== null) {
+    headers.set(api.config.edgeAuth.header, api.config.edgeAuth.secret);
+  }
   const body = await readBody(req);
   return new Request(`http://${req.headers.host ?? `localhost:${port}`}${req.url ?? '/'}`, {
     method: req.method ?? 'GET',

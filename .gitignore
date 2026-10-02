@@ -27,10 +27,11 @@ build/
 test-output/
 coverage/
 
-# Environment
+# Environment: every .env variant (Vite also loads .env.production, .env.development, ...);
+# only the documented, secret-free example is committed.
 .env
-.env.local
-.env.*.local
+.env.*
+!.env.example
 
 # Editor / OS
 .DS_Store

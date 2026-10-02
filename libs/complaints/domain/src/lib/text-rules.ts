@@ -7,6 +7,11 @@ import type { ComplaintField, FieldIssue } from './complaint-errors.js';
  * The domain is the first line of defence for public UGC, so it refuses what should never be
  * stored. It does NOT HTML-escape: text is kept as the visitor wrote it and escaping happens
  * at render time, where the output context is known.
+ *
+ * Rendering rule for every consumer (wall, moderation, notifications): complaint text is
+ * plain text. Render it as React text children, `textContent`, or a 3D text glyph source;
+ * never through `dangerouslySetInnerHTML`, `innerHTML`, `insertAdjacentHTML`, a markdown
+ * renderer, or into an `href`/`src`. See docs/security.md, "Stored XSS".
  */
 export interface TextRule {
   readonly field: ComplaintField;
@@ -19,13 +24,16 @@ export interface TextRule {
 /**
  * C0 controls other than tab/LF/CR, DEL and C1 controls, plus the bidi embedding, override
  * and isolate characters, which can make stored text render in a different order from the
- * order it is read in.
+ * order it is read in, plus unpaired UTF-16 surrogates (a JSON `\ud800` escape produces one):
+ * they are not valid Unicode, cannot be encoded as UTF-8, and would be silently replaced with
+ * U+FFFD on the way into the database.
  */
 const isForbiddenCodePoint = (codePoint: number): boolean =>
   (codePoint <= 0x1f && codePoint !== 0x09 && codePoint !== 0x0a && codePoint !== 0x0d) ||
   (codePoint >= 0x7f && codePoint <= 0x9f) ||
   (codePoint >= 0x202a && codePoint <= 0x202e) ||
-  (codePoint >= 0x2066 && codePoint <= 0x2069);
+  (codePoint >= 0x2066 && codePoint <= 0x2069) ||
+  (codePoint >= 0xd800 && codePoint <= 0xdfff);
 
 export const containsForbiddenCharacter = (text: string): boolean => {
   for (const char of text) {

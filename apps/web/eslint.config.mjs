@@ -6,7 +6,7 @@ export default [
   ...baseConfig,
   {
     files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx'],
-    // Override or add rules here
-    rules: {},
+    // User-authored text (the complaints wall) must only ever render as text (docs/security.md).
+    rules: { 'react/no-danger': 'error' },
   },
 ];

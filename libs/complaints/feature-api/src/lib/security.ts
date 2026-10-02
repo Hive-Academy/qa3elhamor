@@ -70,15 +70,19 @@ const MAX_AUTHORIZATION_LENGTH = 1024;
 const digest = (value: string): Buffer => createHash('sha256').update(value, 'utf8').digest();
 
 /**
- * True when `Authorization: Bearer <token>` matches `expected`. Both sides are hashed to a
- * fixed length first, so `timingSafeEqual` runs in constant time and the comparison leaks
- * neither the token's content nor its length.
+ * Constant-time comparison of a presented secret with the expected one. Both sides are hashed
+ * to a fixed length first, so `timingSafeEqual` leaks neither the content nor the length.
+ * `null` (header absent) never matches.
  */
+export const secretMatches = (presented: string | null, expected: string): boolean => {
+  if (presented === null || presented.length > MAX_AUTHORIZATION_LENGTH) return false;
+  return timingSafeEqual(digest(presented), digest(expected));
+};
+
+/** True when `Authorization: Bearer <token>` matches `expected`, in constant time. */
 export const hasModerationToken = (request: Request, expected: string): boolean => {
   const header = request.headers.get('authorization');
   if (header === null || header.length > MAX_AUTHORIZATION_LENGTH) return false;
   const match = /^Bearer[ ]+(\S+)[ ]*$/i.exec(header);
-  const presented = match?.[1];
-  if (presented === undefined) return false;
-  return timingSafeEqual(digest(presented), digest(expected));
+  return secretMatches(match?.[1] ?? null, expected);
 };

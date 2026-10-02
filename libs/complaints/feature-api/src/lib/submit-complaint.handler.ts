@@ -5,7 +5,7 @@ import type {
   SubmitComplaintResponse,
 } from '@qa3elhamor/shared-api-interfaces';
 import type { ComplaintsApiDeps } from './deps.js';
-import { errorResponse, jsonResponse, readJsonBody } from './http.js';
+import { errorResponse, jsonResponse, rateLimitedResponse, readJsonBody } from './http.js';
 import { clientKeyFor, rateLimitSubject, UNIDENTIFIED_CLIENT } from './security.js';
 
 const REQUIRED = ['subject', 'body', 'senderName'] as const;
@@ -61,10 +61,13 @@ const domainIssues = (error: ComplaintError): readonly ApiFieldIssue[] | undefin
 /**
  * `POST /complaints`: files a public complaint as `pending`.
  *
- * Order matters for abuse resistance: the client must be identifiable, size and shape are
- * checked before anything is parsed into the domain, and the domain validates before the
- * database is touched, so malformed floods cost CPU but never a write. The limit check and the
- * insert are one transaction, so only stored complaints count toward the limit.
+ * Order matters for abuse resistance: the client must be identifiable, a client that keeps
+ * sending refused requests is throttled before its body is read, size and shape are checked
+ * before anything is parsed into the domain, and the domain validates before the database is
+ * touched, so malformed floods cost little CPU and never a write. Every refusal (415, 413,
+ * invalid JSON, wrong shape, invalid content) counts toward `config.failedRequestLimits`. The
+ * limit check and the insert are one transaction, so only stored complaints count toward the
+ * submission limit.
  */
 export const handleSubmitComplaint = async (
   request: Request,
@@ -76,18 +79,26 @@ export const handleSubmitComplaint = async (
   const subject = rateLimitSubject(deps.clientIp(request));
   if (subject === null && config.missingClientIp === 'reject') {
     // Never one shared bucket: that would let a single client lock everyone out. On Netlify the
-    // edge always sets the header, so reaching this means the deployment is misconfigured.
+    // edge always sets the header, so reaching this means the deployment is misconfigured (or
+    // the request did not come through the trusted edge; see EDGE_AUTH_SECRET).
     deps.reportError(new Error('Submission without a usable client IP; check CLIENT_IP_HEADER'));
     return errorResponse(503, 'client-ip-unavailable');
   }
-  const clientKey = clientKeyFor(subject ?? UNIDENTIFIED_CLIENT, config.ipHashSalt);
+  const client = subject ?? UNIDENTIFIED_CLIENT;
+  const now = deps.now();
+
+  const throttle = deps.failureLimiter.check(client, now);
+  if (!throttle.allowed) return rateLimitedResponse(throttle.retryAfterSeconds);
+  const refuse = (response: Response): Response => {
+    deps.failureLimiter.recordFailure(client, now);
+    return response;
+  };
 
   const body = await readJsonBody(request, config.maxBodyBytes);
-  if (!body.ok) return body.response;
+  if (!body.ok) return refuse(body.response);
   const shape = parseSubmitRequest(body.value);
-  if (!shape.ok) return errorResponse(400, 'invalid-request', { issues: shape.issues });
+  if (!shape.ok) return refuse(errorResponse(400, 'invalid-request', { issues: shape.issues }));
 
-  const now = deps.now();
   const submitted = submitComplaint(
     { ...shape.value, id: deps.newId(), visibility: 'public' },
     now
@@ -95,17 +106,14 @@ export const handleSubmitComplaint = async (
   if (!submitted.ok) {
     const issues = domainIssues(submitted.error);
     if (issues === undefined) throw new Error(`Unexpected domain error: ${submitted.error.type}`);
-    return errorResponse(400, 'invalid-complaint', { issues });
+    return refuse(errorResponse(400, 'invalid-complaint', { issues }));
   }
   const { complaint } = submitted.value;
   if (complaint.visibility !== 'public') throw new Error('Submitted complaint is not public');
 
+  const clientKey = clientKeyFor(client, config.ipHashSalt);
   const decision = await wall.complaints.submitRateLimited(complaint, clientKey, config.rateLimits);
-  if (!decision.allowed) {
-    return errorResponse(429, 'rate-limited', {
-      headers: { 'retry-after': String(decision.retryAfterSeconds) },
-    });
-  }
+  if (!decision.allowed) return rateLimitedResponse(decision.retryAfterSeconds);
 
   const response: SubmitComplaintResponse = { id: complaint.id, status: 'pending' };
   return jsonResponse(201, response);

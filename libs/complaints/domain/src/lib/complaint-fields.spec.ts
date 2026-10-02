@@ -73,6 +73,17 @@ describe.each(TEXT_FIELDS)('$field', ({ field, create, max }) => {
     });
   });
 
+  it.each([
+    ['lone high surrogate', String.fromCharCode(0xd83d)],
+    ['lone low surrogate', String.fromCharCode(0xdc1f)],
+    ['reversed pair', String.fromCharCode(0xdc1f, 0xd83d)],
+  ])('refuses a %s (not encodable as UTF-8)', (_name, unpaired) => {
+    expect(create(`bad${unpaired}text`)).toEqual({
+      ok: false,
+      error: { field, reason: 'control-character' },
+    });
+  });
+
   it('keeps markup verbatim (escaping happens at render time)', () => {
     const result = create('<script>alert(1)</script> & "q"');
     expect(result.ok && result.value.value).toBe('<script>alert(1)</script> & "q"');

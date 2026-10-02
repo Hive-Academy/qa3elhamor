@@ -1,11 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import {
   ComplaintsConfigError,
+  DEFAULT_FAILED_REQUEST_LIMITS,
+  DEFAULT_MAX_BODY_BYTES,
   DEFAULT_RATE_LIMITS,
   loadComplaintsApiConfig,
   parseRateLimits,
 } from './config.js';
-import { clientKeyFor, rateLimitSubject } from './security.js';
+import { clientKeyFor, rateLimitSubject, secretMatches } from './security.js';
 
 describe('loadComplaintsApiConfig', () => {
   it('defaults to 3/10 min + 20/day with secrets disabled', () => {
@@ -22,6 +24,39 @@ describe('loadComplaintsApiConfig', () => {
     ]);
     expect(() => parseRateLimits('5 per minute')).toThrow(ComplaintsConfigError);
     expect(() => parseRateLimits('0/60')).toThrow(ComplaintsConfigError);
+  });
+
+  it('defaults FAILED_REQUEST_LIMITS, parses overrides and names the variable in errors', () => {
+    expect(loadComplaintsApiConfig({}).failedRequestLimits).toEqual(DEFAULT_FAILED_REQUEST_LIMITS);
+    expect(loadComplaintsApiConfig({ FAILED_REQUEST_LIMITS: '10/60' }).failedRequestLimits).toEqual([
+      { max: 10, windowSeconds: 60 },
+    ]);
+    expect(() => loadComplaintsApiConfig({ FAILED_REQUEST_LIMITS: 'lots' })).toThrow(
+      /^FAILED_REQUEST_LIMITS must be/
+    );
+  });
+
+  it('caps bodies at 12 KiB: room for the longest valid complaint in 4-byte UTF-8', () => {
+    expect(loadComplaintsApiConfig({}).maxBodyBytes).toBe(DEFAULT_MAX_BODY_BYTES);
+    expect(DEFAULT_MAX_BODY_BYTES).toBe(12 * 1024);
+  });
+
+  it('refuses the .env.example placeholder secrets in production only', () => {
+    const placeholders = {
+      IP_HASH_SALT: 'change-me-local-dev-salt-0123456789',
+      MODERATION_TOKEN: 'change-me-local-dev-moderation-token',
+    };
+    expect(loadComplaintsApiConfig(placeholders).moderationToken).toBe(placeholders.MODERATION_TOKEN);
+    expect(() => loadComplaintsApiConfig({ ...placeholders, NODE_ENV: 'production' })).toThrow(
+      /IP_HASH_SALT is the public placeholder/
+    );
+    expect(() =>
+      loadComplaintsApiConfig({ MODERATION_TOKEN: placeholders.MODERATION_TOKEN, NODE_ENV: 'production' })
+    ).toThrow(/MODERATION_TOKEN is the public placeholder/);
+    expect(
+      loadComplaintsApiConfig({ MODERATION_TOKEN: 'a-real-generated-token-0123456789', NODE_ENV: 'production' })
+        .moderationToken
+    ).toBe('a-real-generated-token-0123456789');
   });
 
   it('refuses short secrets without echoing them', () => {
@@ -63,12 +98,34 @@ describe('rateLimitSubject', () => {
     expect(rateLimitSubject(raw)).toBe(expected);
   });
 
-  it.each([null, '', 'unknown', '1.2.3', '01.2.3.4', '256.0.0.1', '2001:db8::g', 'a'.repeat(80)])(
+  it.each([
+    null,
+    '',
+    'unknown',
+    '1.2.3',
+    '01.2.3.4',
+    '256.0.0.1',
+    '2001:db8::g',
+    'a'.repeat(80),
+    // A header sent twice (client copy + edge copy) is joined by Headers.get: never trusted.
+    '203.0.113.7, 198.51.100.1',
+  ])(
     'refuses %s',
     (raw) => {
       expect(rateLimitSubject(raw)).toBeNull();
     }
   );
+});
+
+describe('secretMatches', () => {
+  it('matches only the exact secret and never an absent or oversized value', () => {
+    const secret = 'edge-secret-edge-secret-edge';
+    expect(secretMatches(secret, secret)).toBe(true);
+    expect(secretMatches(`${secret} `, secret)).toBe(false);
+    expect(secretMatches(secret.slice(1), secret)).toBe(false);
+    expect(secretMatches(null, secret)).toBe(false);
+    expect(secretMatches('x'.repeat(5000), secret)).toBe(false);
+  });
 });
 
 describe('clientKeyFor', () => {

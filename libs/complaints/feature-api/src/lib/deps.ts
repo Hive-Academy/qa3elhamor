@@ -4,7 +4,9 @@ import type {
   ModerationComplaint,
   WallComplaint,
 } from '@qa3elhamor/shared-api-interfaces';
+import type { CachePurger } from './cache-purger.js';
 import type { ComplaintsApiConfig } from './config.js';
+import type { FailureLimiter } from './failure-limiter.js';
 
 /** The wall's persistence. Present only when a database is configured. */
 export interface WallStores {
@@ -31,6 +33,13 @@ export interface ComplaintsApiDeps {
   readonly clientIp: (request: Request) => string | null;
   /** Receives unexpected failures; the client only ever sees `internal-error`. */
   readonly reportError: (error: unknown) => void;
+  /**
+   * Counts refused requests per client and throttles repeat offenders (one instance per warm
+   * process, built from `config.failedRequestLimits`).
+   */
+  readonly failureLimiter: FailureLimiter;
+  /** Purges the public wall from shared caches when moderation withdraws a complaint. */
+  readonly cachePurger: CachePurger;
 }
 
 export const toWallComplaint = (complaint: PublicComplaint): WallComplaint => ({

@@ -43,6 +43,9 @@ jobs:
 
       - run: npx nx affected -t build --parallel=3
 
+      # The build-time Content Security Policy (tools/deploy/csp.ts) lives outside the Nx projects.
+      - run: npx vitest run --config tools/deploy/vitest.config.mts
+
       # Performance budgets (tools/perf-budget/budgets.ts). `web:build` is a cache hit when the
       # affected build above already ran it, and still produces dist when nothing affected it.
       - run: npx nx run web:build
