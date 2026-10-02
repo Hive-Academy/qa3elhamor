@@ -4,12 +4,14 @@ import type { VoiceProfileId } from '@qa3elhamor/world-domain';
 import {
   useEffect,
   useRef,
+  useState,
   type CSSProperties,
   type KeyboardEvent,
   type MouseEvent,
   type ReactNode,
   type Ref,
 } from 'react';
+import type { OceanSpeechLine, OceanSpeechLink } from './ocean-speech-link';
 import { splitTyped, useTypewriter } from './typewriter';
 import './speech-bubble.css';
 
@@ -51,6 +53,14 @@ export interface SpeechBubbleProps {
    */
   readonly greetLabel?: string;
   readonly onGreet?: () => void;
+  /**
+   * Ocean mode: the line, the name and the tail are drawn in the water by the bubble's twin
+   * (`OceanSpeech`) over this box. The box stays (transparent): its text visually hidden but
+   * read and focused as before, its buttons as glass pills along the drawn bubble's bottom.
+   */
+  readonly ocean?: OceanSpeechLink | null;
+  /** The HUD's direction, for the drawn bubble's alignment. Default `ltr`. */
+  readonly dir?: 'ltr' | 'rtl';
 }
 
 /**
@@ -77,11 +87,26 @@ export function SpeechBubble({
   voice = null,
   greetLabel,
   onGreet,
+  ocean = null,
+  dir = 'ltr',
 }: SpeechBubbleProps) {
   const shown = useTypewriter(text, typing, take, onTyped, {
     instant: reducedMotion,
   });
   const [typed, rest] = splitTyped(text, shown);
+  // The keyboard's ring on the bubble: drawn by the glass in ocean mode (a DOM outline would
+  // cut through the name tag on its rim).
+  const [ringed, setRinged] = useState(false);
+  useOceanLine(ocean, {
+    text,
+    typed: shown,
+    speaker,
+    topic,
+    departing,
+    lingerSeconds,
+    dir,
+    ringed,
+  });
   useVoiceBabble(departing ? null : voice, typed);
   usePopOnAppear(departing);
   const greets = !departing && greetLabel !== undefined && onGreet;
@@ -104,6 +129,7 @@ export function SpeechBubble({
       className="speech-box"
       data-departing={departing ? '' : undefined}
       data-reduced-motion={reducedMotion ? '' : undefined}
+      data-ocean={ocean ? '' : undefined}
       style={{ '--speech-linger': `${lingerSeconds}s` } as CSSProperties}
       inert={departing}
       aria-hidden={departing ? true : undefined}
@@ -117,6 +143,13 @@ export function SpeechBubble({
         {...(autofocus ? { [LANDMARK_AUTOFOCUS_ATTRIBUTE]: '' } : {})}
         onKeyDown={onKeyDown}
         onClick={onClick}
+        onFocus={(event) =>
+          setRinged(
+            event.target === event.currentTarget &&
+              focusVisible(event.currentTarget),
+          )
+        }
+        onBlur={() => setRinged(false)}
       >
         <p className="speech__who">
           <span className="speech__name">{speaker}</span>
@@ -131,6 +164,8 @@ export function SpeechBubble({
         <p className="speech__spoken" aria-live="polite" dir="auto">
           {text}
         </p>
+        {/* Ocean mode: the room the drawn line takes (`--ocean-text-h`, set by `OceanSpeech`). */}
+        {ocean && <div className="speech__ocean" aria-hidden="true" />}
         {children && <div className="speech__footer">{children}</div>}
         {greets && (
           <button type="button" className="speech__greet" onClick={onGreet}>
@@ -146,6 +181,44 @@ export function SpeechBubble({
       </span>
     </div>
   );
+}
+
+/** Publishes the line to the bubble's twin in the water while in ocean mode; clears it after. */
+function useOceanLine(ocean: OceanSpeechLink | null, line: OceanSpeechLine) {
+  const { text, typed, speaker, topic, departing, lingerSeconds, dir, ringed } =
+    line;
+  useEffect(() => {
+    ocean?.set({
+      text,
+      typed,
+      speaker,
+      topic,
+      departing,
+      lingerSeconds,
+      dir,
+      ringed,
+    });
+  }, [
+    ocean,
+    text,
+    typed,
+    speaker,
+    topic,
+    departing,
+    lingerSeconds,
+    dir,
+    ringed,
+  ]);
+  useEffect(() => () => ocean?.set(null), [ocean]);
+}
+
+/** Whether `element`'s focus shows a ring (keyboard focus); false where the browser cannot say. */
+function focusVisible(element: Element): boolean {
+  try {
+    return element.matches(':focus-visible');
+  } catch {
+    return false;
+  }
 }
 
 /** The bubble's pop, once as it appears (not for one that mounts already departing). */

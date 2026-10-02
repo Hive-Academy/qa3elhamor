@@ -98,6 +98,9 @@ export function TourDirector({
     const stop = store.stops[store.getState().stop];
     const waypoint = stop ? dive.path.waypoint(stop.waypoint) : undefined;
     if (!stop || !waypoint) return undefined;
+    // Leaving an in-world visit, the visit's own closing whoosh is the leg's: one, not two.
+    const closesVisit =
+      open.current.id !== null && open.current.presentation === 'in-world';
     if (open.current.id !== null) {
       expected.current.close = true;
       close('programmatic');
@@ -107,7 +110,7 @@ export function TourDirector({
       source.scrollTo(waypoint.scroll, false);
       store.dispatch({ type: 'arrived' });
     };
-    latest.current.whoosh();
+    if (!closesVisit) latest.current.whoosh();
 
     if (latest.current.reducedMotion) {
       // No travel: the view fades out, the camera moves while it is covered, and fades back.

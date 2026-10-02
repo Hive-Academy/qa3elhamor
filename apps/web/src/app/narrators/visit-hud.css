@@ -44,6 +44,21 @@
     rgba(4, 14, 32, 0.8)
   );
   animation: visit-dim-in 500ms ease both;
+  /*
+   * Less a soft window over the full view's title when it is drawn in the water over the card
+   * (`setVeilHole('title')`, `--veil-b-*`): the dim is a DOM layer over the canvas.
+   */
+  mask-image:
+    linear-gradient(#000, #000),
+    radial-gradient(closest-side, rgba(0, 0, 0, 0.8) 60%, transparent 100%);
+  mask-size:
+    100% 100%,
+    var(--veil-b-w, 0px) var(--veil-b-h, 0px);
+  mask-position:
+    0 0,
+    var(--veil-b-x, 0px) var(--veil-b-y, 0px);
+  mask-repeat: no-repeat;
+  mask-composite: subtract;
 }
 
 /*
@@ -115,6 +130,16 @@
   line-height: 1.2;
   opacity: 0.92;
   overflow-wrap: anywhere;
+}
+
+/*
+ * Ocean mode: the objects draw their own words in the water (SDF labels on the skill bubbles,
+ * painted inscriptions on the tablets and the menu). The buttons keep their place and size over
+ * the objects, so pointing, tapping, focus and the accessible names are unchanged.
+ */
+.visit-objects[data-ocean] .visit-object {
+  color: transparent;
+  text-shadow: none;
 }
 
 /* The selected object's detail: notes and chips on a small glass tray beside it. */

@@ -32,7 +32,8 @@ export const VISITS: readonly Visit[] = [
     id: 'pineapple',
     nav: /^The Pineapple/,
     region: 'The Pineapple',
-    narrator: 'The Hamour',
+    // The owner's site casts SpongeBob and Patrick (`narrators.config.ts`).
+    narrator: 'SpongeBob',
     objectsList: 'His specialties, as bubbles',
     objectCount: skillGroupCount,
     openFull: 'Open the full Citizenship Card',
@@ -42,7 +43,7 @@ export const VISITS: readonly Visit[] = [
     id: 'tiki',
     nav: /^Tiki Head/,
     region: 'Tiki Head',
-    narrator: 'The Hamour',
+    narrator: 'Patrick',
     objectsList: 'Performance reviews, carved in stone',
     objectCount: resumeEntryCount,
     openFull: 'Read the full record',

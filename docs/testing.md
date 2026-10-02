@@ -23,6 +23,7 @@ missing model would ship silently without the screenshot specs.
 | `nowebgl` | Chromium with WebGL disabled: the page view is what loads | nowebgl |
 | `wall` | The complaints wall is absent by default and the site never calls the wall API | desktop |
 | `visual` | `toHaveScreenshot` of the canvas at the dive start and the Pineapple stop, high and low tier | visual |
+| `ocean-text` | The dive's underwater text mode (`docs/ocean-text.md`): on once the SDF font is in, off with the font blocked and under reduced motion; nightly, the narrator's bubble drawn in the water keeps its DOM (line visually hidden, buttons usable) and falls back to the DOM bubble without the font | desktop |
 
 Specs select by role and accessible name (English copy). Console errors, uncaught page errors and CSP
 violations fail every test automatically (`src/support/fixtures.ts`); a test that provokes one on purpose says

@@ -41,6 +41,15 @@ import {
   speechAnchorOf,
 } from './landmark-narrator';
 import { NARRATOR_COPY, narratorName } from './narrator-copy';
+import { setVeilHole, type VeilHole } from '../in-world/in-world-atmosphere';
+import { poseAtScreenPoint } from '../ocean-text/screen-pose';
+import { useOceanText } from '../ocean-text/ocean-text-context';
+import { OceanSpeech } from './ocean-speech';
+import {
+  OCEAN_SPEECH_UNIT_PX,
+  createOceanSpeechLink,
+  type OceanSpeechLink,
+} from './ocean-speech-link';
 import { useNarratorPoke } from './narrator-poke';
 import { voiceOf } from './narrator-voice';
 import {
@@ -56,6 +65,7 @@ import {
   tailSkewDegrees,
   windowSafeInsets,
   type ScreenInsets,
+  type ScreenRect,
 } from './screen-placement';
 import { TalkBubbles } from './talk-bubbles';
 import { typingSeconds } from './typewriter';
@@ -119,6 +129,7 @@ const AT_ORIGIN = (): [number, number] => [0, 0];
 function NarratedVisit<Slot>({
   definition: landmark,
   phase,
+  title,
   sceneLayer,
   bounds,
   locale,
@@ -226,7 +237,12 @@ function NarratedVisit<Slot>({
   const portal = useMemo(() => ({ current: sceneLayer }), [sceneLayer]);
   const door = useRef<Vec3>([0, 0, 0]);
 
-  useSpeechBubblePlacement(speechRef, anchor, VISIT_INSETS, dir);
+  // The underwater text (`ocean-text/`): the bubble's words and the objects' labels drawn in
+  // the water, the DOM keeping the buttons, the focus and the accessible text.
+  const oceanText = useOceanText();
+  const oceanLink = useMemo(() => createOceanSpeechLink(speechRef), []);
+  const ocean = oceanText.on ? oceanLink : null;
+  useSpeechBubblePlacement(speechRef, anchor, VISIT_INSETS, dir, ocean);
 
   // Before the visit (and after it), a rigged narrator idles at its post as the visitor dives
   // past: the landmark is inhabited. The visit itself is unchanged.
@@ -298,9 +314,29 @@ function NarratedVisit<Slot>({
             labels={labelRefs}
             panel={panelRef}
             insets={VISIT_INSETS}
+            oceanLabels={
+              oceanText.on
+                ? {
+                    objects,
+                    fontUrl: oceanText.fontUrl,
+                    anisotropy: oceanText.anisotropy,
+                    locale: lang,
+                    onError: oceanText.reportError,
+                  }
+                : null
+            }
           />
         </group>
       </WorldFrame>
+
+      {ocean && (
+        <OceanSpeech
+          link={ocean}
+          fontUrl={oceanText.fontUrl}
+          reducedMotion={reducedMotion}
+          onError={oceanText.reportError}
+        />
+      )}
 
       <Html
         portal={portal as RefObject<HTMLElement>}
@@ -342,6 +378,8 @@ function NarratedVisit<Slot>({
             speechRef={speechRef}
             labelRefs={labelRefs}
             panelRef={panelRef}
+            ocean={ocean}
+            oceanLabels={oceanText.on}
           />
         </AudioBridge>
       </Html>
@@ -352,6 +390,18 @@ function NarratedVisit<Slot>({
         bounds={bounds}
         doorHeight={fullView.doorHeight ?? DEFAULT_DOOR_HEIGHT}
         liftPx={fullView.liftPx ?? 40}
+        title={
+          oceanText.on
+            ? {
+                text: title,
+                look: 'sdf',
+                dir,
+                fontUrl: oceanText.fontUrl,
+                anisotropy: oceanText.anisotropy,
+                onError: oceanText.reportError,
+              }
+            : null
+        }
       >
         {() => (
           <FullView
@@ -467,7 +517,51 @@ interface BubbleGeometry {
   height: number;
   /** The stage layer's box in the window, or null before it is measured. */
   layer: { left: number; top: number; right: number; bottom: number } | null;
+  /** The page's fixed chrome, in the layer's pixels: the bubble steps around it. */
+  keepOut: ScreenRect[];
+  /** Seconds since the chrome was last measured (it comes and goes: the tour bar). */
+  sinceChrome: number;
   observer: ResizeObserver | null;
+}
+
+/**
+ * The page chrome a speech bubble keeps clear of: the credits and the language switch, the
+ * depth gauge and the sound switch, the tour bar while it shows, the landmark list, and the
+ * stage's own "back to the dive" bar. Wherever the locale puts them (they mirror in Arabic).
+ */
+const CHROME_SELECTOR = [
+  '.world-credits__trigger',
+  '.language-toggle',
+  '.depth-gauge',
+  '.sound-toggle',
+  '.tour-bar',
+  '.lmk-index',
+  '.lmk-return',
+].join(', ');
+/** How often the chrome is measured again, in seconds. */
+const CHROME_EVERY_S = 1;
+
+/** The chrome's boxes in the layer's pixels (none that are not laid out or are hidden). */
+function measureChrome(
+  layer: { left: number; top: number } | null,
+): ScreenRect[] {
+  const dx = layer?.left ?? 0;
+  const dy = layer?.top ?? 0;
+  const rects: ScreenRect[] = [];
+  for (const element of document.querySelectorAll<HTMLElement>(
+    CHROME_SELECTOR,
+  )) {
+    const r = element.getBoundingClientRect();
+    if (!(r.width > 0 && r.height > 0)) continue;
+    if (getComputedStyle(element).visibility === 'hidden') continue;
+    rects.push({
+      left: r.left - dx,
+      top: r.top - dy,
+      right: r.right - dx,
+      bottom: r.bottom - dy,
+    });
+  }
+  return rects;
 }
 
 /**
@@ -478,12 +572,15 @@ interface BubbleGeometry {
 function useBubbleGeometry(): {
   readonly geometry: { readonly current: BubbleGeometry };
   readonly track: (box: HTMLElement | null) => void;
+  readonly measure: () => void;
 } {
   const geometry = useRef<BubbleGeometry>({
     box: null,
     width: 0,
     height: 0,
     layer: null,
+    keepOut: [],
+    sinceChrome: CHROME_EVERY_S,
     observer: null,
   });
   const measure = useCallback(() => {
@@ -502,6 +599,8 @@ function useBubbleGeometry(): {
           bottom: rect.bottom,
         }
       : null;
+    g.keepOut = measureChrome(g.layer);
+    g.sinceChrome = 0;
   }, []);
   const track = useCallback(
     (box: HTMLElement | null) => {
@@ -534,7 +633,7 @@ function useBubbleGeometry(): {
       g.observer = null;
     };
   }, [measure]);
-  return { geometry, track };
+  return { geometry, track, measure };
 }
 
 /**
@@ -548,12 +647,31 @@ export function useSpeechBubblePlacement(
   anchor: Vec3,
   insets: ScreenInsets,
   dir: 'ltr' | 'rtl',
+  ocean?: OceanSpeechLink | null,
 ) {
-  const { geometry, track } = useBubbleGeometry();
-  useFrame(({ camera, size }) => {
+  const { geometry, track, measure } = useBubbleGeometry();
+  // The veil's window over the drawn bubble closes with it. Every landmark's visit runs this
+  // hook (resting ones too): only the one that opened the window closes it.
+  const holeOpen = useRef(false);
+  const hole = useCallback((next: VeilHole | null) => {
+    if (next === null && !holeOpen.current) return;
+    holeOpen.current = next !== null;
+    setVeilHole('speech', next);
+  }, []);
+  useEffect(() => {
+    if (!ocean) hole(null);
+    return () => hole(null);
+  }, [ocean, hole]);
+  useFrame(({ camera, size }, delta) => {
     const box = speechRef.current;
     track(box);
-    if (!box) return;
+    if (!box) {
+      hole(null);
+      return;
+    }
+    // The chrome comes and goes (the tour bar, a resized window): measured again now and then.
+    geometry.current.sinceChrome += delta;
+    if (geometry.current.sinceChrome >= CHROME_EVERY_S) measure();
     anchorWorld.set(anchor[0], anchor[1], anchor[2]);
     const depth = -anchorView
       .copy(anchorWorld)
@@ -575,6 +693,7 @@ export function useSpeechBubblePlacement(
         : insets,
       // The bubble opens away from the landmark (towards the screen edge the narrator is on).
       bias: dir === 'rtl' ? 0.4 : 0.6,
+      keepOut: geometry.current.keepOut,
     });
     box.style.transform = `translate3d(${place.left}px, ${place.top}px, 0)`;
     box.style.opacity = place.visible ? '1' : '0';
@@ -584,6 +703,38 @@ export function useSpeechBubblePlacement(
     box.style.setProperty(
       '--tail-skew',
       `${tailSkewDegrees(place).toFixed(2)}deg`,
+    );
+    // The underwater twin (`OceanSpeech`): exactly over the box, at the narrator's depth, and
+    // the in-world veil kept off it.
+    if (!ocean) return;
+    hole(
+      place.visible
+        ? {
+            x: (layer?.left ?? 0) + place.left,
+            y: (layer?.top ?? 0) + place.top,
+            width,
+            height,
+          }
+        : null,
+    );
+    ocean.placed.width = width;
+    ocean.placed.height = height;
+    ocean.placed.tailX = place.tailX;
+    ocean.placed.visible = place.visible;
+    const frame = ocean.frame.current;
+    if (!frame) return;
+    if (!place.visible || !(depth > 0)) {
+      frame.visible = false;
+      return;
+    }
+    poseAtScreenPoint(
+      frame,
+      camera,
+      size,
+      place.left,
+      place.top,
+      depth,
+      OCEAN_SPEECH_UNIT_PX,
     );
   });
 }

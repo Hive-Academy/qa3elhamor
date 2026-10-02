@@ -1,6 +1,8 @@
 import { useFrame, useThree, type ThreeEvent } from '@react-three/fiber';
-import { useEffect, useMemo, useRef } from 'react';
-import { SphereGeometry, type Mesh } from 'three';
+import { OceanText } from '@qa3elhamor/world-ui';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { SphereGeometry, Vector3, type Group, type Mesh } from 'three';
+import { faceCamera } from '../ocean-text/screen-pose';
 import { placeObjectDom, screenPointOf } from '../narrators/object-dom';
 import { acceptsPick, type SelectSource } from '../narrators/object-selection';
 import type { Vec3 } from '../narrators/view-layout';
@@ -35,6 +37,11 @@ interface BubbleMotion {
   highlight: number;
 }
 
+/** A label surfaces once its bubble is this far out, and sinks again below `LABEL_SINK`. */
+const LABEL_SURFACE = 0.72;
+const LABEL_SINK = 0.5;
+const toCamera = new Vector3();
+
 /**
  * The skill groups as glowing underwater bubbles that drift out of the landmark's door to their
  * slots, bob there, and drift back in. Pointing at one (or focusing its label) selects it: it
@@ -52,6 +59,7 @@ export function SkillBubbles({
   labels,
   panel,
   insets,
+  oceanLabels = null,
 }: VisitObjectsProps<SkillBubbleSlot>) {
   const geometry = useMemo(() => new SphereGeometry(1, 48, 32), []);
   const materials = useMemo(
@@ -73,6 +81,10 @@ export function SkillBubbles({
   );
 
   const meshes = useRef<(Mesh | null)[]>([]);
+  // Ocean mode: each bubble's name in the water, on its front, facing the visitor.
+  const labelGroups = useRef<(Group | null)[]>([]);
+  const [surfaced, setSurfaced] = useState<readonly boolean[]>([]);
+  const surfacedNow = useRef<boolean[]>([]);
   const motion = useRef<BubbleMotion[]>([]);
   const outSince = useRef<number | null>(null);
   const size = useThree((state) => state.size);
@@ -129,6 +141,27 @@ export function SkillBubbles({
         mesh.position.set(x, y, z);
         mesh.scale.setScalar(Math.max(radius, 1e-4));
       }
+      const labelGroup = labelGroups.current[i];
+      if (labelGroup) {
+        labelGroup.visible = p > LABEL_SINK;
+        faceCamera(labelGroup, camera, toCamera);
+        // On the bubble's front, a little inside its skin.
+        toCamera
+          .set(toCamera.x - x, toCamera.y - y, toCamera.z - z)
+          .normalize();
+        labelGroup.position.set(
+          x + toCamera.x * radius * 0.55,
+          y + toCamera.y * radius * 0.55,
+          z + toCamera.z * radius * 0.55,
+        );
+        labelGroup.scale.setScalar(Math.max(radius, 1e-4));
+        const up = surfacedNow.current[i] ?? false;
+        const next = up ? p > LABEL_SINK : p >= LABEL_SURFACE;
+        if (next !== up) {
+          surfacedNow.current[i] = next;
+          setSurfaced([...surfacedNow.current]);
+        }
+      }
       const u = material.uniforms;
       if (!reducedMotion) u.uTime.value = now;
       u.uHighlight.value = m.highlight;
@@ -182,6 +215,39 @@ export function SkillBubbles({
           onClick={pointerPick(id, i, 'tap')}
         />
       ))}
+      {oceanLabels &&
+        ids.map((id, i) => {
+          const object = oceanLabels.objects[i];
+          if (!object) return null;
+          const faded = selected !== null && selected !== id;
+          return (
+            <group
+              key={`label:${id}`}
+              ref={(group) => {
+                labelGroups.current[i] = group;
+              }}
+              visible={false}
+            >
+              {/* In bubble radii: wraps inside the bubble's face. */}
+              <OceanText
+                text={object.label}
+                fontUrl={oceanLabels.fontUrl}
+                size={0.27}
+                maxWidth={1.5}
+                lineHeight={1.12}
+                color={selected === id ? '#fff6d6' : '#f4fdff'}
+                glowColor={SKILL_BUBBLE_TINTS[i % SKILL_BUBBLE_TINTS.length]}
+                glowOpacity={0.75}
+                shimmer={0.55}
+                reveal={surfaced[i] ? 1 : 0}
+                reducedMotion={reducedMotion}
+                opacity={faded ? 0.6 : 1}
+                renderOrder={3}
+                onError={oceanLabels.onError}
+              />
+            </group>
+          );
+        })}
     </group>
   );
 }

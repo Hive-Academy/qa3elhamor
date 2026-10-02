@@ -85,3 +85,24 @@
     animation: none;
   }
 }
+
+/*
+ * A drawn label (`LandmarkLayerProps.beaconLabel`): the words are in the scene, under this
+ * button, which stays the pointer target with its pulsing dot. Its own words keep their place
+ * (the target's size) but are not painted.
+ */
+.lmk-beacon[data-drawn-label] {
+  border-color: transparent;
+  background: transparent;
+}
+
+.lmk-beacon[data-drawn-label] .lmk-beacon__label,
+.lmk-beacon[data-drawn-label] .lmk-beacon__caption {
+  color: transparent;
+}
+
+.lmk-beacon[data-drawn-label][data-state='hovered'],
+.lmk-beacon[data-drawn-label][data-state='focused'] {
+  border-color: transparent;
+  background: transparent;
+}

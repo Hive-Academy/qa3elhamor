@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import {
   REVEAL_MAX_SPEED,
   oceanGlyphData,
+  oceanTextOf,
+  revealInText,
   revealTargetHead,
   revealableCharCount,
   stepRevealHead,
@@ -40,7 +42,9 @@ describe('revealTargetHead', () => {
   it('stays monotonic and exact at both ends when shaping merges characters', () => {
     const arabic = 'لا لا';
     const glyphs = 2; // each lam-alef pair shapes to a single ligature glyph
-    const heads = [0, 1, 2, 3, 4, 5].map((n) => revealTargetHead({ characters: n }, glyphs, arabic));
+    const heads = [0, 1, 2, 3, 4, 5].map((n) =>
+      revealTargetHead({ characters: n }, glyphs, arabic),
+    );
     expect(heads[0]).toBe(0);
     expect(heads[5]).toBe(glyphs);
     heads.slice(1).forEach((h, i) => expect(h).toBeGreaterThanOrEqual(heads[i]));
@@ -83,5 +87,23 @@ describe('oceanGlyphData', () => {
   it('gives each glyph its centre, order and height', () => {
     const data = oceanGlyphData(new Float32Array([0, 0, 2, 4, 10, -1, 12, 1]));
     expect([...data]).toEqual([1, 2, 0, 4, 11, 0, 1, 2]);
+  });
+});
+
+describe('oceanTextOf', () => {
+  // A dish's name isolated inside an Arabic sentence (`krusty-krab/menu-objects.ts`).
+  const isolated = `Price of ${String.fromCodePoint(0x2068)}Kelp Shake${String.fromCodePoint(0x2069)}`;
+
+  it('drops bidi controls, which the font has no glyphs for (troika would fetch a CDN font)', () => {
+    expect(oceanTextOf(isolated)).toBe('Price of Kelp Shake');
+    expect(oceanTextOf(`a${String.fromCodePoint(0x200f)}b`)).toBe('ab');
+  });
+
+  it('keeps a typewriter count in step with the text it sets', () => {
+    // 9 characters typed: "Price of " plus the opening isolate.
+    expect(revealInText({ characters: 10 }, isolated)).toEqual({ characters: 9 });
+    expect(revealInText({ characters: 100 }, isolated)).toEqual({ characters: 19 });
+    expect(revealInText(0.5, isolated)).toBe(0.5);
+    expect(revealInText(undefined, isolated)).toBeUndefined();
   });
 });

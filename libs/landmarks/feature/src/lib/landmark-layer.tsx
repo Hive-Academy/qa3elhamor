@@ -14,6 +14,7 @@ import {
   type ComponentType,
   type ErrorInfo,
   type ReactNode,
+  type RefObject,
 } from 'react';
 import {
   Mesh,
@@ -68,6 +69,22 @@ export interface LandmarkSceneProps {
   readonly close: () => void;
 }
 
+/**
+ * What a drawn beacon label receives (`LandmarkLayerProps.beaconLabel`). It renders in the
+ * beacon's anchor (just above the landmark, in its frame), as R3F children.
+ */
+export interface BeaconLabelProps {
+  readonly label: string;
+  readonly caption?: string;
+  readonly phase: 'idle' | 'hovered' | 'focused';
+  readonly locale: string;
+  readonly reducedMotion: boolean;
+  /** The beacon's opacity this frame (distance fade, hidden behind terrain), 0..1. */
+  readonly opacity: () => number;
+  /** The DOM beacon over it (its dot stays shown): to line the drawn words up with it. */
+  readonly element: RefObject<HTMLElement | null>;
+}
+
 /** In-scene components by key: a landmark's `scene` field names one. */
 export type LandmarkSceneRegistry = Readonly<
   Record<string, ComponentType<LandmarkSceneProps>>
@@ -92,6 +109,11 @@ export interface LandmarkLayerProps {
   readonly beaconRange?: readonly [number, number];
   /** Hide beacons that scene geometry stands in front of. Default true. */
   readonly beaconOcclusion?: boolean;
+  /**
+   * Draws each beacon's words in the scene (the composition root's underwater text, say). The
+   * DOM beacon stays the pointer target, its words unseen; without it the DOM label shows.
+   */
+  readonly beaconLabel?: ComponentType<BeaconLabelProps> | null;
 }
 
 /** Hover lift, in the landmark's own (scene-world) units: about 0.12 world units. */
@@ -215,6 +237,7 @@ function LandmarkShell({ definition, model, options }: ShellProps) {
     beaconRange = DEFAULT_BEACON_RANGE,
     scenes,
     occluders,
+    beaconLabel: BeaconLabel = null,
   } = options;
   const { locale, sceneLayer, reportSceneError } = useLandmarkContext();
   const presentation = useEffectivePresentation(definition);
@@ -344,6 +367,17 @@ function LandmarkShell({ definition, model, options }: ShellProps) {
             shape.center[2],
           ]}
         >
+          {BeaconLabel && (
+            <BeaconLabel
+              label={label}
+              caption={caption}
+              phase={phase}
+              locale={locale}
+              reducedMotion={reducedMotion}
+              opacity={() => beaconOpacity(beaconRef.current)}
+              element={beaconRef}
+            />
+          )}
           {/* Below the landmark list (z-index 30) and dialogs, so beacons never cover them. */}
           <Html center zIndexRange={[9, 1]} wrapperClass="lmk-beacon-anchor">
             {/* The canvas is aria-hidden; keyboard and screen-reader access is <LandmarkNav>. */}
@@ -354,6 +388,7 @@ function LandmarkShell({ definition, model, options }: ShellProps) {
               className="lmk-beacon"
               data-state={phase}
               data-reduced-motion={reducedMotion ? '' : undefined}
+              data-drawn-label={BeaconLabel ? '' : undefined}
               dir={locale === 'ar' ? 'rtl' : 'ltr'}
               onPointerEnter={() => hover(definition.id, 'pointer')}
               onPointerLeave={() => unhover(definition.id)}
@@ -370,6 +405,14 @@ function LandmarkShell({ definition, model, options }: ShellProps) {
       )}
     </>
   );
+}
+
+/** The opacity `useBeaconVisibility` last wrote on a beacon (1 before it has). */
+function beaconOpacity(element: HTMLElement | null): number {
+  const value = element?.style.opacity;
+  if (!value) return 1;
+  const opacity = Number(value);
+  return Number.isFinite(opacity) ? opacity : 1;
 }
 
 interface ModelBoundaryProps {

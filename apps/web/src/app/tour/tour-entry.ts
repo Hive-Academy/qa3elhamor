@@ -78,7 +78,10 @@ export function tourEntry({
   if (!enabled || param === 'off') return 'off';
   if (param === 'on') return 'intro';
   if (automated) return 'off';
-  return stored ? 'replay' : 'intro';
+  // Owner decision (2026-10-02): every visit opens on the intro; `stored` only shapes the
+  // "Replay the journey" button after the visitor ends or skips the journey this visit.
+  void stored;
+  return 'intro';
 }
 
 /**

@@ -1,5 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { createOceanSpeechLink } from './ocean-speech-link';
 import { SpeechBubble, type SpeechBubbleProps } from './speech-bubble';
 
 const sound = vi.hoisted(() => ({
@@ -96,5 +97,57 @@ describe('<SpeechBubble> "Say hi"', () => {
     expect(
       screen.queryByRole('button', { name: 'Say hi', hidden: true }),
     ).toBeNull();
+  });
+});
+
+describe('<SpeechBubble> in ocean mode (its words drawn in the water)', () => {
+  it('marks the box, keeps the whole line for screen readers and the buttons usable', () => {
+    const link = createOceanSpeechLink({ current: null });
+    const onAdvance = vi.fn();
+    const { container } = render(
+      <SpeechBubble {...base} ocean={link} onAdvance={onAdvance}>
+        <button type="button">Next</button>
+      </SpeechBubble>,
+    );
+    const box = container.querySelector('.speech-box');
+    expect(box?.hasAttribute('data-ocean')).toBe(true);
+    // Visually hidden by CSS, still in the accessibility tree: named, live, focusable.
+    expect(screen.getByRole('region', { name: 'SpongeBob' })).toBeTruthy();
+    expect(container.querySelector('.speech__spoken')?.textContent).toBe(
+      'Hi there!',
+    );
+    expect(
+      container.querySelector('.speech__ocean')?.getAttribute('aria-hidden'),
+    ).toBe('true');
+    expect(screen.getByRole('button', { name: 'Next' })).toBeTruthy();
+    fireEvent.click(screen.getByRole('region', { name: 'SpongeBob' }));
+    expect(onAdvance).toHaveBeenCalledTimes(1);
+  });
+
+  it('tells its twin what it says and how far it has typed, and clears it when it goes', () => {
+    const link = createOceanSpeechLink({ current: null });
+    const { unmount } = render(
+      <SpeechBubble {...base} ocean={link} topic="Backend" dir="rtl" />,
+    );
+    expect(link.get()).toEqual({
+      text: 'Hi there!',
+      typed: 9,
+      speaker: 'SpongeBob',
+      topic: 'Backend',
+      departing: false,
+      lingerSeconds: 1.6,
+      dir: 'rtl',
+      ringed: false,
+    });
+    unmount();
+    expect(link.get()).toBeNull();
+  });
+
+  it('is the plain DOM bubble without a twin', () => {
+    const { container } = render(<SpeechBubble {...base} />);
+    expect(
+      container.querySelector('.speech-box')?.hasAttribute('data-ocean'),
+    ).toBe(false);
+    expect(container.querySelector('.speech__ocean')).toBeNull();
   });
 });

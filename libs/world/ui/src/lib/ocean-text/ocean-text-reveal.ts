@@ -57,7 +57,9 @@ export function revealTargetHead(
   }
   const total = revealableCharCount(text);
   if (total === 0 || !Number.isFinite(reveal.characters)) return glyphCount;
-  const shown = revealableCharCount([...text].slice(0, Math.max(0, Math.floor(reveal.characters))).join(''));
+  const shown = revealableCharCount(
+    [...text].slice(0, Math.max(0, Math.floor(reveal.characters))).join(''),
+  );
   return Math.round((clamp(shown, 0, total) / total) * glyphCount);
 }
 
@@ -102,4 +104,29 @@ export function oceanGlyphData(glyphBounds: ArrayLike<number>): Float32Array {
     data[i * 4 + 3] = maxY - minY;
   }
   return data;
+}
+
+/**
+ * Bidi format controls (LRM, RLM, embeddings, isolates). troika lays text out with its own bidi,
+ * and the SDF font has no glyphs for them: a character the font lacks sends troika to fetch
+ * fallback fonts from a CDN, which the site's Content-Security-Policy refuses.
+ */
+const FORMAT_CONTROLS = /\p{Bidi_Control}/gu;
+
+/** `text` as `OceanText` sets it: without bidi format controls. */
+export function oceanTextOf(text: string): string {
+  return text.replace(FORMAT_CONTROLS, '');
+}
+
+/**
+ * `reveal` for `oceanTextOf(text)`: a `{ characters }` count of the original text, recounted
+ * without the controls it passed over. A fraction is unchanged.
+ */
+export function revealInText(
+  reveal: OceanTextReveal | undefined,
+  text: string,
+): OceanTextReveal | undefined {
+  if (reveal === undefined || typeof reveal === 'number') return reveal;
+  const typed = [...text].slice(0, Math.max(0, Math.floor(reveal.characters))).join('');
+  return { characters: [...oceanTextOf(typed)].length };
 }

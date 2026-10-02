@@ -9,9 +9,11 @@ import {
   Vector3,
   type Group,
 } from 'three';
+import type { SignSpec } from '@qa3elhamor/world-ui';
 import { placeObjectDom, screenPointOf } from '../narrators/object-dom';
 import { acceptsPick, type SelectSource } from '../narrators/object-selection';
-import type { VisitObjectsProps } from '../narrators/visit-types';
+import type { VisitObject, VisitObjectsProps } from '../narrators/visit-types';
+import { SIGN_FONTS, SignDecal } from '../ocean-text/sign-decal';
 import {
   FACE_DEPTH,
   rowCentre,
@@ -48,6 +50,48 @@ const SLATE_COLOR = new Color(SLATE);
 const DIMMED = new Color('#1a2a26');
 const SLATE_GLOW = new Color('#10302a');
 const glow = new Color();
+
+/** The chalked part of a row, between its two chalk rules (the row's own units). */
+const ROW_TEXT = { width: 0.93, height: 0.86 } as const;
+/** Logical pixels down a row; the texture is this times the pixel ratio (and the zoom). */
+const ROW_PX = 120;
+
+/** A menu row, chalked: the dish's name, and the real service under it, smaller. */
+export function menuRowSign(
+  object: VisitObject,
+  aspect: number,
+  pixelRatio: number,
+  seed: number,
+): SignSpec {
+  return {
+    width: Math.round(ROW_PX * aspect),
+    height: ROW_PX,
+    style: 'chalk',
+    pixelRatio,
+    seed,
+    gap: 4,
+    padding: ROW_PX * 0.2,
+    lines: [
+      {
+        text: object.label,
+        size: 44,
+        weight: 700,
+        family: SIGN_FONTS.paper,
+        maxLines: 1,
+      },
+      {
+        text: object.caption?.[0] ?? '',
+        size: 26,
+        weight: 600,
+        family: SIGN_FONTS.ui,
+        maxLines: 1,
+        color: '#ffe9a8',
+        tracking: 1.5,
+        uppercase: true,
+      },
+    ],
+  };
+}
 
 const clamp01 = (t: number): number => (t <= 0 ? 0 : t >= 1 ? 1 : t);
 const span = (t: number, [from, to]: readonly [number, number]): number =>
@@ -88,8 +132,12 @@ export function MenuBoard({
   labels,
   panel,
   insets,
+  oceanLabels = null,
 }: VisitObjectsProps<MenuRowSlot>) {
   const gl = useThree((state) => state.gl);
+  // Painted at the zoom a selected row comes forward to, for the screen's pixel density.
+  const signRatio = Math.min(gl.getPixelRatio(), 2) * 1.6;
+  const chalk = useRef<(MeshStandardMaterial | null)[]>([]);
   const size = useThree((state) => state.size);
   // The board rises out of the seabed: everything under it is clipped away.
   useEffect(() => {
@@ -241,6 +289,9 @@ export function MenuBoard({
         .copy(SLATE_GLOW)
         .multiplyScalar(1 - dim * 0.6)
         .add(glow.copy(GLOW).multiplyScalar(0.32 * h));
+      const written = chalk.current[i];
+      if (written)
+        written.emissiveIntensity = 0.32 * (1 - dim * 0.55) + 0.18 * h;
 
       const [x, y, z] = rowCentre(slot, h);
       placeObjectDom({
@@ -410,6 +461,26 @@ export function MenuBoard({
                   scale={[0.94, 0.035, rowDeep * 0.2]}
                 />
               ))}
+              {oceanLabels?.objects[i] && slots[i] && (
+                <SignDecal
+                  spec={menuRowSign(
+                    oceanLabels.objects[i],
+                    (slots[i].width * ROW_TEXT.width) /
+                      (slots[i].height * ROW_TEXT.height),
+                    signRatio,
+                    i + 3,
+                  )}
+                  anisotropy={oceanLabels.anisotropy}
+                  width={ROW_TEXT.width}
+                  height={ROW_TEXT.height}
+                  position={[0, 0, rowDeep * 0.7]}
+                  clippingPlanes={clip}
+                  glow={0.32}
+                  materialRef={(m) => {
+                    chalk.current[i] = m;
+                  }}
+                />
+              )}
             </group>
           );
         })}

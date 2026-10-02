@@ -20,6 +20,7 @@ import {
 import { fillCopy } from '../overlays/overlay-copy';
 import { NARRATOR_COPY } from './narrator-copy';
 import { objectKeyStep, type SelectSource } from './object-selection';
+import type { OceanSpeechLink } from './ocean-speech-link';
 import { SpeechBubble } from './speech-bubble';
 import type { VisitObject, VisitWords } from './visit-types';
 import './visit-hud.css';
@@ -75,6 +76,10 @@ export interface VisitHudProps {
   readonly speechRef: RefObject<HTMLDivElement | null>;
   readonly labelRefs: RefObject<(HTMLElement | null)[]>;
   readonly panelRef: RefObject<HTMLDivElement | null>;
+  /** The bubble's words are drawn in the water (`OceanSpeech`); the DOM keeps the rest. */
+  readonly ocean?: OceanSpeechLink | null;
+  /** The objects draw their own words: the labels keep their place, their text unseen. */
+  readonly oceanLabels?: boolean;
 }
 
 /**
@@ -116,6 +121,8 @@ export function VisitHud({
   speechRef,
   labelRefs,
   panelRef,
+  ocean = null,
+  oceanLabels = false,
 }: VisitHudProps) {
   const kit = NARRATOR_COPY[lang];
   const { plip } = useSfx();
@@ -291,6 +298,8 @@ export function VisitHud({
             onPoke && dialogue.stage !== 'farewell' ? kit.sayHi : undefined
           }
           onGreet={onPoke}
+          ocean={ocean}
+          dir={dir}
         >
           {footer}
         </SpeechBubble>
@@ -302,6 +311,7 @@ export function VisitHud({
         aria-label={words.objectsList}
         inert={!open || fullOpen || !objectsOut}
         data-dimmed={selected ? '' : undefined}
+        data-ocean={oceanLabels ? '' : undefined}
       >
         {objects.map((object, i) => (
           <li key={object.id}>

@@ -197,3 +197,21 @@
     animation: none;
   }
 }
+
+/*
+ * Ocean text mode: the form's heading is painted on a board floating over the paper
+ * (`InWorldCard title`). The heading stays in the form for assistive technology, unseen. Only
+ * the form's own heading: the stamped result's (focusable) heading keeps showing. Where the paper is too tall for a
+ * board over it (`data-title-room` on the card, set by `CardTitle`), the heading shows as before.
+ */
+[data-title-room='yes']
+  .bureau-scroll[data-painted-heading]
+  .complaint-scroll__title:not([tabindex]) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

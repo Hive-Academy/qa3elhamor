@@ -69,6 +69,25 @@ export interface VisitObjectsProps<Slot> {
   readonly panel: RefObject<HTMLElement | null>;
   /** Screen space kept clear for the page chrome. */
   readonly insets: ScreenInsets;
+  /**
+   * The objects' words drawn in the water (SDF text or painted signage) instead of over them in
+   * the DOM; null shows the DOM labels' text. Either way the DOM labels stay the buttons.
+   */
+  readonly oceanLabels?: OceanLabels | null;
+}
+
+/** What an objects component needs to draw its own labels in the water. */
+export interface OceanLabels {
+  /** The objects as the visitor reads them, in `ids` order. */
+  readonly objects: readonly VisitObject[];
+  /** The SDF text's font (`OceanText fontUrl`). */
+  readonly fontUrl: string;
+  /** Texture filtering for painted labels, from the quality profile. */
+  readonly anisotropy: number;
+  /** The page's direction: painted signs set their words by their own script anyway. */
+  readonly locale: Locale;
+  /** The font failed: the page goes back to the DOM labels. */
+  readonly onError: (error: unknown) => void;
 }
 
 export interface VisitFullView {
@@ -100,7 +119,11 @@ export interface NarratedVisitDefinition<Slot> {
   /** The content objects, in the visitor's language. */
   readonly objects: (lang: Locale) => readonly VisitObject[];
   /** The composition for the stop's view on this viewport. */
-  readonly layout: (view: ViewFrame, count: number, ground: number) => VisitLayout<Slot>;
+  readonly layout: (
+    view: ViewFrame,
+    count: number,
+    ground: number,
+  ) => VisitLayout<Slot>;
   /** The 3D objects. */
   readonly Objects: ComponentType<VisitObjectsProps<Slot>>;
   readonly fullView: VisitFullView;

@@ -43,6 +43,11 @@ export interface BureauScrollProps {
   readonly initialFailed?: boolean;
   /** The public wall's words when it is on: the form offers pinning the complaint on it. */
   readonly publicWall?: WallCopy;
+  /**
+   * The form's heading is painted on a board over the paper (ocean text mode): its DOM heading
+   * stays for assistive technology, visually hidden.
+   */
+  readonly paintedHeading?: boolean;
 }
 
 /**
@@ -67,6 +72,7 @@ export function BureauScroll({
   sending = false,
   initialFailed = false,
   publicWall,
+  paintedHeading = false,
 }: BureauScrollProps) {
   const root = useRef<HTMLDivElement>(null);
   // Unrolled: the visitor is here to type, so the first field takes focus (without scrolling
@@ -88,6 +94,7 @@ export function BureauScroll({
       className="bureau-scroll"
       data-state={state}
       data-presentation={presentation}
+      data-painted-heading={paintedHeading ? '' : undefined}
       role="group"
       aria-label={words.scrollLabel}
       dir={dir}

@@ -11,9 +11,11 @@ import {
   Vector3,
   type Group,
 } from 'three';
+import type { SignSpec } from '@qa3elhamor/world-ui';
 import { placeObjectDom, screenPointOf } from '../narrators/object-dom';
 import { acceptsPick, type SelectSource } from '../narrators/object-selection';
-import type { VisitObjectsProps } from '../narrators/visit-types';
+import type { VisitObject, VisitObjectsProps } from '../narrators/visit-types';
+import { SIGN_FONTS, SignDecal } from '../ocean-text/sign-decal';
 import { createTabletRim, createTabletSlab } from './tablet-geometry';
 import type { TabletSlot } from './tiki-layout';
 
@@ -35,6 +37,58 @@ const WARMTH = new Color('#4a3a22');
 const glow = new Color();
 const WHITE = new Color('#ffffff');
 const DIMMED = new Color('#7d8794');
+
+/** The inscription: the face inside the carved border (the slab's units, `tablet-geometry.ts`). */
+const FACE = { width: 0.7, height: 0.66, y: 0.49, z: 0.506 } as const;
+/** Logical pixels down the face; the texture is this times the pixel ratio (and the zoom). */
+const FACE_PX = 300;
+
+/**
+ * A tablet's inscription, carved: the role as the title, the company and the years under it.
+ * Sized for the tablet's shape; crisp at the zoom a selected tablet comes forward to.
+ */
+export function tabletSign(
+  object: VisitObject,
+  aspect: number,
+  pixelRatio: number,
+  seed: number,
+): SignSpec {
+  const [company, years] = object.caption ?? [];
+  return {
+    width: Math.round(FACE_PX * aspect),
+    height: FACE_PX,
+    style: 'carved',
+    pixelRatio,
+    seed,
+    padding: FACE_PX * aspect * 0.04,
+    lines: [
+      {
+        text: object.label,
+        size: 38,
+        weight: 700,
+        family: SIGN_FONTS.ui,
+        maxLines: 3,
+      },
+      {
+        text: company ?? '',
+        size: 27,
+        weight: 600,
+        family: SIGN_FONTS.ui,
+        maxLines: 2,
+        color: '#5a4020',
+      },
+      {
+        text: years ?? '',
+        size: 24,
+        weight: 600,
+        family: SIGN_FONTS.ui,
+        maxLines: 1,
+        color: '#6b4c24',
+        tracking: 1,
+      },
+    ],
+  };
+}
 
 const clamp01 = (t: number): number => (t <= 0 ? 0 : t >= 1 ? 1 : t);
 const easeOut = (t: number): number => 1 - (1 - t) * (1 - t) * (1 - t);
@@ -63,8 +117,12 @@ export function StoneTablets({
   labels,
   panel,
   insets,
+  oceanLabels = null,
 }: VisitObjectsProps<TabletSlot>) {
   const gl = useThree((state) => state.gl);
+  // Painted at the zoom a selected tablet comes forward to, for the screen's pixel density.
+  const signRatio = Math.min(gl.getPixelRatio(), 2) * 1.5;
+  const inscriptions = useRef<(MeshStandardMaterial | null)[]>([]);
   const size = useThree((state) => state.size);
   // The tablets rise out of the seabed: everything under it is clipped away.
   useEffect(() => {
@@ -215,6 +273,8 @@ export function StoneTablets({
         .copy(WARMTH)
         .multiplyScalar(warmth)
         .add(glow.copy(GLOW).multiplyScalar(0.38 * h));
+      // The carving darkens with its stone.
+      inscriptions.current[i]?.color.copy(material.slab.color);
 
       writePuff(puff, i, slot, m.puff);
 
@@ -270,6 +330,24 @@ export function StoneTablets({
             onClick={pointerPick(id, i, 'tap')}
           />
           <mesh geometry={rim} material={materials[i]?.rim} />
+          {oceanLabels?.objects[i] && slots[i] && (
+            <SignDecal
+              spec={tabletSign(
+                oceanLabels.objects[i],
+                (slots[i].width * FACE.width) / (slots[i].height * FACE.height),
+                signRatio,
+                i + 1,
+              )}
+              anisotropy={oceanLabels.anisotropy}
+              width={FACE.width}
+              height={FACE.height}
+              position={[0, FACE.y, FACE.z]}
+              clippingPlanes={clip}
+              materialRef={(m) => {
+                inscriptions.current[i] = m;
+              }}
+            />
+          )}
         </group>
       ))}
       <points

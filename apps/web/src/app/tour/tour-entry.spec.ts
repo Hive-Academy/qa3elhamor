@@ -38,10 +38,10 @@ describe('tourEntry', () => {
     stored: null,
   } as const;
 
-  it('shows the intro on a first visit and the replay button after a choice', () => {
+  it('shows the intro on every visit, whatever was chosen before', () => {
     expect(tourEntry(base)).toBe('intro');
-    expect(tourEntry({ ...base, stored: 'skipped' })).toBe('replay');
-    expect(tourEntry({ ...base, stored: 'done' })).toBe('replay');
+    expect(tourEntry({ ...base, stored: 'skipped' })).toBe('intro');
+    expect(tourEntry({ ...base, stored: 'done' })).toBe('intro');
   });
 
   it('stays off for automated browsers unless ?tour=on asks for it', () => {

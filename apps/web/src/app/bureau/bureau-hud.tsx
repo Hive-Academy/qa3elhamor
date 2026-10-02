@@ -18,6 +18,7 @@ import {
   type DialogueState,
 } from '../narrators/dialogue';
 import { NARRATOR_COPY } from '../narrators/narrator-copy';
+import type { OceanSpeechLink } from '../narrators/ocean-speech-link';
 import { SpeechBubble } from '../narrators/speech-bubble';
 import type { BureauWords } from './bureau-copy';
 import '../narrators/visit-hud.css';
@@ -63,6 +64,8 @@ export interface BureauHudProps {
 
   /** Positioned by the scene every frame. */
   readonly speechRef: RefObject<HTMLDivElement | null>;
+  /** The bubble's words are drawn in the water (`OceanSpeech`); the DOM keeps the rest. */
+  readonly ocean?: OceanSpeechLink | null;
   /** On a phone: the scroll (or the notice wall) as a sheet over the scene (null elsewhere, or while it is away). */
   readonly sheet?: ReactNode;
 }
@@ -98,6 +101,7 @@ export function BureauHud({
   fileAnother,
   filedTopic,
   speechRef,
+  ocean = null,
   sheet,
 }: BureauHudProps) {
   const kit = NARRATOR_COPY[lang];
@@ -217,9 +221,7 @@ export function BureauHud({
           hadFocus.current = root.current?.contains(next) ?? false;
       }}
     >
-      {away && (
-        <div className="visit-full-dim bureau-dim" aria-hidden="true" />
-      )}
+      {away && <div className="visit-full-dim bureau-dim" aria-hidden="true" />}
 
       {text !== null && !away && (
         <SpeechBubble
@@ -241,6 +243,8 @@ export function BureauHud({
             onPoke && dialogue.stage !== 'farewell' ? kit.sayHi : undefined
           }
           onGreet={onPoke}
+          ocean={ocean}
+          dir={dir}
         >
           {footer}
         </SpeechBubble>

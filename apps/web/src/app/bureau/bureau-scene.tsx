@@ -31,6 +31,7 @@ import {
 } from '../narrators/dialogue';
 import {
   LandmarkNarrator,
+  ResidentNarrator,
   mouthOf,
   narratorRenderedHeight,
   speechAnchorOf,
@@ -43,6 +44,9 @@ import {
   useSpeechBubblePlacement,
 } from '../narrators/narrated-visit';
 import { narratorName } from '../narrators/narrator-copy';
+import { OceanSpeech } from '../narrators/ocean-speech';
+import { createOceanSpeechLink } from '../narrators/ocean-speech-link';
+import { useOceanText } from '../ocean-text/ocean-text-context';
 import { useNarratorPoke } from '../narrators/narrator-poke';
 import { voiceOf } from '../narrators/narrator-voice';
 import type { StopView } from '../narrators/stop-view';
@@ -54,7 +58,11 @@ import type { VisitLayout } from '../narrators/visit-types';
 import { useVisitLifecycle, useVisitWhoosh } from '../narrators/visit-hooks';
 import { visitScript } from '../narrators/visit-script';
 import { WorldFrame } from '../narrators/world-frame';
-import type { NarratorChoice } from '../narrators.config';
+import {
+  narratorPosePreviewFor,
+  type NarratorChoice,
+} from '../narrators.config';
+
 import {
   EMPTY_COMPLAINT_FORM,
   singleFlight,
@@ -79,6 +87,14 @@ import { BureauScroll } from './bureau-scroll';
 import { BureauSheet, BureauWallSheet } from './bureau-sheet';
 import { ClerkWindow } from './clerk-window';
 import { MessageBottle } from './message-bottle';
+
+/** Development only (`?pose=wave&poseAt=0.3`): one clip held on the President, as on every narrator. */
+const POSE_PREVIEW = import.meta.env.DEV
+  ? narratorPosePreviewFor(
+      typeof window === 'undefined' ? '' : window.location.search,
+      true,
+    )
+  : null;
 
 export interface BureauSceneContent {
   readonly copy: SiteCopy;
@@ -347,9 +363,34 @@ function BureauVisit({
   const speechRef = useRef<HTMLDivElement | null>(null);
   const portal = useMemo(() => ({ current: sceneLayer }), [sceneLayer]);
   const door = useRef<Vec3>([0, 0, 0]);
-  useSpeechBubblePlacement(speechRef, anchor, VISIT_INSETS, dir);
+  // The President's words in the water (`ocean-text/`); the DOM keeps the buttons and the text.
+  const oceanText = useOceanText();
+  const oceanLink = useMemo(() => createOceanSpeechLink(speechRef), []);
+  const ocean = oceanText.on ? oceanLink : null;
+  useSpeechBubblePlacement(speechRef, anchor, VISIT_INSETS, dir, ocean);
 
-  if (!mounted || !sceneLayer) return null;
+  // Between visits the President lives here, by the counter, as the visitor dives past; he
+  // comes out from that spot when the Bureau opens and goes back to it after.
+  if (!mounted)
+    return (
+      <WorldFrame
+        bounds={bounds}
+        eye={stop.eye}
+        door={door}
+        doorHeight={WINDOW_HEIGHT}
+      >
+        <ResidentNarrator
+          choice={choice}
+          placement={post}
+          eye={stop.eye}
+          reducedMotion={reducedMotion}
+          hold={POSE_PREVIEW}
+          poke={poke}
+          onPoke={onPoke}
+        />
+      </WorldFrame>
+    );
+  if (!sceneLayer) return null;
 
   const sheetMode =
     size.width < COMPACT_BELOW_PX || size.height < SHEET_BELOW_HEIGHT_PX;
@@ -402,6 +443,8 @@ function BureauVisit({
             exitTo={post.exitTo}
             talking={dialogue.typing}
             present={present}
+            waving={dialogue.stage === 'farewell'}
+            hold={POSE_PREVIEW}
             reducedMotion={reducedMotion}
             onSettled={onSettled}
             onExited={onExited}
@@ -431,6 +474,15 @@ function BureauVisit({
           />
         </group>
       </WorldFrame>
+
+      {ocean && (
+        <OceanSpeech
+          link={ocean}
+          fontUrl={oceanText.fontUrl}
+          reducedMotion={reducedMotion}
+          onError={oceanText.reportError}
+        />
+      )}
 
       <Html
         portal={portal as RefObject<HTMLElement>}
@@ -465,6 +517,7 @@ function BureauVisit({
             fileAnother={t('complaintAnotherLabel')}
             filedTopic={t('complaintSuccessTitle')}
             speechRef={speechRef}
+            ocean={ocean}
             sheet={
               sheetMode && open && out ? (
                 <BureauSheet
@@ -503,12 +556,26 @@ function BureauVisit({
           bounds={bounds}
           doorHeight={WINDOW_HEIGHT}
           liftPx={PAPER_LIFT_PX}
+          // The form's heading as a painted board over the paper (its DOM heading stays, unseen).
+          title={
+            oceanText.on
+              ? {
+                  text: t('contactTitle'),
+                  look: 'sign',
+                  dir,
+                  fontUrl: oceanText.fontUrl,
+                  anisotropy: oceanText.anisotropy,
+                  onError: oceanText.reportError,
+                }
+              : null
+          }
         >
           {({ phase: card }) => (
             <BureauScroll
               {...scrollProps}
               state={paperStateOf(filing.stage, card)}
               presentation="in-world"
+              paintedHeading={oceanText.on}
             />
           )}
         </InWorldCard>

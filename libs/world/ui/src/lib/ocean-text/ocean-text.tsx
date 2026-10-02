@@ -1,12 +1,23 @@
 import { Text } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
-import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  Component,
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react';
 import type { ColorRepresentation } from 'three';
 import { boundsFromTroika, sameBounds, type OceanTextBounds } from './ocean-bubble-layout.js';
 import { createOceanTextMaterial } from './ocean-text-material.js';
 import {
   OCEAN_GLYPH_ITEM_SIZE,
   oceanGlyphData,
+  oceanTextOf,
+  revealInText,
   revealTargetHead,
   stepRevealHead,
   type OceanTextReveal,
@@ -14,6 +25,8 @@ import {
 
 export type OceanTextAlign = 'left' | 'center' | 'right';
 export type OceanTextDirection = 'auto' | 'ltr' | 'rtl';
+export type OceanTextAnchorX = 'left' | 'center' | 'right';
+export type OceanTextAnchorY = 'top' | 'middle' | 'bottom';
 
 export interface OceanTextProps {
   readonly text: string;
@@ -43,15 +56,34 @@ export interface OceanTextProps {
   readonly shimmer?: number;
   /** Chromatic tint strength, 0..1. */
   readonly tint?: number;
+  /** Extra space between letters, in em. Keep 0 for Arabic (it is cursive). */
+  readonly letterSpacing?: number;
+  /** Which point of the text block sits at `position`. Default the block's centre. */
+  readonly anchorX?: OceanTextAnchorX;
+  readonly anchorY?: OceanTextAnchorY;
+  /** Multiplies the fill and the glow, 0..1 (fades without re-layout). */
+  readonly opacity?: number;
+  /** False draws over the scene (a label that must never sink into a model). Default true. */
+  readonly depthTest?: boolean;
+  /** False ignores the scene's fog (text that must stay readable far off). Default true. */
+  readonly fog?: boolean;
   readonly position?: readonly [number, number, number];
   readonly renderOrder?: number;
   /** The laid-out text block, in local units, after every re-layout. */
   readonly onLayout?: (bounds: OceanTextBounds) => void;
+  /**
+   * The font could not be read or the text could not be typeset: the text renders nothing, and
+   * the caller can show its HTML instead. Without it the error is swallowed the same way.
+   */
+  readonly onError?: (error: unknown) => void;
 }
 
 /** The parts of troika's Text mesh this component reads after a sync. */
 interface SyncedTroikaText {
-  readonly textRenderInfo: { readonly glyphBounds: ArrayLike<number>; readonly blockBounds: ArrayLike<number> };
+  readonly textRenderInfo: {
+    readonly glyphBounds: ArrayLike<number>;
+    readonly blockBounds: ArrayLike<number>;
+  };
   readonly geometry: {
     updateAttributeData(name: string, data: Float32Array, itemSize: number): void;
   };
@@ -83,10 +115,35 @@ const GLYPH_ATTRIBUTE = 'aOceanGlyph';
  */
 export function OceanText(props: OceanTextProps) {
   return (
-    <Suspense fallback={null}>
-      <OceanTextMesh {...props} />
-    </Suspense>
+    <OceanTextBoundary onError={props.onError}>
+      <Suspense fallback={null}>
+        <OceanTextMesh {...props} />
+      </Suspense>
+    </OceanTextBoundary>
   );
+}
+
+/**
+ * Keeps a font or typesetting failure local: decorative text disappears instead of taking the
+ * whole canvas down with it, and the caller hears about it (to show its HTML layer).
+ */
+class OceanTextBoundary extends Component<
+  { readonly onError?: (error: unknown) => void; readonly children: ReactNode },
+  { readonly failed: boolean }
+> {
+  override state = { failed: false };
+
+  static getDerivedStateFromError(): { failed: boolean } {
+    return { failed: true };
+  }
+
+  override componentDidCatch(error: unknown): void {
+    this.props.onError?.(error);
+  }
+
+  override render(): ReactNode {
+    return this.state.failed ? null : this.props.children;
+  }
 }
 
 function OceanTextMesh({
@@ -104,15 +161,33 @@ function OceanTextMesh({
   reducedMotion = false,
   shimmer = 0.6,
   tint = 0.35,
+  letterSpacing = 0,
+  anchorX = 'center',
+  anchorY = 'middle',
+  opacity = 1,
+  depthTest = true,
+  fog = true,
   position,
   renderOrder,
   onLayout,
 }: OceanTextProps) {
   const ocean = useMemo(() => createOceanTextMaterial(), []);
   useEffect(() => () => ocean.material.dispose(), [ocean]);
+  useEffect(() => {
+    // troika's derived material inherits these from the base one.
+    ocean.material.depthTest = depthTest;
+    ocean.material.fog = fog;
+    ocean.material.needsUpdate = true;
+  }, [ocean, depthTest, fog]);
+  const fade = Math.min(1, Math.max(0, opacity));
 
   const [glyphCount, setGlyphCount] = useState(0);
-  const target = useMemo(() => revealTargetHead(reveal, glyphCount, text), [reveal, glyphCount, text]);
+  // What troika sets: no bidi controls (it has its own bidi, and the font has no glyphs for them).
+  const shown = useMemo(() => oceanTextOf(text), [text]);
+  const target = useMemo(
+    () => revealTargetHead(revealInText(reveal, text), glyphCount, shown),
+    [reveal, glyphCount, text, shown],
+  );
   const lastBounds = useRef<OceanTextBounds | null>(null);
   const onLayoutRef = useRef(onLayout);
   useEffect(() => {
@@ -122,7 +197,11 @@ function OceanTextMesh({
   const handleSync = useCallback((mesh: unknown) => {
     if (!isSyncedTroikaText(mesh)) return;
     const { glyphBounds, blockBounds } = mesh.textRenderInfo;
-    mesh.geometry.updateAttributeData(GLYPH_ATTRIBUTE, oceanGlyphData(glyphBounds), OCEAN_GLYPH_ITEM_SIZE);
+    mesh.geometry.updateAttributeData(
+      GLYPH_ATTRIBUTE,
+      oceanGlyphData(glyphBounds),
+      OCEAN_GLYPH_ITEM_SIZE,
+    );
     setGlyphCount(Math.floor(glyphBounds.length / 4));
     const bounds = boundsFromTroika(blockBounds);
     if (bounds && !sameBounds(bounds, lastBounds.current)) {
@@ -138,7 +217,12 @@ function OceanTextMesh({
     u.uOceanEm.value = size;
     u.uOceanShimmer.value = shimmer;
     u.uOceanTint.value = tint;
-    u.uOceanRevealHead.value = stepRevealHead(u.uOceanRevealHead.value, target, delta, reducedMotion);
+    u.uOceanRevealHead.value = stepRevealHead(
+      u.uOceanRevealHead.value,
+      target,
+      delta,
+      reducedMotion,
+    );
   });
 
   return (
@@ -150,18 +234,21 @@ function OceanTextMesh({
       direction={direction}
       maxWidth={maxWidth}
       lineHeight={lineHeight}
-      anchorX="center"
-      anchorY="middle"
+      letterSpacing={letterSpacing}
+      anchorX={anchorX}
+      anchorY={anchorY}
       outlineWidth={glowOpacity > 0 ? '2.5%' : 0}
       outlineBlur={glowOpacity > 0 ? '30%' : 0}
       outlineColor={glowColor}
-      outlineOpacity={glowOpacity}
+      outlineOpacity={glowOpacity * fade}
+      fillOpacity={fade}
+      visible={fade > 0}
       material={ocean.material}
       position={position ? [...position] : undefined}
       renderOrder={renderOrder}
       onSync={handleSync}
     >
-      {text}
+      {shown}
     </Text>
   );
 }

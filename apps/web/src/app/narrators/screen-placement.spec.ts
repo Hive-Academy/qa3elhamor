@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { placePanel, placeSpeechBubble } from './screen-placement';
+import {
+  CHROME_GAP,
+  clearOfChrome,
+  placePanel,
+  placeSpeechBubble,
+} from './screen-placement';
 
 const viewport = { width: 1440, height: 900 };
 const insets = { top: 14, right: 12, bottom: 86, left: 12 };
@@ -166,5 +171,124 @@ describe('placePanel for things that are not round', () => {
       prefer: 'above',
     });
     expect(place.side).toBe('right');
+  });
+});
+
+describe('placeSpeechBubble around the page chrome', () => {
+  // The dive's top-left chrome (credits, language switch) and top-right (depth, sound), English.
+  const chrome = [
+    { left: 24, top: 24, right: 102, bottom: 70 },
+    { left: 24, top: 76, right: 124, bottom: 120 },
+    { left: 1315, top: 24, right: 1416, bottom: 80 },
+    { left: 1299, top: 88, right: 1416, bottom: 132 },
+  ];
+  const overlaps = (
+    place: { left: number; top: number },
+    size: { width: number; height: number },
+  ) =>
+    chrome.some(
+      (r) =>
+        place.left < r.right &&
+        place.left + size.width > r.left &&
+        place.top < r.bottom &&
+        place.top + size.height > r.top,
+    );
+
+  it('steps out from under the credits and the language switch (a narrator high on the left)', () => {
+    const size = { width: 480, height: 150 };
+    const anchor = { x: 200, y: 250 };
+    const without = placeSpeechBubble({
+      anchor,
+      size,
+      viewport,
+      insets,
+      bias: 0.6,
+    });
+    expect(overlaps(without, size)).toBe(true);
+    const place = placeSpeechBubble({
+      anchor,
+      size,
+      viewport,
+      insets,
+      bias: 0.6,
+      keepOut: chrome,
+    });
+    expect(overlaps(place, size)).toBe(false);
+    // Still above the narrator, the tail pointing down at it.
+    expect(place.top + size.height).toBeLessThan(anchor.y);
+  });
+
+  it('does the same for the mirrored chrome in Arabic (depth and sound on the left)', () => {
+    const mirrored = chrome.map((r) => ({
+      left: viewport.width - r.right,
+      right: viewport.width - r.left,
+      top: r.top,
+      bottom: r.bottom,
+    }));
+    const size = { width: 480, height: 150 };
+    const place = placeSpeechBubble({
+      anchor: { x: 1250, y: 330 },
+      size,
+      viewport,
+      insets,
+      bias: 0.4,
+      keepOut: mirrored,
+    });
+    expect(
+      mirrored.some(
+        (r) =>
+          place.left < r.right &&
+          place.left + size.width > r.left &&
+          place.top < r.bottom &&
+          place.top + size.height > r.top,
+      ),
+    ).toBe(false);
+  });
+
+  it('slides a bubble pressed to the top inset sideways, clear of the chrome (no room above)', () => {
+    const size = { width: 480, height: 170 };
+    const anchor = { x: 240, y: 205 };
+    const place = placeSpeechBubble({
+      anchor,
+      size,
+      viewport,
+      insets,
+      bias: 0.6,
+      keepOut: chrome,
+    });
+    expect(overlaps(place, size)).toBe(false);
+    expect(place.top).toBe(insets.top);
+  });
+
+  it('leaves a bubble that is clear where it is', () => {
+    const size = { width: 480, height: 150 };
+    const anchor = { x: 700, y: 600 };
+    expect(
+      placeSpeechBubble({ anchor, size, viewport, insets, keepOut: chrome }),
+    ).toEqual(placeSpeechBubble({ anchor, size, viewport, insets }));
+  });
+
+  it('keeps its natural place when no clear spot is above the narrator', () => {
+    const box = { left: 12, top: 14 };
+    const size = { width: 480, height: 150 };
+    const everywhere = [{ left: 0, top: 0, right: 1440, bottom: 200 }];
+    expect(
+      clearOfChrome(box, size, everywhere, {
+        minLeft: 12,
+        maxLeft: 948,
+        minTop: 14,
+        maxBottom: 190,
+      }),
+    ).toBe(box);
+  });
+
+  it('keeps the gap from the chrome it steps beside', () => {
+    const place = clearOfChrome(
+      { left: 40, top: 30 },
+      { width: 300, height: 100 },
+      [{ left: 24, top: 24, right: 124, bottom: 120 }],
+      { minLeft: 12, maxLeft: 1128, minTop: 14, maxBottom: 400 },
+    );
+    expect(place).toEqual({ left: 124 + CHROME_GAP, top: 30 });
   });
 });

@@ -4,6 +4,7 @@ import { useFocusedLandmark } from '@qa3elhamor/landmarks-feature';
 import { useId } from 'react';
 import { formatNumber } from '../i18n/locale';
 import { useLocale } from '../i18n/locale-context';
+import { useOceanText } from '../ocean-text/ocean-text-context';
 import { fillCopy, toContentLocale } from '../overlays/overlay-copy';
 import { SITE, placeName } from '../../site.config';
 import { useTour, useTourState } from './tour-context';
@@ -221,8 +222,10 @@ export function TourCaption() {
   const index = useTourState((s) => s.stop);
   const leg = useTourState((s) => s.leg);
   const { locale, lang, dir } = useWords();
+  // Ocean text mode: the card is underwater text in the scene (`TourCaptionScene`).
+  const ocean = useOceanText();
   const stop = store.stops[index];
-  if (!flying || !stop) return null;
+  if (!flying || !stop || ocean.on) return null;
   return (
     <p
       key={leg}

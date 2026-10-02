@@ -30,6 +30,7 @@ import {
   worldPerPixel,
   type InWorldTiming,
 } from './in-world-pose';
+import { CardTitle, type InWorldCardTitle } from './in-world-card-title';
 import './in-world-card.css';
 
 export type InWorldCardPhase = 'emerging' | 'settled' | 'leaving';
@@ -55,6 +56,8 @@ export interface InWorldCardProps {
   readonly timing?: InWorldTiming;
   /** The card's DOM: real, selectable, focusable HTML. */
   readonly children: (state: InWorldCardState) => ReactNode;
+  /** A title floating over the card in the water (ocean text mode); none when left out. */
+  readonly title?: InWorldCardTitle | null;
 }
 
 /**
@@ -82,6 +85,7 @@ export function InWorldCard({
   liftPx = 28,
   timing = DEFAULT_IN_WORLD_TIMING,
   children,
+  title = null,
 }: InWorldCardProps) {
   const [phase, setPhase] = useState<InWorldCardPhase | null>(
     open ? 'emerging' : null,
@@ -115,6 +119,15 @@ export function InWorldCard({
         onSettled={() => setPhase((p) => (p === 'emerging' ? 'settled' : p))}
         onGone={() => setPhase((p) => (p === 'leaving' ? null : p))}
       />
+      {title && (
+        <CardTitle
+          title={title}
+          surface={surface}
+          settled={phase === 'settled'}
+          liftPx={liftPx}
+          reducedMotion={false}
+        />
+      )}
       <Html
         transform
         portal={portal as RefObject<HTMLElement>}
@@ -306,13 +319,13 @@ function CardPose({
     pos.addScaledVector(up, arc);
 
     const along = Math.max(offset.copy(pos).sub(camPos).dot(forward), 0.05);
-    const scale = htmlScaleFor(
-      along,
-      focal,
-      mix(DOOR_APPARENT, 1, progress),
-    );
+    const scale = htmlScaleFor(along, focal, mix(DOOR_APPARENT, 1, progress));
     if (!(scale > 0) || !Number.isFinite(pos.x + pos.y + pos.z)) return;
-    tilt.set(0, (1 - progress) * TUMBLE_YAW + bob.yaw, (1 - progress) * TUMBLE_ROLL + bob.roll);
+    tilt.set(
+      0,
+      (1 - progress) * TUMBLE_YAW + bob.yaw,
+      (1 - progress) * TUMBLE_ROLL + bob.roll,
+    );
     quat.copy(camQuat).multiply(tiltQuat.setFromEuler(tilt));
     world.compose(pos, quat, scaleVec.setScalar(scale));
 

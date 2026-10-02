@@ -11,7 +11,12 @@ import {
   Vector4,
   type ColorRepresentation,
 } from 'three';
-import { bubbleLayout, type BubbleLayout, type BubbleTailSide, type OceanTextBounds } from './ocean-bubble-layout.js';
+import {
+  bubbleLayout,
+  type BubbleLayout,
+  type BubbleTailSide,
+  type OceanTextBounds,
+} from './ocean-bubble-layout.js';
 import { OCEAN_CAUSTIC_GLSL } from './ocean-text-material.js';
 import { OceanText, type OceanTextProps } from './ocean-text.js';
 
@@ -21,11 +26,21 @@ export interface OceanBubbleProps {
   /** Space between the text and the bubble's edge, in local units. */
   readonly padding?: number;
   readonly tail?: BubbleTailSide;
+  /** Where the tail leaves the bottom edge (x, in the bounds' units); the corner when left out. */
+  readonly tailAt?: number;
+  /** How solid the glass body is: 1 the default see-through, up to ~2 for words over busy water. */
+  readonly density?: number;
   /** The glass body's colour (drawn translucent). */
   readonly color?: ColorRepresentation;
   /** The bright rim. */
   readonly rimColor?: ColorRepresentation;
   readonly reducedMotion?: boolean;
+  /** Multiplies the whole bubble, 0..1. */
+  readonly opacity?: number;
+  /** False draws over the scene, like a HUD. Default true. */
+  readonly depthTest?: boolean;
+  /** The tiny air bubbles rising off its top. Default on, off under reduced motion. */
+  readonly rising?: boolean;
   readonly renderOrder?: number;
 }
 
@@ -47,6 +62,8 @@ uniform float uUnit;
 uniform vec3 uTail[3];
 uniform vec3 uColor;
 uniform vec3 uRim;
+uniform float uOpacity;
+uniform float uDensity;
 varying vec2 vUv;
 ${OCEAN_CAUSTIC_GLSL}
 float sdRoundBox(vec2 p, vec2 b, float r) {
@@ -91,10 +108,10 @@ void main() {
 
   vec3 col = uColor * (0.75 + 0.35 * depth) + uRim * caustic * 0.12;
   col = mix(col, uRim, innerRim * 0.55) + film * innerRim * 0.22 + vec3(1.0) * (highlight + line * 0.5);
-  float alpha = inside * (0.42 + 0.18 * depth) + innerRim * 0.35 + line * 0.4 + highlight;
+  float alpha = inside * min((0.42 + 0.18 * depth) * uDensity, 0.97) + innerRim * 0.35 + line * 0.4 + highlight;
   col = mix(col, uRim, halo > 0.0 ? 1.0 : 0.0);
   alpha = max(alpha, halo);
-  gl_FragColor = vec4(col, clamp(alpha, 0.0, 1.0));
+  gl_FragColor = vec4(col, clamp(alpha, 0.0, 1.0) * uOpacity);
   #include <colorspace_fragment>
 }
 `;
@@ -120,6 +137,7 @@ void main() {
 
 const RISING_FRAGMENT = /* glsl */ `
 uniform vec3 uRim;
+uniform float uOpacity;
 varying vec2 vUv;
 varying float vLife;
 void main() {
@@ -130,7 +148,7 @@ void main() {
   float glint = exp(-dot(vUv - vec2(0.36, 0.66), vUv - vec2(0.36, 0.66)) * 90.0);
   float fade = sin(vLife * 3.14159);
   float alpha = (ring * 0.75 + disc * 0.12 + glint * 0.9) * fade;
-  gl_FragColor = vec4(mix(uRim, vec3(1.0), glint), alpha);
+  gl_FragColor = vec4(mix(uRim, vec3(1.0), glint), alpha * uOpacity);
   #include <colorspace_fragment>
 }
 `;
@@ -156,13 +174,20 @@ function createBubbleMaterials() {
     uTail: { value: [new Vector3(), new Vector3(), new Vector3()] },
     uColor: { value: new Color() },
     uRim: { value: new Color() },
+    uOpacity: { value: 1 },
+    uDensity: { value: 1 },
   };
   const rising = {
     uTime: { value: 0 },
     uSpan: { value: new Vector3() },
     uRim: { value: new Color() },
+    uOpacity: { value: 1 },
   };
-  const shared = { transparent: true, depthWrite: false, toneMapped: false } as const;
+  const shared = {
+    transparent: true,
+    depthWrite: false,
+    toneMapped: false,
+  } as const;
   const bodyMaterial = new ShaderMaterial({
     ...shared,
     vertexShader: BODY_VERTEX,
@@ -180,7 +205,10 @@ function createBubbleMaterials() {
   risingGeometry.index = plane.index;
   risingGeometry.setAttribute('position', plane.getAttribute('position'));
   risingGeometry.setAttribute('uv', plane.getAttribute('uv'));
-  risingGeometry.setAttribute('aSeed', new InstancedBufferAttribute(new Float32Array(RISING_SEEDS.flat()), 4));
+  risingGeometry.setAttribute(
+    'aSeed',
+    new InstancedBufferAttribute(new Float32Array(RISING_SEEDS.flat()), 4),
+  );
   risingGeometry.instanceCount = RISING_SEEDS.length;
 
   return {
@@ -188,6 +216,10 @@ function createBubbleMaterials() {
     bodyMaterial,
     risingMaterial,
     risingGeometry,
+    setDepthTest(depthTest: boolean) {
+      bodyMaterial.depthTest = depthTest;
+      risingMaterial.depthTest = depthTest;
+    },
     applyLayout(layout: BubbleLayout) {
       const { quad } = layout;
       const unit = Math.min(layout.halfHeight * 2, 1.2);
@@ -217,21 +249,39 @@ export function OceanBubble({
   bounds,
   padding = 0.14,
   tail = 'left',
+  tailAt,
+  density = 1,
   color = '#0b4a63',
   rimColor = '#9ff4ff',
   reducedMotion = false,
+  opacity = 1,
+  depthTest = true,
+  rising = !reducedMotion,
   renderOrder = 0,
 }: OceanBubbleProps) {
   const bubble = useMemo(createBubbleMaterials, []);
   useEffect(() => () => bubble.dispose(), [bubble]);
 
-  const layout = useMemo(() => bubbleLayout(bounds, padding, tail), [bounds, padding, tail]);
+  const layout = useMemo(
+    () => bubbleLayout(bounds, padding, tail, tailAt),
+    [bounds, padding, tail, tailAt],
+  );
+  useEffect(() => {
+    bubble.uniforms.body.uDensity.value = Math.max(0, density);
+  }, [bubble, density]);
   useEffect(() => bubble.applyLayout(layout), [bubble, layout]);
   useEffect(() => {
     bubble.uniforms.body.uColor.value.set(color);
     bubble.uniforms.body.uRim.value.set(rimColor);
     bubble.uniforms.rising.uRim.value.set(rimColor);
   }, [bubble, color, rimColor]);
+
+  useEffect(() => bubble.setDepthTest(depthTest), [bubble, depthTest]);
+  const fade = Math.min(1, Math.max(0, opacity));
+  useEffect(() => {
+    bubble.uniforms.body.uOpacity.value = fade;
+    bubble.uniforms.rising.uOpacity.value = fade;
+  }, [bubble, fade]);
 
   useFrame((state) => {
     const time = reducedMotion ? 0 : state.clock.elapsedTime;
@@ -242,7 +292,7 @@ export function OceanBubble({
 
   const { quad } = layout;
   return (
-    <group position={[layout.centerX, layout.centerY, 0]}>
+    <group position={[layout.centerX, layout.centerY, 0]} visible={fade > 0}>
       <mesh
         position={[(quad.minX + quad.maxX) / 2, (quad.minY + quad.maxY) / 2, 0]}
         scale={[quad.maxX - quad.minX, quad.maxY - quad.minY, 1]}
@@ -251,7 +301,7 @@ export function OceanBubble({
       >
         <planeGeometry args={[1, 1]} />
       </mesh>
-      {reducedMotion ? null : (
+      {!rising ? null : (
         <mesh
           geometry={bubble.risingGeometry}
           material={bubble.risingMaterial}
@@ -296,10 +346,17 @@ export function OceanSpeechBubble({
           color={bubbleColor}
           rimColor={rimColor}
           reducedMotion={text.reducedMotion}
+          opacity={text.opacity}
+          depthTest={text.depthTest}
           renderOrder={renderOrder - 1}
         />
       ) : null}
-      <OceanText {...text} position={[0, 0, 0.01]} renderOrder={renderOrder} onLayout={handleLayout} />
+      <OceanText
+        {...text}
+        position={[0, 0, 0.01]}
+        renderOrder={renderOrder}
+        onLayout={handleLayout}
+      />
     </group>
   );
 }

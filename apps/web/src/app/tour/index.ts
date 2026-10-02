@@ -10,6 +10,7 @@ export {
   TourReplay,
 } from './tour-chrome';
 export { TourIntroScene } from './tour-intro-scene';
+export { TourCaptionScene } from './tour-caption-scene';
 export {
   introStyle,
   tourStops,

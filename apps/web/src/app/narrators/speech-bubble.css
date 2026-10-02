@@ -332,3 +332,142 @@
 .speech[data-greet] .speech__who {
   max-width: calc(100% - 9rem);
 }
+
+/*
+ * Ocean mode (`data-ocean`): the line, the name tag and the tail are drawn in the water by the
+ * bubble's twin (`OceanSpeech`), exactly over this box. The box stays, transparent: the click
+ * target, the focus ring, the accessible text (visually hidden, still read and focused), and its
+ * buttons as small glass pills along the drawn bubble's bottom. `--ocean-w` and
+ * `--ocean-text-h` come from the drawn text's layout. The padding is `OCEAN_SPEECH_PAD_PX`.
+ */
+.speech-box[data-ocean] {
+  width: var(--ocean-w, min(30rem, calc(100vw - 1.5rem)));
+  /* The name tag's room over the glass (`OCEAN_SPEECH_TAG_ROOM_PX`): the tag stays in the box. */
+  padding-top: 16px;
+}
+
+.speech-box[data-ocean] .speech {
+  padding: 20px 20px 16px;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  color: #eafcff;
+  animation: none;
+}
+
+.speech-box[data-ocean] .speech__who,
+.speech-box[data-ocean] .speech__line {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.speech-box[data-ocean] .speech__tail {
+  display: none;
+}
+
+.speech__ocean {
+  height: var(--ocean-text-h, 3.25rem);
+}
+
+.speech-box[data-ocean] .speech__footer {
+  justify-content: center;
+  margin-top: 0.75rem;
+  animation: speech-ocean-in 360ms ease-out 140ms both;
+}
+
+.speech-box[data-ocean] .speech__button,
+.speech-box[data-ocean] .speech__greet {
+  border: 1.5px solid rgba(159, 244, 255, 0.55);
+  background: rgba(4, 36, 56, 0.62);
+  color: #eafcff;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    0 4px 14px rgba(0, 10, 25, 0.35);
+  backdrop-filter: blur(4px);
+}
+
+.speech-box[data-ocean] .speech__button {
+  min-height: 2.25rem;
+  padding: 0 0.95rem;
+  font-size: 0.875rem;
+}
+
+.speech-box[data-ocean] .speech__button:hover {
+  border-color: rgba(190, 250, 255, 0.9);
+  background: rgba(10, 62, 88, 0.75);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    0 0 14px rgba(79, 227, 255, 0.35);
+}
+
+.speech-box[data-ocean] .speech__button:active {
+  transform: translateY(1px);
+}
+
+.speech-box[data-ocean] .speech__button--primary {
+  border-color: rgba(200, 252, 255, 0.85);
+  background: linear-gradient(180deg, rgba(72, 214, 245, 0.7), rgba(12, 92, 118, 0.85));
+  color: #ffffff;
+}
+
+.speech-box[data-ocean] .speech__button--quiet {
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  color: #bdf0ff;
+}
+
+.speech-box[data-ocean] .speech__button:focus-visible,
+.speech-box[data-ocean] .speech__greet:focus-visible {
+  outline: 3px solid #ffd68c;
+  outline-offset: 2px;
+}
+
+.speech-box[data-ocean] .speech__dot {
+  border-color: rgba(159, 244, 255, 0.8);
+}
+
+.speech-box[data-ocean] .speech__dot[data-on] {
+  background: #9ff4ff;
+  box-shadow: 0 0 6px rgba(159, 244, 255, 0.8);
+}
+
+.speech-box[data-ocean] .speech__chip {
+  border-color: rgba(159, 244, 255, 0.5);
+  background: rgba(127, 211, 240, 0.16);
+  color: #eafaff;
+}
+
+.speech-box[data-ocean] .speech__greet {
+  inset-block-start: -0.85rem;
+  color: #d8f8ff;
+  opacity: 0.9;
+}
+
+@keyframes speech-ocean-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .speech-box[data-ocean] .speech__footer {
+    animation: none;
+  }
+}
+
+/*
+ * The keyboard's ring on the drawn bubble is its glass rim turning gold (`OceanSpeech`): an
+ * outline here would cut through the name tag sitting on the rim.
+ */
+.speech-box[data-ocean] .speech:focus-visible {
+  outline: none;
+}

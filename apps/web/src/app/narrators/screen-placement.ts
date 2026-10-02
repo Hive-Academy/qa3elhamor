@@ -24,6 +24,17 @@ export interface ScreenInsets {
 
 export const NO_INSETS: ScreenInsets = { top: 0, right: 0, bottom: 0, left: 0 };
 
+/** A rectangle on screen, in CSS pixels. */
+export interface ScreenRect {
+  readonly left: number;
+  readonly top: number;
+  readonly right: number;
+  readonly bottom: number;
+}
+
+/** Room a speech bubble keeps from the page chrome it steps around. */
+export const CHROME_GAP = 14;
+
 /** The least room a speech bubble keeps from the browser window's edges. */
 export const WINDOW_MARGIN = 12;
 
@@ -89,6 +100,11 @@ export interface SpeechBubbleInput {
   readonly tail?: number;
   /** Where along its width the bubble sits over the anchor: 0 = its left edge. Default 0.3. */
   readonly bias?: number;
+  /**
+   * The page's fixed chrome (credits, language switch, depth gauge, sound switch, tour bar,
+   * landmark list): the bubble steps around these, never over or under them.
+   */
+  readonly keepOut?: readonly ScreenRect[];
 }
 
 /** Room the tail keeps from the bubble's rounded corners. */
@@ -108,6 +124,7 @@ export function placeSpeechBubble({
   insets = NO_INSETS,
   tail = 22,
   bias = 0.3,
+  keepOut,
 }: SpeechBubbleInput): SpeechBubblePlacement {
   const visible =
     Number.isFinite(anchor.x) &&
@@ -118,12 +135,22 @@ export function placeSpeechBubble({
     anchor.y < viewport.height + OFFSCREEN_SLACK;
   const ax = Number.isFinite(anchor.x) ? anchor.x : viewport.width / 2;
   const ay = Number.isFinite(anchor.y) ? anchor.y : viewport.height / 2;
-  const left = clamp(
-    ax - size.width * bias,
-    insets.left,
-    viewport.width - insets.right - size.width,
-  );
-  const top = Math.max(ay - tail - size.height, insets.top);
+  const minLeft = insets.left;
+  const maxLeft = viewport.width - insets.right - size.width;
+  const natural = {
+    left: clamp(ax - size.width * bias, minLeft, maxLeft),
+    top: Math.max(ay - tail - size.height, insets.top),
+  };
+  const { left, top } = keepOut?.length
+    ? clearOfChrome(natural, size, keepOut, {
+        minLeft,
+        maxLeft,
+        minTop: insets.top,
+        // Never down over the narrator: its bottom stays above the anchor, a short tail between.
+        // (A bubble already pressed down to the top inset may move sideways at that height.)
+        maxBottom: Math.max(ay - tail * 0.5, natural.top + size.height),
+      })
+    : natural;
   const tailX = clamp(ax - left, TAIL_CORNER, size.width - TAIL_CORNER);
   const tailLength = Math.max(ay - (top + size.height), tail * 0.5);
   return {
@@ -136,6 +163,55 @@ export function placeSpeechBubble({
     ),
     tailLength: Math.round(tailLength),
   };
+}
+
+/**
+ * The nearest spot to `box` that clears every `keepOut` rectangle (with `CHROME_GAP`), within the
+ * limits: beside a piece of chrome, under it, or both (under one, beside another). `box` itself
+ * when it is clear, or when no spot is (the bubble then keeps its natural place).
+ */
+export function clearOfChrome(
+  box: { readonly left: number; readonly top: number },
+  size: BoxSize,
+  keepOut: readonly ScreenRect[],
+  limits: {
+    readonly minLeft: number;
+    readonly maxLeft: number;
+    readonly minTop: number;
+    readonly maxBottom: number;
+  },
+): { readonly left: number; readonly top: number } {
+  const g = CHROME_GAP;
+  const hits = (left: number, top: number): boolean =>
+    keepOut.some(
+      (r) =>
+        left < r.right + g &&
+        left + size.width > r.left - g &&
+        top < r.bottom + g &&
+        top + size.height > r.top - g,
+    );
+  if (!hits(box.left, box.top)) return box;
+  const xs = [box.left];
+  const ys = [box.top];
+  for (const r of keepOut) {
+    xs.push(r.right + g, r.left - g - size.width);
+    ys.push(r.bottom + g);
+  }
+  let best: { left: number; top: number } | null = null;
+  let bestCost = Infinity;
+  for (const left of xs) {
+    if (left < limits.minLeft || left > limits.maxLeft) continue;
+    for (const top of ys) {
+      if (top < limits.minTop || top + size.height > limits.maxBottom) continue;
+      if (hits(left, top)) continue;
+      const cost = Math.abs(left - box.left) + Math.abs(top - box.top);
+      if (cost < bestCost) {
+        bestCost = cost;
+        best = { left, top };
+      }
+    }
+  }
+  return best ?? box;
 }
 
 export type PanelSide = 'left' | 'right' | 'above' | 'below';

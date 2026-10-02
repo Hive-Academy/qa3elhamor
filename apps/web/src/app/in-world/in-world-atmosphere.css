@@ -21,7 +21,25 @@
     rgba(6, 20, 44, 0.7) 100%
   );
   backdrop-filter: blur(2.5px) saturate(0.75);
-  mask-image: radial-gradient(ellipse 62% 58% at 50% 50%, transparent 52%, #000 88%);
+  /*
+   * Masked to the rim, less two soft windows over words drawn in the water (the narrator's
+   * underwater bubble, a card's title: `setVeilHole`, `--veil-a-*` / `--veil-b-*`; zero-size when
+   * closed). Composited bottom up: window b, plus window a, taken from the rim.
+   */
+  mask-image:
+    radial-gradient(ellipse 62% 58% at 50% 50%, transparent 52%, #000 88%),
+    radial-gradient(closest-side, #000 72%, transparent 100%),
+    radial-gradient(closest-side, #000 72%, transparent 100%);
+  mask-size:
+    100% 100%,
+    var(--veil-a-w, 0px) var(--veil-a-h, 0px),
+    var(--veil-b-w, 0px) var(--veil-b-h, 0px);
+  mask-position:
+    0 0,
+    var(--veil-a-x, 0px) var(--veil-a-y, 0px),
+    var(--veil-b-x, 0px) var(--veil-b-y, 0px);
+  mask-repeat: no-repeat;
+  mask-composite: subtract, add;
   transition: opacity 700ms ease 120ms;
 }
 
@@ -97,6 +115,21 @@
 :root[data-in-world] .scene-note {
   opacity: 0;
   visibility: hidden;
+}
+
+/*
+ * With the narrator's words drawn in the water (`data-ocean-text`), its bubble sits under the
+ * page chrome rather than over it: the sound switch steps back like the rest of the chrome, so
+ * it never sits solid over the words. Pointing at it or focusing it brings it back.
+ */
+:root[data-in-world][data-ocean-text='on'] .sound-toggle {
+  opacity: 0.16;
+  transition: opacity 500ms ease;
+}
+
+:root[data-in-world][data-ocean-text='on'] .sound-toggle:hover,
+:root[data-in-world][data-ocean-text='on'] .sound-toggle:focus-visible {
+  opacity: 1;
 }
 
 :root[data-in-world] .lmk-index:hover,
